@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/detail
+    @template block_vitrinadb/detail
 
     This template renders the template content area for a resource.
 
@@ -94,7 +94,7 @@
 
 {{#course}}
 <div class="catalog-return">
-    <a href="{{baseurl}}/blocks/vitrina/">{{#pix}}i/return, core{{/pix}}  {{#str}}returntocatalog, block_vitrina{{/str}}</a>
+    <a href="{{baseurl}}/blocks/vitrinadb/">{{#pix}}i/return, core{{/pix}}  {{#str}}returntocatalog, block_vitrinadb{{/str}}</a>
 </div>
 <div class="course-detail coursecategory-{{category}} {{#premium}}type-premium{{/premium}}">
     <div class="coursebanner-box">
@@ -114,15 +114,15 @@
                 <label>{{formated}}</label>
                 <div class="vitrina-ranking-stars">
                     <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
-                    {{#pix}}stars_empty, block_vitrina{{/pix}}
+                    {{#pix}}stars_empty, block_vitrinadb{{/pix}}
                 </div>
             </div>
             <div>
-                <label>{{#str}}ratingslabel, block_vitrina, {{count}} {{/str}}</label>
+                <label>{{#str}}ratingslabel, block_vitrinadb, {{count}} {{/str}}</label>
             </div>
             {{/rating}}
             <div>
-                <label>{{#str}}commentslabel, block_vitrina, {{commentscount}} {{/str}}</label>
+                <label>{{#str}}commentslabel, block_vitrinadb, {{commentscount}} {{/str}}</label>
             </div>
         </div>
 
@@ -143,11 +143,11 @@
 
     <div class="share-container">
         <div class="content-layout">
-            <h3>{{#str}}sharecourse, block_vitrina{{/str}}</h3>
+            <h3>{{#str}}sharecourse, block_vitrinadb{{/str}}</h3>
 
             <div class="share-content">
                 <div>
-                    {{#str}}sharecoursedesc, block_vitrina{{/str}}
+                    {{#str}}sharecoursedesc, block_vitrinadb{{/str}}
                 </div>
                 <div class="share-icons">
                 {{#networks}}
@@ -194,7 +194,7 @@
                 {{/media}}
             {{/custom}}
             <div class="enroll-content enrollstate-{{enrollstate}}">
-                {{> block_vitrina/enrollcontainer}}
+                {{> block_vitrinadb/enrollcontainer}}
             </div>
         </div>
     </div>
@@ -244,10 +244,10 @@
 
     {{#hasrelated}}
         <div class="relatedcourses">
-            <h3>{{#str}}relatedcourses, block_vitrina{{/str}}</h3>
+            <h3>{{#str}}relatedcourses, block_vitrinadb{{/str}}</h3>
             <div class="block_vitrina-courseslist">
                 {{#related}}
-                    {{>block_vitrina/course}}
+                    {{>block_vitrinadb/course}}
                 {{/related}}
             </div>
         </div>
@@ -260,13 +260,13 @@
                     <label>{{formated}}</label>
                     <div class="vitrina-ranking-stars">
                         <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
-                        {{#pix}}stars_empty, block_vitrina{{/pix}}
+                        {{#pix}}stars_empty, block_vitrinadb{{/pix}}
                     </div>
                 </div>
                 <div>
                     {{#detail}}
                     <div class="ranking-detail-item">
-                        <label>{{#str}} countstars, block_vitrina, {{value}} {{/str}}</label>
+                        <label>{{#str}} countstars, block_vitrinadb, {{value}} {{/str}}</label>
                         <div class="rating-bar"><div style="width: {{avg}}%"></div></div>
                         <div>{{avg}}%</div>
                     </div>
@@ -276,7 +276,7 @@
         {{/rating}}
         {{#hascomments}}
             <div class="course-comments">
-                <h3>{{#str}}commentstitle, block_vitrina{{/str}}</h3>
+                <h3>{{#str}}commentstitle, block_vitrinadb{{/str}}</h3>
                 {{#comments}}
                     <div>
                         <img src="{{userpicture}}" class="userpicture" alt="{{userfirstname}}">

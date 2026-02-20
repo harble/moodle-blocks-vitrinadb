@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/course
+    @template block_vitrinadb/course
 
     This template renders the template content area for a resource.
 
@@ -54,22 +54,22 @@
             {{#rating}}
             <div class="vitrina-ranking-stars">
                 <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
-                {{#pix}}stars_empty, block_vitrina{{/pix}}
+                {{#pix}}stars_empty, block_vitrinadb{{/pix}}
             </div>
             {{/rating}}
         {{/hasrating}}
     </div>
     <div class="panel-body clearfix">
-        <a class="" title="{{{shortname}}}" href="{{{baseurl}}}/blocks/vitrina/detail.php?id={{{id}}}">
+        <a class="" title="{{{shortname}}}" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}">
             {{{fullname}}}
         </a>
         {{#fee}}
             <div class="coursefee">
                 <div class="feeinfo">
-                    {{#str}} feeinfoinlist, block_vitrina, {{formatedcost}} {{/str}}
+                    {{#str}} feeinfoinlist, block_vitrinadb, {{formatedcost}} {{/str}}
                 </div>
                 {{#hascart}}
-                    {{> block_vitrina/cartbutton}}
+                    {{> block_vitrinadb/cartbutton}}
                 {{/hascart}}
             </div>
         {{/fee}}
@@ -78,17 +78,17 @@
         {{#hasprogress}}
             <div class="course-progress">
                 <div class="course-progress-bar" style="width: {{progress}}%;"></div>
-                <span>{{#str}}completepercent, block_vitrina, {{progress}}{{/str}}</span>
+                <span>{{#str}}completepercent, block_vitrinadb, {{progress}}{{/str}}</span>
             </div>
         {{/hasprogress}}
-        <a class="coursebtn submit btn btn-info btn-sm" href="{{{baseurl}}}/blocks/vitrina/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
+        <a class="coursebtn submit btn btn-info btn-sm" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
             <span class="get_stringlink">
-                {{#str}} showmore, block_vitrina {{/str}}
-                {{#pix}} i/next, core, {{#str}} showmore, block_vitrina {{/str}} {{/pix}}
+                {{#str}} showmore, block_vitrinadb {{/str}}
+                {{#pix}} i/next, core, {{#str}} showmore, block_vitrinadb {{/str}} {{/pix}}
             </span>
         </a>
     </div>
     {{^active}}
-        <div class="waiting-label">{{#str}}waiting, block_vitrina{{/str}}</div>
+        <div class="waiting-label">{{#str}}waiting, block_vitrinadb{{/str}}</div>
     {{/active}}
 </div>

@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/enrollcontainer
+    @template block_vitrinadb/enrollcontainer
 
     This template renders the template content area for a resource.
 
@@ -58,19 +58,19 @@
             </form>
         {{/enrollform}}
         {{#requireauth}}
-            <div class="requireauth">{{#str}} requireauth, block_vitrina, {{{requireauthurl}}} {{/str}}</div>
+            <div class="requireauth">{{#str}} requireauth, block_vitrinadb, {{{requireauthurl}}} {{/str}}</div>
         {{/requireauth}}
         {{#haspaymentgw}}
             {{^requireauth}}
                 {{#fee}}
                     <div class="feeinfo">
-                        {{#str}} feeinfo, block_vitrina, {{formatedcost}} {{/str}}
+                        {{#str}} feeinfo, block_vitrinadb, {{formatedcost}} {{/str}}
                     </div>
                     {{#hascart}}
-                        {{> block_vitrina/cartbutton}}
+                        {{> block_vitrinadb/cartbutton}}
                     {{/hascart}}
                     {{^hascart}}
-                        {{> block_vitrina/paymentbutton}}
+                        {{> block_vitrinadb/paymentbutton}}
                     {{/hascart}}
                 {{/fee}}
             {{/requireauth}}

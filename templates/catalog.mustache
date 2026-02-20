@@ -15,13 +15,13 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/catalog
+    @template block_vitrinadb/catalog
 
     This template renders the template content area for a resource.
 
     Example context (json):
     {
-        "uniqueid": "block_vitrina_1",
+        "uniqueid": "block_vitrinadb_1",
         "filterproperties": {
             "fulltext": true
         },
@@ -63,7 +63,7 @@
             {{#filterproperties}}
                 {{#fulltext}}
                     <div class="filterfulltext input-group">
-                        <input type="text" class="form-control" name="q" placeholder="{{#str}}fulltextsearch, block_vitrina{{/str}}">
+                        <input type="text" class="form-control" name="q" placeholder="{{#str}}fulltextsearch, block_vitrinadb{{/str}}">
                         <div class="input-group-append">
                             <button class="btn btn-primary" type="button">{{#pix}}i/search, core{{/pix}}</button>
                         </div>
@@ -71,7 +71,7 @@
                 {{/fulltext}}
 
                 <div class="filtersortgroup">
-                    <label for="vitrina-sortby-{{uniqueid}}">{{#str}}sortlabel, block_vitrina{{/str}}</label>
+                    <label for="vitrina-sortby-{{uniqueid}}">{{#str}}sortlabel, block_vitrinadb{{/str}}</label>
                     <div class="row">
                         <div class="col-8 filtersort">
                             <select id="vitrina-sortby-{{uniqueid}}" name="sort" class="form-control">
@@ -95,7 +95,7 @@
                         <h5>{{title}}</h5>
                         <ul class="filteroptions">
                             {{#options}}
-                                {{>block_vitrina/filterchild}}
+                                {{>block_vitrinadb/filterchild}}
                             {{/options}}
                         </ul>
                     </div>
@@ -106,14 +106,14 @@
 
     <div id="vitrina-resultscol">
 
-        {{>block_vitrina/tabs}}
+        {{>block_vitrinadb/tabs}}
 
         <div class="tabs-content block_vitrina-courseslist">
             {{#tabs}}
                 <div class="courses tab-{{key}} block_vitrina-tabcontent {{state}} loading" data-view="{{key}}">
                     <div class="courses-list"></div>
                     <div class="nocourses alert alert-dismissible alert-warning hidden"></div>
-                    <button class="loadmore btn  btn-block btn-primary btn-lg"> {{#str}} loadmore, block_vitrina {{/str}} </button>
+                    <button class="loadmore btn  btn-block btn-primary btn-lg"> {{#str}} loadmore, block_vitrinadb {{/str}} </button>
                 </div>
             {{/tabs}}
         </div>

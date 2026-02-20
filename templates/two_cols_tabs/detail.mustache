@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/two_cols_tabs/detail
+    @template block_vitrinadb/two_cols_tabs/detail
 
     This template renders the template content area for a resource.
 
@@ -90,7 +90,7 @@
 
 {{#course}}
 <div class="catalog-return">
-    <a href="{{baseurl}}/blocks/vitrina/" class="btn btn-secondary">{{#pix}}i/return, core{{/pix}}  {{#str}}returntocatalog, block_vitrina{{/str}}</a>
+    <a href="{{baseurl}}/blocks/vitrinadb/" class="btn btn-secondary">{{#pix}}i/return, core{{/pix}}  {{#str}}returntocatalog, block_vitrinadb{{/str}}</a>
 </div>
 <div class="course-detail coursecategory-{{category}} {{#premium}}type-premium{{/premium}} container">
     <div class="coursetitle-box d-md-none">
@@ -102,7 +102,7 @@
                     <div class="vitrina-ranking-stars">
                         <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
                     </div>
-                    <span>({{count}} {{#str}}ratings, block_vitrina{{/str}})</span>
+                    <span>({{count}} {{#str}}ratings, block_vitrinadb{{/str}})</span>
                 </div>
             </a>
         {{/rating}}
@@ -119,7 +119,7 @@
                             <div class="vitrina-ranking-stars">
                                 <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
                             </div>
-                            <span>({{count}} {{#str}}ratings, block_vitrina{{/str}})</span>
+                            <span>({{count}} {{#str}}ratings, block_vitrinadb{{/str}})</span>
                         </div>
                     </a>
                 {{/rating}}
@@ -221,11 +221,11 @@
                 </div>
 
                 <div class="enroll-content enrollstate-{{enrollstate}}">
-                    {{> block_vitrina/enrollcontainer}}
+                    {{> block_vitrinadb/enrollcontainer}}
                 </div>
 
                 <div class="share-container">
-                    <h3>{{#str}}sharecourse, block_vitrina{{/str}}</h3>
+                    <h3>{{#str}}sharecourse, block_vitrinadb{{/str}}</h3>
 
                     <div class="input-container">
                         <div class="input-group">
@@ -257,7 +257,7 @@
 
     {{#rating}}
         <div id="rating-detail" class="course-rating-detail">
-            {{#hascomments}}<h3>{{#str}}commentstitlealternate, block_vitrina{{/str}}</h3>{{/hascomments}}
+            {{#hascomments}}<h3>{{#str}}commentstitlealternate, block_vitrinadb{{/str}}</h3>{{/hascomments}}
 
             <div class="ratings-box {{#rating}}has_rating{{/rating}} {{#hascomments}}has_comments{{/hascomments}}">
                 {{#hascomments}}
@@ -280,7 +280,7 @@
                         {{/latestcomments}}
                         <div class="box-show-more-comments">
                             <button class="btn text-primary" data-toggle="modal" data-target="#all-comments-modal">
-                                <span class="more">{{#str}} showallcomments, block_vitrina {{/str}} ({{commentscount}})</span>
+                                <span class="more">{{#str}} showallcomments, block_vitrinadb {{/str}} ({{commentscount}})</span>
                             </button>
                         </div>
                         <div
@@ -293,7 +293,7 @@
                         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg all-comments-modal">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-label">{{#str}} commentsmodaltitle, block_vitrina {{/str}}</h5>
+                                    <h5 class="modal-label">{{#str}} commentsmodaltitle, block_vitrinadb {{/str}}</h5>
                                     <button
                                     type="button"
                                     class="close"
@@ -336,7 +336,7 @@
                         <div>
                             {{#detail}}
                             <div class="ranking-detail-item">
-                                <label>{{#str}} countstars, block_vitrina, {{value}} {{/str}}</label>
+                                <label>{{#str}} countstars, block_vitrinadb, {{value}} {{/str}}</label>
                                 <div class="rating-bar"><div style="width: {{avg}}%"></div></div>
                                 <div>{{avg}}%</div>
                             </div>
@@ -350,11 +350,11 @@
 
     {{#hasrelated}}
         <div class="relatedcourses">
-            <h3>{{#str}}relatedcourses, block_vitrina{{/str}}</h3>
+            <h3>{{#str}}relatedcourses, block_vitrinadb{{/str}}</h3>
             <div class="block_vitrina-courseslist">
                 <div class="courses-list">
                     {{#related}}
-                        {{>block_vitrina/two_cols_tabs/course}}
+                        {{>block_vitrinadb/two_cols_tabs/course}}
                     {{/related}}
                 </div>
             </div>

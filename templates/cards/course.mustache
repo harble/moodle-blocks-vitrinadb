@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/cards/course
+    @template block_vitrinadb/cards/course
 
     This template renders the template content area for a resource.
 
@@ -47,7 +47,7 @@
         {{#rating}}
         <div class="vitrina-ranking-stars">
             <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
-            {{#pix}}stars_empty, block_vitrina{{/pix}}
+            {{#pix}}stars_empty, block_vitrinadb{{/pix}}
         </div>
         {{/rating}}
     {{/hasrating}}
@@ -59,17 +59,17 @@
         {{#fee}}
             <div class="coursefee">
                 <div class="feeinfo">
-                    {{#str}} feeinfoinlist, block_vitrina, {{formatedcost}} {{/str}}
+                    {{#str}} feeinfoinlist, block_vitrinadb, {{formatedcost}} {{/str}}
                 </div>
                 {{#hascart}}
-                    {{> block_vitrina/cartbutton}}
+                    {{> block_vitrinadb/cartbutton}}
                 {{/hascart}}
             </div>
         {{/fee}}
         {{#hasprogress}}
             <div class="course-progress">
                 <div class="course-progress-bar" style="width: {{progress}}%;"></div>
-                <span>{{#str}}completepercent, block_vitrina, {{progress}}{{/str}}</span>
+                <span>{{#str}}completepercent, block_vitrinadb, {{progress}}{{/str}}</span>
             </div>
         {{/hasprogress}}
 
@@ -77,13 +77,13 @@
             <div class="coursesummary">
                 {{{summary}}}
             </div>
-            <a  title="{{{shortname}}}" class="coursebtn submit btn btn-primary" href="{{{baseurl}}}/blocks/vitrina/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
-                <span class="get_stringlink">{{# str }} showmore, block_vitrina {{/ str }}</span>
+            <a  title="{{{shortname}}}" class="coursebtn submit btn btn-primary" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
+                <span class="get_stringlink">{{# str }} showmore, block_vitrinadb {{/ str }}</span>
             </a>
         </div>
 
     </div>
     {{^active}}
-        <div class="waiting-label">{{#str}}waiting, block_vitrina{{/str}}</div>
+        <div class="waiting-label">{{#str}}waiting, block_vitrinadb{{/str}}</div>
     {{/active}}
 </div>

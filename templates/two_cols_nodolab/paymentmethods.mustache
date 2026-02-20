@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/two_cols_nodolab/paymentmethods
+    @template block_vitrinadb/two_cols_nodolab/paymentmethods
 
     This template renders the template content for the payment methods collapse block.
 
@@ -25,13 +25,13 @@
 
 <p>
 <button class="btn btn-primary collapsed" type="button" data-toggle="collapse" data-target="#paymentsCollapse" aria-expanded="false" aria-controls="paymentsCollapse">
-    {{#str}}paymentmethods, block_vitrina {{/str}} <i class="icon fa fa-angle-down"></i>
+    {{#str}}paymentmethods, block_vitrinadb {{/str}} <i class="icon fa fa-angle-down"></i>
 </button>
 </p>
 <div class="collapse" id="paymentsCollapse">
     <div class="payments-content">
         <div class="payment-info">
-            <p>{{#str}} paymentinfo, block_vitrina {{/str}}</p>
+            <p>{{#str}} paymentinfo, block_vitrinadb {{/str}}</p>
         </div>
         <div class="payment-methods">
         {{#enrollurl}}

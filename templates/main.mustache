@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/main
+    @template block_vitrinadb/main
 
     This template renders the template content area for a resource.
 
@@ -27,7 +27,7 @@
 
 <div id="{{uniqueid}}" class="block_vitrina-content" data-observe-resizes>
 
-    {{>block_vitrina/tabs}}
+    {{>block_vitrinadb/tabs}}
 
     <div class="tabs-content block_vitrina-courseslist">
         {{#tabs}}
@@ -36,8 +36,8 @@
                 <div class="courses-list"></div>
                 <div class="nocourses alert alert-dismissible alert-warning hidden"></div>
 
-                <a href="{{baseurl}}/blocks/vitrina/?view={{key}}&id={{instanceid}}" target="{{opendetailstarget}}" class="btn btn-primary btn-block loadmore">
-                    {{#str}}viewall, block_vitrina{{/str}}
+                <a href="{{baseurl}}/blocks/vitrinadb/?view={{key}}&id={{instanceid}}" target="{{opendetailstarget}}" class="btn btn-primary btn-block loadmore">
+                    {{#str}}viewall, block_vitrinadb{{/str}}
                 </a>
 
             </div>
