@@ -181,7 +181,7 @@ class get_courses extends external_api {
         );
 
         $response = [];
-        $renderer = $PAGE->get_renderer('block_vitrina');
+        $renderer = $PAGE->get_renderer('block_vitrinadb');
 
         foreach ($courses as $course) {
             \block_vitrinadb\local\controller::course_preprocess($course);

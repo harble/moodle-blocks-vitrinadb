@@ -162,8 +162,8 @@ class catalog implements renderable, templatable {
         }
 
         $sortdirectionlabels = [
-            'asc' => get_string('sortdirection_asc', 'block_vitrina'),
-            'desc' => get_string('sortdirection_desc', 'block_vitrina'),
+            'asc' => get_string('sortdirection_asc', 'block_vitrinadb'),
+            'desc' => get_string('sortdirection_desc', 'block_vitrinadb'),
         ];
 
         $sortdirectionoptions = [];
@@ -180,15 +180,15 @@ class catalog implements renderable, templatable {
             'baseurl' => $CFG->wwwroot,
             'hastabs' => count($showtabs) > 1,
             'tabs' => $showtabs,
-            'showicon' => \block_vitrina\local\controller::show_tabicon(),
-            'showtext' => \block_vitrina\local\controller::show_tabtext(),
+            'showicon' => \block_vitrinadb\local\controller::show_tabicon(),
+            'showtext' => \block_vitrinadb\local\controller::show_tabtext(),
             'filtercontrols' => $filtercontrols,
             'filterproperties' => $filterproperties,
             'sortoptions' => $sortoptions,
             'sortdirectionoptions' => $sortdirectionoptions,
             'catfilterview' => $catfilterview,
-            // 'opendetailstarget' => get_config('block_vitrina', 'opendetailstarget'),
-            'opendetailstarget' => main::get_config_ex( $this->instanceid?: 0,'block_vitrina', 'opendetailstarget'),
+            // 'opendetailstarget' => get_config('block_vitrinadb', 'opendetailstarget'),
+            'opendetailstarget' => main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'opendetailstarget'),
         ];
 
         return $defaultvariables;

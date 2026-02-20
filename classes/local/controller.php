@@ -597,13 +597,13 @@ class controller {
         global $CFG, $PAGE;
 
         // $template = get_config('block_vitrinadb', 'templatetype');
-        $template = \block_vitrina\output\main::get_config_ex( $instanceid?:0,'block_vitrina', 'templatetype');
+        $template = \block_vitrinadb\output\main::get_config_ex($instanceid ?: 0, 'block_vitrinadb', 'templatetype');
 
-        $csspath = $CFG->dirroot . '/blocks/vitrina/templates/' . $template . '/styles.css';
+        $csspath = $CFG->dirroot . '/blocks/vitrinadb/templates/' . $template . '/styles.css';
 
         // If the template is not the default and a templace CSS file exist, include the CSS file.
         if ($template != 'default' && file_exists($csspath)) {
-            $PAGE->requires->css('/blocks/vitrina/templates/' . $template . '/styles.css');
+            $PAGE->requires->css('/blocks/vitrinadb/templates/' . $template . '/styles.css');
         }
     }
 
@@ -613,7 +613,7 @@ class controller {
      * @return string Unique identifier.
      */
     public static function get_uniqueid() {
-        $uniqueid = 'block_vitrina_' . self::$instancescounter;
+        $uniqueid = 'block_vitrinadb_' . self::$instancescounter;
         self::$instancescounter++;
 
         return $uniqueid;
@@ -1333,10 +1333,10 @@ class controller {
 
         switch ($rateplugin) {
             case 'tool_courserating':
-                return '\block_vitrina\local\rating\tool_courserating';
+                return '\block_vitrinadb\local\rating\tool_courserating';
             break;
             default:
-                return '\block_vitrina\local\rating\base';
+                return '\block_vitrinadb\local\rating\base';
         }
     }
 
@@ -1349,10 +1349,10 @@ class controller {
 
         switch ($commentsplugin) {
             case 'tool_courserating':
-                return '\block_vitrina\local\comments\tool_courserating';
+                return '\block_vitrinadb\local\comments\tool_courserating';
             break;
             default:
-                return '\block_vitrina\local\comments\base';
+                return '\block_vitrinadb\local\comments\base';
         }
     }
 }

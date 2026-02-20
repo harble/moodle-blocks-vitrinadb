@@ -256,12 +256,12 @@ do {
     }
 } while (false); // Trick to avoid nesting of IF statements.
 
-\block_vitrina\local\controller::include_templatecss();
+\block_vitrinadb\local\controller::include_templatecss();
 
 echo $OUTPUT->header();
 
 if (!$course->visible) {
-    echo get_string('notvisible', 'block_vitrina');
+    echo get_string('notvisible', 'block_vitrinadb');
 } else {
     $renderable = new \block_vitrinadb\output\detail($course, $enrolmsg);
     $renderer = $PAGE->get_renderer('block_vitrinadb');
