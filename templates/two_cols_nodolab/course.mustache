@@ -15,7 +15,7 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template block_vitrina/two_cols_nodolab/course
+    @template block_vitrinadb/two_cols_nodolab/course
 
     This template renders the template content area for a resource.
 
@@ -62,10 +62,10 @@
         {{#fee}}
             <div class="coursefee">
                 <div class="feeinfo">
-                    {{#str}} feeinfoinlist, block_vitrina, {{formatedcost}} {{/str}}
+                    {{#str}} feeinfoinlist, block_vitrinadb, {{formatedcost}} {{/str}}
                 </div>
                 {{#hascart}}
-                    {{> block_vitrina/cartbutton}}
+                    {{> block_vitrinadb/cartbutton}}
                 {{/hascart}}
             </div>
         {{/fee}}
@@ -74,14 +74,14 @@
         {{#hasprogress}}
             <div class="course-progress">
                 <div class="course-progress-bar" style="width: {{progress}}%;"></div>
-                <span>{{#str}}completepercent, block_vitrina, {{progress}}{{/str}}</span>
+                <span>{{#str}}completepercent, block_vitrinadb, {{progress}}{{/str}}</span>
             </div>
         {{/hasprogress}}
         <a title="{{{shortname}}}" class="btn btn-outline-primary" href="{{{baseurl}}}/blocks/vitrina/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
-            {{#str}} showmore, block_vitrina {{/str}}
+            {{#str}} showmore, block_vitrinadb {{/str}}
         </a>
     </div>
     {{^active}}
-        <div class="waiting-label">{{#str}}waiting, block_vitrina{{/str}}</div>
+        <div class="waiting-label">{{#str}}waiting, block_vitrinadb{{/str}}</div>
     {{/active}}
 </div>
