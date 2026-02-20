@@ -17,7 +17,7 @@
 /**
  * Hook callbacks
  *
- * @package    block_vitrina
+ * @package    block_vitrinadb
  * @copyright  2024 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,6 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 $callbacks = [
     [
         'hook' => \core\hook\output\before_standard_head_html_generation::class,
-        'callback' => [\block_vitrina\local\hook_callbacks::class, 'before_standard_head_html_generation'],
+        'callback' => [\block_vitrinadb\local\hook_callbacks::class, 'before_standard_head_html_generation'],
     ],
 ];

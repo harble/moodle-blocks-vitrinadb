@@ -16,8 +16,8 @@
 
 /**
  * Course details.
- *
- * @package   block_vitrina
+
+ * @package   block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -42,17 +42,17 @@ require_login(null, true);
 $syscontext = context_system::instance();
 
 $PAGE->set_context($syscontext);
-$PAGE->set_url('/blocks/vitrina/detail.php', ['id' => $course->id]);
+$PAGE->set_url('/blocks/vitrinadb/detail.php', ['id' => $course->id]);
 $PAGE->set_pagelayout('incourse');
-$PAGE->set_heading(get_string('coursedetail', 'block_vitrina', $course));
-$PAGE->set_title(get_string('coursedetailtitle', 'block_vitrina', $course));
+$PAGE->set_heading(get_string('coursedetail', 'block_vitrinadb', $course));
+$PAGE->set_title(get_string('coursedetailtitle', 'block_vitrinadb', $course));
 $PAGE->set_course($course);
 
 $msg = [];
 
 if ($tologin) {
     if (isguestuser() || !isloggedin()) {
-        $SESSION->wantsurl = (string)(new moodle_url('/blocks/vitrina/detail.php', ['id' => $course->id]));
+        $SESSION->wantsurl = (string)(new moodle_url('/blocks/vitrinadb/detail.php', ['id' => $course->id]));
         redirect(get_login_url());
     }
 }
@@ -65,7 +65,7 @@ do {
 
     if (isguestuser() || !isloggedin()) {
         $params = ['id' => $course->id, 'enroll' => $enroll, 'sesskey' => sesskey()];
-        $SESSION->wantsurl = (string)(new moodle_url('/blocks/vitrina/detail.php', $params));
+        $SESSION->wantsurl = (string)(new moodle_url('/blocks/vitrinadb/detail.php', $params));
         redirect(get_login_url());
     }
 
@@ -81,7 +81,7 @@ do {
         break;
     }
 
-    \block_vitrina\local\controller::course_preprocess($course, true);
+    \block_vitrinadb\local\controller::course_preprocess($course, true);
 
     $enrollable = array_key_exists('self', $course->enrollsavailables) ||
         array_key_exists('premium', $course->enrollsavailables) ||
@@ -101,11 +101,11 @@ do {
     $premiumcohort = null;
     $premiumtype = null;
     if (array_key_exists('premium', $course->enrollsavailables)) {
-        if ($course->premium || !\block_vitrina\local\controller::premium_available()) {
-            $premiumcohort = get_config('block_vitrina', 'premiumcohort');
+        if ($course->premium || !\block_vitrinadb\local\controller::premium_available()) {
+            $premiumcohort = get_config('block_vitrinadb', 'premiumcohort');
         }
 
-        $premiumtype = \block_vitrina\local\controller::type_membership();
+        $premiumtype = \block_vitrinadb\local\controller::type_membership();
     }
 
     foreach ($enrolinstances as $instance) {
@@ -140,8 +140,8 @@ do {
                 }
 
                 // Change the end dates from the course if the user is premium for the 'premiumenrolledcourse'.
-                if ($premiumtype == \block_vitrina\local\controller::PREMIUMBYCOURSE) {
-                    $premiumcourseid = get_config('block_vitrina', 'premiumenrolledcourse');
+                if ($premiumtype == \block_vitrinadb\local\controller::PREMIUMBYCOURSE) {
+                    $premiumcourseid = get_config('block_vitrinadb', 'premiumenrolledcourse');
 
                     if (!empty($premiumcourseid)) {
                         $premiumcontext = \context_course::instance($premiumcourseid);
@@ -263,8 +263,8 @@ echo $OUTPUT->header();
 if (!$course->visible) {
     echo get_string('notvisible', 'block_vitrina');
 } else {
-    $renderable = new \block_vitrina\output\detail($course, $enrolmsg);
-    $renderer = $PAGE->get_renderer('block_vitrina');
+    $renderable = new \block_vitrinadb\output\detail($course, $enrolmsg);
+    $renderer = $PAGE->get_renderer('block_vitrinadb');
     echo $renderer->render($renderable);
 }
 

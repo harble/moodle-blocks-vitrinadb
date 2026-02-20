@@ -16,8 +16,8 @@
 
 /**
  * List of available courses.
- *
- * @package   block_vitrina
+
+ * @package   block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,15 +35,15 @@ require_login(null, true);
 $syscontext = context_system::instance();
 
 $PAGE->set_context($syscontext);
-$PAGE->set_url('/blocks/vitrina/index.php');
+$PAGE->set_url('/blocks/vitrinadb/index.php');
 $PAGE->set_pagelayout('incourse');
-$PAGE->set_heading(get_string('catalog', 'block_vitrina'));
-$PAGE->set_title(get_string('catalog', 'block_vitrina'));
+$PAGE->set_heading(get_string('catalog', 'block_vitrinadb'));
+$PAGE->set_title(get_string('catalog', 'block_vitrinadb'));
 
-$uniqueid = \block_vitrina\local\controller::get_uniqueid();
-\block_vitrina\local\controller::include_templatecss($instanceid);
+$uniqueid = \block_vitrinadb\local\controller::get_uniqueid();
+\block_vitrinadb\local\controller::include_templatecss($instanceid);
 
-$bypage = get_config('block_vitrina', 'amount');
+$bypage = get_config('block_vitrinadb', 'amount');
 if (empty($bypage)) {
     $bypage = 20;
 }
@@ -53,8 +53,8 @@ $filtersselected = [];
 if (!empty($filters)) {
     $filters = explode(';', $filters);
 
-    $configuredcustomfields = \block_vitrina\local\controller::get_configuredcustomfields();
-    $staticfilters = \block_vitrina\local\controller::get_staticfilters();
+    $configuredcustomfields = \block_vitrinadb\local\controller::get_configuredcustomfields();
+    $staticfilters = \block_vitrinadb\local\controller::get_staticfilters();
 
     foreach ($filters as $filter) {
         $filter = explode(':', $filter);
@@ -100,17 +100,17 @@ if (count($categoriesids) > 0) {
     $filtersselected[] = (object) ['key' => 'categories', 'values' => $categoriesids];
 }
 
-$PAGE->requires->js_call_amd('block_vitrina/main', 'filters', [$uniqueid, $filtersselected]);
-$PAGE->requires->js_call_amd('block_vitrina/main', 'catalog', [$uniqueid, $view, $instanceid, $bypage]);
+$PAGE->requires->js_call_amd('block_vitrinadb/main', 'filters', [$uniqueid, $filtersselected]);
+$PAGE->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $view, $instanceid, $bypage]);
 
 echo $OUTPUT->header();
 
-$summary = get_config('block_vitrina', 'summary');
+$summary = get_config('block_vitrinadb', 'summary');
 
 echo format_text($summary, FORMAT_HTML, ['trusted' => true, 'noclean' => true]);
 
-$renderable = new \block_vitrina\output\catalog($uniqueid, $view, $instanceid);
-$renderer = $PAGE->get_renderer('block_vitrina');
+$renderable = new \block_vitrinadb\output\catalog($uniqueid, $view, $instanceid);
+$renderer = $PAGE->get_renderer('block_vitrinadb');
 
 echo $renderer->render($renderable);
 

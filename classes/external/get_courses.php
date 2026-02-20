@@ -15,16 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This class contains the changepasswordlink webservice functions.
+ * This class contains the VitrinaDb courses webservice functions.
  *
- * @package    block_vitrina
+ * @package    block_vitrinadb
  * @copyright  2024 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 declare(strict_types=1);
 
-namespace block_vitrina\external;
+namespace block_vitrinadb\external;
 
 use external_api;
 use external_function_parameters;
@@ -170,7 +170,7 @@ class get_courses extends external_api {
         }
         // End of read categories.
 
-        $courses = \block_vitrina\local\controller::get_courses_by_view(
+        $courses = \block_vitrinadb\local\controller::get_courses_by_view(
             $params['view'],
             $categoriesids,
             $params['filters'],
@@ -184,7 +184,7 @@ class get_courses extends external_api {
         $renderer = $PAGE->get_renderer('block_vitrina');
 
         foreach ($courses as $course) {
-            \block_vitrina\local\controller::course_preprocess($course);
+            \block_vitrinadb\local\controller::course_preprocess($course);
 
             $renderedcourse = new \stdClass();
             $renderedcourse->id = $course->id;

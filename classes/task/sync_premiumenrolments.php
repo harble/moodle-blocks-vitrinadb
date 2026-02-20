@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace block_vitrina\task;
+namespace block_vitrinadb\task;
 
 /**
  * Class sync_premiumenrolments
  *
- * @package    block_vitrina
+ * @package    block_vitrinadb
  * @copyright  2024 2024 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,7 +30,7 @@ class sync_premiumenrolments extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('syncpremiumenrolmentstask', 'block_vitrina');
+        return get_string('syncpremiumenrolmentstask', 'block_vitrinadb');
     }
 
     /**
@@ -41,14 +41,14 @@ class sync_premiumenrolments extends \core\task\scheduled_task {
 
         $trace = new \text_progress_trace();
 
-        $premiumenrolledcourse = get_config('block_vitrina', 'premiumenrolledcourse');
+        $premiumenrolledcourse = get_config('block_vitrinadb', 'premiumenrolledcourse');
 
         if (!$premiumenrolledcourse) {
             $trace->output('No premium course selected');
             return;
         }
 
-        $premiumfield = \block_vitrina\local\controller::get_premiumfield();
+        $premiumfield = \block_vitrinadb\local\controller::get_premiumfield();
         if (!$premiumfield) {
             $trace->output('No course premium field selected');
             return;

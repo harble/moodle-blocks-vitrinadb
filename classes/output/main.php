@@ -17,11 +17,11 @@
 /**
  * Class containing renderers for the block.
  *
- * @package   block_vitrina
+ * @package   block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace block_vitrina\output;
+namespace block_vitrinadb\output;
 
 use renderable;
 use renderer_base;
@@ -78,12 +78,12 @@ class main implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         global $CFG;
 
-        $icons = \block_vitrina\local\controller::get_views_icons();
+        $icons = \block_vitrinadb\local\controller::get_views_icons();
 
         $showtabs = [];
         foreach ($this->tabs as $k => $view) {
             $one = new \stdClass();
-            $one->title = get_string('tabtitle_' . $view, 'block_vitrina');
+            $one->title = get_string('tabtitle_' . $view, 'block_vitrinadb');
             $one->key = $view;
             $one->icon = $output->image_icon($icons[$view], $one->title);
             $one->state = $view == $this->view ? 'active' : '';
@@ -95,11 +95,11 @@ class main implements renderable, templatable {
             'baseurl' => $CFG->wwwroot,
             'hastabs' => count($showtabs) > 1,
             'tabs' => $showtabs,
-            'showicon' => \block_vitrina\local\controller::show_tabicon(),
-            'showtext' => \block_vitrina\local\controller::show_tabtext(),
+            'showicon' => \block_vitrinadb\local\controller::show_tabicon(),
+            'showtext' => \block_vitrinadb\local\controller::show_tabtext(),
             'instanceid' => $this->instanceid,
-            // 'opendetailstarget' => get_config('block_vitrina', 'opendetailstarget'),
-            'opendetailstarget' => main::get_config_ex( $this->instanceid?:0,'block_vitrina', 'opendetailstarget'),
+            // 'opendetailstarget' => get_config('block_vitrinadb', 'opendetailstarget'),
+            'opendetailstarget' => main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'opendetailstarget'),
         ];
 
         return $defaultvariables;

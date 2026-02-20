@@ -16,12 +16,12 @@
 
 /**
  * Class containing the general logic to course rating.
- *
- * @package   block_vitrina
+
+ * @package   block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace block_vitrina\local\rating;
+namespace block_vitrinadb\local\rating;
 
 /**
  * Plugin tool courserating.

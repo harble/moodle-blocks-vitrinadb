@@ -17,12 +17,12 @@
 /**
  * Privacy Subsystem implementation.
  *
- * @package   block_vitrina
+ * @package   block_vitrinadb
  * @copyright 2020 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace block_vitrina\privacy;
+namespace block_vitrinadb\privacy;
 
 /**
  * Privacy Subsystem for block implementing null_provider.

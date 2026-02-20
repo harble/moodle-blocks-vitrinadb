@@ -17,7 +17,7 @@
 /**
  * Version details.
  *
- * @package    block_vitrina
+ * @package    block_vitrinadb
  * @copyright  2020 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->version = 2024083107; // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires = 2024042200; // Requires this Moodle version.
-$plugin->component = 'block_vitrina'; // Full name of the plugin (used for diagnostics).
+$plugin->component = 'block_vitrinadb'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = 'v4.04.07';
 $plugin->supported = [404, 405];

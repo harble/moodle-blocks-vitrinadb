@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
-        'classname' => '\block_vitrina\task\sync_premiumenrolments',
+    'classname' => '\block_vitrinadb\task\sync_premiumenrolments',
         'blocking' => 0,
         'minute' => '1',
         'hour' => '0',

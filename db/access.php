@@ -17,7 +17,7 @@
 /**
  * Block caps.
  *
- * @package    block_vitrina
+ * @package    block_vitrinadb
  * @copyright  2023 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
 
-    'block/vitrina:myaddinstance' => [
+    'block/vitrinadb:myaddinstance' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [
@@ -35,7 +35,7 @@ $capabilities = [
         'clonepermissionsfrom' => 'moodle/site:manageblocks',
     ],
 
-    'block/vitrina:addinstance' => [
+    'block/vitrinadb:addinstance' => [
         'riskbitmask' => RISK_SPAM | RISK_XSS,
 
         'captype' => 'write',

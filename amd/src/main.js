@@ -16,7 +16,7 @@
 /**
  * Javascript to initialise the block.
  *
- * @module block_vitrina/main
+ * @module block_vitrinadb/main
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -48,9 +48,9 @@ var loading = false;
 
 // Load strings.
 var strings = [
-    {key: 'courselinkcopiedtoclipboard', component: 'block_vitrina'},
-    {key: 'nocoursesview', component: 'block_vitrina'},
-    {key: 'nomorecourses', component: 'block_vitrina'},
+    {key: 'courselinkcopiedtoclipboard', component: 'block_vitrinadb'},
+    {key: 'nocoursesview', component: 'block_vitrinadb'},
+    {key: 'nomorecourses', component: 'block_vitrinadb'},
 ];
 var s = [];
 
@@ -159,8 +159,8 @@ function loadCourses(uniqueid, $tabcontent) {
     }
 
     loading = true;
-    Ajax.call([{
-        methodname: 'block_vitrina_get_courses',
+        Ajax.call([{
+		methodname: 'block_vitrinadb_get_courses',
         args: {'view': view, 'filters': filters, 'instanceid': instanceid[uniqueid],
             'amount': bypage[uniqueid], 'initial': paging[uniqueid][view].loaded,
             'sort': sort, 'sortdirection': sortdirection},
@@ -319,7 +319,7 @@ export const init = (uniqueid = null) => {
  *
  */
 export const detail = () => {
-    strings.push({key: 'courselinkcopiedtoclipboard', component: 'block_vitrina'});
+    strings.push({key: 'courselinkcopiedtoclipboard', component: 'block_vitrinadb'});
 
     $('input[name="courselink"]').on('click', function() {
         var $input = $(this);

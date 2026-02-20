@@ -16,12 +16,12 @@
 
 /**
  * Class containing renderers for details.
- *
- * @package   block_vitrina
+
+ * @package   block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace block_vitrina\output;
+namespace block_vitrinadb\output;
 
 use renderable;
 use renderer_base;
@@ -52,7 +52,7 @@ class detail implements renderable, templatable {
      */
     public function __construct($course, array $enrolmsg = []) {
 
-        \block_vitrina\local\controller::course_preprocess($course, true);
+        \block_vitrinadb\local\controller::course_preprocess($course, true);
         $this->course = $course;
         $this->enrolmsg = $enrolmsg;
     }
@@ -67,15 +67,15 @@ class detail implements renderable, templatable {
         global $CFG, $PAGE, $USER, $DB;
 
         // Course detail info.
-        $detailinfo = get_config('block_vitrina', 'detailinfo');
+        $detailinfo = get_config('block_vitrinadb', 'detailinfo');
         $detailinfo = format_text($detailinfo, FORMAT_HTML, ['trusted' => true, 'noclean' => true]);
 
         // Load social networks.
-        $networks = get_config('block_vitrina', 'networks');
+        $networks = get_config('block_vitrinadb', 'networks');
         $networkslist = explode("\n", $networks);
         $socialnetworks = [];
 
-        $courseurl = new \moodle_url('/blocks/vitrina/detail.php', ['id' => $this->course->id]);
+        $courseurl = new \moodle_url('/blocks/vitrinadb/detail.php', ['id' => $this->course->id]);
         foreach ($networkslist as $one) {
             $row = explode('|', $one);
             if (count($row) >= 2) {
@@ -98,7 +98,7 @@ class detail implements renderable, templatable {
         // Select specific fields to display.
         $fieldids = [];
         foreach ($fields as $field) {
-            $id = get_config('block_vitrina', $field);
+            $id = get_config('block_vitrinadb', $field);
 
             if (!empty($id)) {
                 $fieldids[$field] = $id;
@@ -111,7 +111,7 @@ class detail implements renderable, templatable {
         $custom->haslongcustomfields = false;
 
         // Select generic short fields to display.
-        $showcustomfields = get_config('block_vitrina', 'showcustomfields');
+        $showcustomfields = get_config('block_vitrinadb', 'showcustomfields');
 
         if (!empty($showcustomfields)) {
             $showcustomfields = explode(',', $showcustomfields);
@@ -122,7 +122,7 @@ class detail implements renderable, templatable {
         }
 
         // Select generic long fields to display.
-        $showlongfields = get_config('block_vitrina', 'showlongcustomfields');
+        $showlongfields = get_config('block_vitrinadb', 'showlongcustomfields');
 
         if (!empty($showlongfields)) {
             $showlongfields = explode(',', $showlongfields);
@@ -238,7 +238,7 @@ class detail implements renderable, templatable {
 
         $sesskey = sesskey();
 
-        $shoppluginname = get_config('block_vitrina', 'shopmanager');
+        $shoppluginname = get_config('block_vitrinadb', 'shopmanager');
         $shopmanager = null;
         if (!empty($shoppluginname)) {
             $shopmanager = 'block_vitrina\local\shop\\' . $shoppluginname;
@@ -513,7 +513,7 @@ class detail implements renderable, templatable {
             'originalcoursename' => $this->course->fullname,
             'hasenrollmsg' => !empty($this->enrolmsg),
             'enrolmsg' => $this->enrolmsg,
-            // 'opendetailstarget' => get_config('block_vitrina', 'opendetailstarget'),
+            // 'opendetailstarget' => get_config('block_vitrinadb', 'opendetailstarget'),
             'opendetailstarget' => main::get_config_ex( $this->instanceid?:0,'block_vitrina', 'opendetailstarget'),
             'instanceid' => $this->instanceid,  // instanceid 应该并不存在 ：（
         ];

@@ -17,11 +17,11 @@
 /**
  * Class containing the general controls.
  *
- * @package   block_vitrina
+ * @package   block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace block_vitrina\local;
+namespace block_vitrinadb\local;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -257,9 +257,9 @@ class controller {
             $course->hasrelated = false;
             $course->related = [];
             $related = [];
-            $relatedlimit = get_config('block_vitrina', 'relatedlimit');
+            $relatedlimit = get_config('block_vitrinadb', 'relatedlimit');
 
-            $categories = get_config('block_vitrina', 'categories');
+            $categories = get_config('block_vitrinadb', 'categories');
 
             $categoriesids = [];
             $catslist = explode(',', $categories);
@@ -417,7 +417,7 @@ class controller {
         global $DB;
 
         if (!self::$cachedpayfield) {
-            $paymenturlfield = get_config('block_vitrina', 'paymenturl');
+            $paymenturlfield = get_config('block_vitrinadb', 'paymenturl');
             if (!empty($paymenturlfield)) {
                 self::$cachedpayfield = $DB->get_record('customfield_field', ['id' => $paymenturlfield]);
             }
@@ -435,7 +435,7 @@ class controller {
         global $DB;
 
         if (!self::$cachedpremiumfield) {
-            $premiumfield = get_config('block_vitrina', 'premiumcoursefield');
+            $premiumfield = get_config('block_vitrinadb', 'premiumcoursefield');
             if (!empty($premiumfield)) {
                 self::$cachedpremiumfield = $DB->get_record('customfield_field', ['id' => $premiumfield]);
             }
@@ -453,7 +453,7 @@ class controller {
         global $DB;
 
         if (!self::$cachedcodefield) {
-            $codefield = get_config('block_vitrina', 'codefield');
+            $codefield = get_config('block_vitrinadb', 'codefield');
             if (!empty($codefield)) {
                 self::$cachedcodefield = $DB->get_record('customfield_field', ['id' => $codefield]);
             }
@@ -496,8 +496,8 @@ class controller {
             $user = $USER;
         }
 
-        $premiumfieldid = get_config('block_vitrina', 'premiumfield');
-        $premiumvalue = get_config('block_vitrina', 'premiumvalue');
+        $premiumfieldid = get_config('block_vitrinadb', 'premiumfield');
+        $premiumvalue = get_config('block_vitrinadb', 'premiumvalue');
 
         // If the premium field and value are set, check if the user is premium.
         // It overrides the "Course to read premium users" setting.
@@ -514,7 +514,7 @@ class controller {
         }
 
         // If the user is enrolled in the "Course to read premium users" is a premium user.
-        $premiumcourseid = get_config('block_vitrina', 'premiumenrolledcourse');
+        $premiumcourseid = get_config('block_vitrinadb', 'premiumenrolledcourse');
         if (!empty($premiumcourseid)) {
             // Check if the user is enrolled in the premium course.
             if (is_enrolled(\context_course::instance($premiumcourseid), $user->id, '', true)) {
@@ -525,7 +525,7 @@ class controller {
         }
 
         // If the user is in the cohort to premium users.
-        $premiumcohort = get_config('block_vitrina', 'premiumcohort');
+        $premiumcohort = get_config('block_vitrinadb', 'premiumcohort');
         if (!empty($premiumcohort)) {
             if (cohort_is_member($premiumcohort, $USER->id)) {
                 self::$isuserpremium = true;
@@ -569,7 +569,7 @@ class controller {
         }
 
         if (empty($courseimage)) {
-            $type = get_config('block_vitrina', 'coverimagetype');
+            $type = get_config('block_vitrinadb', 'coverimagetype');
 
             switch ($type) {
                 case 'generated':
@@ -596,7 +596,7 @@ class controller {
 
         global $CFG, $PAGE;
 
-        // $template = get_config('block_vitrina', 'templatetype');
+        // $template = get_config('block_vitrinadb', 'templatetype');
         $template = \block_vitrina\output\main::get_config_ex( $instanceid?:0,'block_vitrina', 'templatetype');
 
         $csspath = $CFG->dirroot . '/blocks/vitrina/templates/' . $template . '/styles.css';
@@ -674,22 +674,22 @@ class controller {
         }
 
         if (empty($sort) || !in_array($sort, self::COURSES_SORTS)) {
-            $sort = get_config('block_vitrina', 'sortbydefault');
+            $sort = get_config('block_vitrinadb', 'sortbydefault');
         }
 
         // Validate and set sort direction.
         $sortdirection = strtoupper($sortdirection);
         if (!in_array($sortdirection, ['ASC', 'DESC'])) {
-            $sortdirectionconfig = get_config('block_vitrina', 'sortdirection');
+            $sortdirectionconfig = get_config('block_vitrinadb', 'sortdirection');
             $sortdirection = ($sortdirectionconfig === 'desc') ? 'DESC' : 'ASC';
         }
 
         if (empty($amount)) {
-            $amount = get_config('block_vitrina', 'singleamount');
+            $amount = get_config('block_vitrinadb', 'singleamount');
         }
 
         if (count($categoriesids) == 0) {
-            $categories = get_config('block_vitrina', 'categories');
+            $categories = get_config('block_vitrinadb', 'categories');
             $catslist = explode(',', $categories);
             foreach ($catslist as $catid) {
                 if (is_numeric($catid)) {
@@ -915,7 +915,7 @@ class controller {
             return self::$viewsicons;
         }
 
-        $customicons = get_config('block_vitrina', 'viewsicons');
+        $customicons = get_config('block_vitrinadb', 'viewsicons');
 
         $icons = [
             'default' => 'a/view_icon_active',
@@ -953,7 +953,7 @@ class controller {
         }
 
         // Tabs config view.
-        $tabview = get_config('block_vitrina', 'tabview');
+        $tabview = get_config('block_vitrinadb', 'tabview');
 
         self::$showicons = !empty($tabview) ? $tabview !== 'showtext' : false;
 
@@ -972,7 +972,7 @@ class controller {
         }
 
         // Tabs config view.
-        $tabview = get_config('block_vitrina', 'tabview');
+        $tabview = get_config('block_vitrinadb', 'tabview');
 
         self::$showtext = !empty($tabview) ? $tabview !== 'showicon' : false;
 
@@ -1016,7 +1016,7 @@ class controller {
         $params = [];
 
         $categoriesids = [];
-        $categories = get_config('block_vitrina', 'categories');
+        $categories = get_config('block_vitrinadb', 'categories');
         $catslist = explode(',', $categories);
         foreach ($catslist as $catid) {
             if (is_numeric($catid)) {
@@ -1154,7 +1154,7 @@ class controller {
     public static function get_configuredcustomfields(): array {
         global $DB;
 
-        $filtercustomfields = get_config('block_vitrina', 'filtercustomfields');
+        $filtercustomfields = get_config('block_vitrinadb', 'filtercustomfields');
 
         if (!empty($filtercustomfields)) {
             $filtercustomfields = explode(',', $filtercustomfields);
@@ -1210,7 +1210,7 @@ class controller {
         $course->canview = has_capability('moodle/course:view', $coursecontext);
         $ispremium = self::is_user_premium();
 
-        $premiumcohort = get_config('block_vitrina', 'premiumcohort');
+        $premiumcohort = get_config('block_vitrinadb', 'premiumcohort');
 
         foreach ($enrolinstances as $instance) {
             if ($instance->enrolstartdate > time() || ($instance->enrolenddate > 0 && $instance->enrolenddate < time())) {
@@ -1310,7 +1310,7 @@ class controller {
     public static function format_cost(float $amount, string $currency, float $surcharge = 0): string {
         $amount = $amount * (100 + $surcharge) / 100;
 
-        $decimalpoints = (int)get_config('block_vitrina', 'decimalpoints');
+        $decimalpoints = (int)get_config('block_vitrinadb', 'decimalpoints');
 
         $locale = get_string('localecldr', 'langconfig');
         $fmt = \NumberFormatter::create($locale, \NumberFormatter::CURRENCY);
@@ -1329,7 +1329,7 @@ class controller {
      */
     public static function get_ratemanager(): string {
 
-        $rateplugin = get_config('block_vitrina', 'ratingmanager');
+        $rateplugin = get_config('block_vitrinadb', 'ratingmanager');
 
         switch ($rateplugin) {
             case 'tool_courserating':
@@ -1345,7 +1345,7 @@ class controller {
      */
     public static function get_commentsmanager(): string {
 
-        $commentsplugin = get_config('block_vitrina', 'commentsmanager');
+        $commentsplugin = get_config('block_vitrinadb', 'commentsmanager');
 
         switch ($commentsplugin) {
             case 'tool_courserating':

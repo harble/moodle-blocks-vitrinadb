@@ -17,7 +17,7 @@
 /**
  * Form for editing block instances.
  *
- * @package   block_vitrina
+ * @package   block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,7 +28,7 @@
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class block_vitrina_edit_form extends block_edit_form {
+class block_vitrinadb_edit_form extends block_edit_form {
     /**
      * Defines forms elements.
      *
@@ -42,36 +42,36 @@ class block_vitrina_edit_form extends block_edit_form {
         // Fields for editing HTML block title and contents.
         $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
 
-        $mform->addElement('text', 'config_title', get_string('customtitle', 'block_vitrina'));
+        $mform->addElement('text', 'config_title', get_string('customtitle', 'block_vitrinadb'));
         $mform->setType('config_title', PARAM_TEXT);
 
         // Amount of courses shown at instance.
-        $mform->addElement('text', 'config_singleamount', get_string('singleamountcourses', 'block_vitrina'), ['size' => 2]);
+        $mform->addElement('text', 'config_singleamount', get_string('singleamountcourses', 'block_vitrinadb'), ['size' => 2]);
         $mform->setType('config_singleamount', PARAM_INT);
         $mform->setDefault('config_singleamount', 0);
-        $mform->addHelpButton('config_singleamount', 'singleamountcourses', 'block_vitrina');
+        $mform->addHelpButton('config_singleamount', 'singleamountcourses', 'block_vitrinadb');
 
         // Tabs.
         $options = [
             '0' => get_string('no'),
             '1' => get_string('yes'),
         ];
-        $mform->addElement('select', 'config_default', get_string('defaultsort', 'block_vitrina'), $options);
+        $mform->addElement('select', 'config_default', get_string('defaultsort', 'block_vitrinadb'), $options);
         $mform->setDefault('config_default', 1);
 
-        $mform->addElement('select', 'config_recents', get_string('recents', 'block_vitrina'), $options);
+        $mform->addElement('select', 'config_recents', get_string('recents', 'block_vitrinadb'), $options);
 
         // Show greats tab config only if rating feature exists.
-        $ratemanager = \block_vitrina\local\controller::get_ratemanager();
+        $ratemanager = \block_vitrinadb\local\controller::get_ratemanager();
         $ratingavailable = $ratemanager::rating_available();
 
         if ($ratingavailable) {
-            $mform->addElement('select', 'config_greats', get_string('greats', 'block_vitrina'), $options);
+            $mform->addElement('select', 'config_greats', get_string('greats', 'block_vitrinadb'), $options);
         }
 
         // Show premium tab config only if premium is available.
-        if (\block_vitrina\local\controller::premium_available()) {
-            $mform->addElement('select', 'config_premium', get_string('premium', 'block_vitrina'), $options);
+        if (\block_vitrinadb\local\controller::premium_available()) {
+            $mform->addElement('select', 'config_premium', get_string('premium', 'block_vitrinadb'), $options);
         }
 
         // Select courses categories.
@@ -79,13 +79,13 @@ class block_vitrina_edit_form extends block_edit_form {
 
         $options = [
             'multiple' => true,
-            'noselectionstring' => get_string('selectcategories', 'block_vitrina'),
+            'noselectionstring' => get_string('selectcategories', 'block_vitrinadb'),
         ];
 
         $mform->addElement(
             'autocomplete',
             'config_categories',
-            get_string('coursecategory', 'block_vitrina'),
+            get_string('coursecategory', 'block_vitrinadb'),
             $displaylist,
             $options
         );
@@ -93,37 +93,37 @@ class block_vitrina_edit_form extends block_edit_form {
         // ------- NEW ADDED
         // Sort by default.
         $sortOptions = [
-            'default' => get_string('sortdefault', 'block_vitrina'),
-            'startdate' => get_string('sortbystartdate', 'block_vitrina'),
-            'finishdate' => get_string('sortbyfinishdate', 'block_vitrina'),
-            'alphabetically' => get_string('sortalphabetically', 'block_vitrina'),
-            'code' => get_string('sortbycode', 'block_vitrina'),
+            'default' => get_string('sortdefault', 'block_vitrinadb'),
+            'startdate' => get_string('sortbystartdate', 'block_vitrinadb'),
+            'finishdate' => get_string('sortbyfinishdate', 'block_vitrinadb'),
+            'alphabetically' => get_string('sortalphabetically', 'block_vitrinadb'),
+            'code' => get_string('sortbycode', 'block_vitrinadb'),
         ];
-        $mform->addElement('select', 'config_sort', get_string('sortbydefault', 'block_vitrina'), $sortOptions);
+        $mform->addElement('select', 'config_sort', get_string('sortbydefault', 'block_vitrinadb'), $sortOptions);
         // $mform->setDefault('config_sort', 1);
-        $mform->addHelpButton('config_sort', 'sortbydefault', 'block_vitrina');
+        $mform->addHelpButton('config_sort', 'sortbydefault', 'block_vitrinadb');
 
         // Sort direction.
         $directionOptions = [
-            'asc' => get_string('sortdirection_asc', 'block_vitrina'),
-            'desc' => get_string('sortdirection_desc', 'block_vitrina'),
+            'asc' => get_string('sortdirection_asc', 'block_vitrinadb'),
+            'desc' => get_string('sortdirection_desc', 'block_vitrinadb'),
         ];
-        $mform->addElement('select', 'config_sortdirection', get_string('sortdirection', 'block_vitrina'), $directionOptions);
-        $mform->addHelpButton('config_sortdirection', 'sortdirection', 'block_vitrina');
+        $mform->addElement('select', 'config_sortdirection', get_string('sortdirection', 'block_vitrinadb'), $directionOptions);
+        $mform->addHelpButton('config_sortdirection', 'sortdirection', 'block_vitrinadb');
 
         // Open target type
         $openOptions = [
-            '_blank' => get_string('opendetailstarget_blank', 'block_vitrina'),
-            '_self' => get_string('opendetailstarget_self', 'block_vitrina'),
+            '_blank' => get_string('opendetailstarget_blank', 'block_vitrinadb'),
+            '_self' => get_string('opendetailstarget_self', 'block_vitrinadb'),
         ];
-        $mform->addElement('select', 'config_opendetailstarget', get_string('opendetailstarget', 'block_vitrina'), $openOptions);
+        $mform->addElement('select', 'config_opendetailstarget', get_string('opendetailstarget', 'block_vitrinadb'), $openOptions);
         // $mform->setDefault('config_opendetailstarget', 1);
-        $mform->addHelpButton('config_opendetailstarget', 'opendetailstarget', 'block_vitrina');
+        $mform->addHelpButton('config_opendetailstarget', 'opendetailstarget', 'block_vitrinadb');
 
         // Template type.
         $templOptions = ['default' => get_string('default')];
 
-        $path = $CFG->dirroot . '/blocks/vitrina/templates/';
+        $path = $CFG->dirroot . '/blocks/vitrinadb/templates/';
         $files = array_diff(scandir($path), ['..', '.']);
 
         foreach ($files as $file) {
@@ -132,20 +132,20 @@ class block_vitrina_edit_form extends block_edit_form {
             }
         }
 
-        $mform->addElement('select', 'config_templatetype', get_string('templatetype', 'block_vitrina'), $templOptions);
+        $mform->addElement('select', 'config_templatetype', get_string('templatetype', 'block_vitrinadb'), $templOptions);
         // $mform->setDefault('config_templatetype', 1);
-        $mform->addHelpButton('config_templatetype', 'templatetype', 'block_vitrina');
+        $mform->addHelpButton('config_templatetype', 'templatetype', 'block_vitrinadb');
 
         // ------
 
         $editoroptions = ['maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean' => true, 'context' => $this->block->context];
 
         // Header HTML editor.
-        $mform->addElement('editor', 'config_htmlheader', get_string('htmlheader', 'block_vitrina'), null, $editoroptions);
+        $mform->addElement('editor', 'config_htmlheader', get_string('htmlheader', 'block_vitrinadb'), null, $editoroptions);
         $mform->setType('config_htmlheader', PARAM_RAW); // XSS is prevented when printing the block contents and serving files.
 
         // Footer HTML editor.
-        $mform->addElement('editor', 'config_htmlfooter', get_string('htmlfooter', 'block_vitrina'), null, $editoroptions);
+        $mform->addElement('editor', 'config_htmlfooter', get_string('htmlfooter', 'block_vitrinadb'), null, $editoroptions);
         $mform->setType('config_htmlfooter', PARAM_RAW); // XSS is prevented when printing the block contents and serving files.
     }
 
@@ -169,7 +169,7 @@ class block_vitrina_edit_form extends block_edit_form {
             $defaults->config_htmlheader['text'] = file_prepare_draft_area(
                 $draftidheader,
                 $this->block->context->id,
-                'block_vitrina',
+                'block_vitrinadb',
                 'content_header',
                 0,
                 ['subdirs' => true],
@@ -193,7 +193,7 @@ class block_vitrina_edit_form extends block_edit_form {
             $defaults->config_htmlfooter['text'] = file_prepare_draft_area(
                 $draftidfooter,
                 $this->block->context->id,
-                'block_vitrina',
+                'block_vitrinadb',
                 'content_footer',
                 0,
                 ['subdirs' => true],

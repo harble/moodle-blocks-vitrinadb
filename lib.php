@@ -15,17 +15,17 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Manage files added to the html editors at instance config of block_vitrina.
+ * Manage files added to the html editors at instance config of block_vitrinadb.
  *
- * @package    block_vitrina
+ * @package    block_vitrinadb
  * @copyright  2023 David Arias
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
- * Form for editing Vitrina block instances.
+ * Form for editing VitrinaDb block instances.
  *
- * @package block_vitrina
+ * @package block_vitrinadb
  * @category files
  * @param stdClass $course course object
  * @param stdClass $birecordorcm block instance record
@@ -37,7 +37,7 @@
  * @return bool
  * @todo MDL-36050 improve capability check on stick blocks, so we can check user capability before sending images.
  */
-function block_vitrina_pluginfile($course, $birecordorcm, $context, $filearea, $args, $forcedownload, array $options = []) {
+function block_vitrinadb_pluginfile($course, $birecordorcm, $context, $filearea, $args, $forcedownload, array $options = []) {
     if (
         $context->contextlevel != CONTEXT_BLOCK &&
         $context->contextlevel != CONTEXT_COURSE &&
@@ -56,13 +56,13 @@ function block_vitrina_pluginfile($course, $birecordorcm, $context, $filearea, $
     $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
 
     if ($filearea === 'content_header') {
-        $file = $fs->get_file($context->id, 'block_vitrina', 'content_header', 0, $filepath, $filename);
+        $file = $fs->get_file($context->id, 'block_vitrinadb', 'content_header', 0, $filepath, $filename);
 
         if (!($file && !$file->is_directory())) {
             send_file_not_found();
         }
     } else if ($filearea === 'content_footer') {
-        $file = $fs->get_file($context->id, 'block_vitrina', 'content_footer', 0, $filepath, $filename);
+        $file = $fs->get_file($context->id, 'block_vitrinadb', 'content_footer', 0, $filepath, $filename);
 
         if (!($file && !$file->is_directory())) {
             send_file_not_found();
@@ -78,15 +78,15 @@ function block_vitrina_pluginfile($course, $birecordorcm, $context, $filearea, $
 /**
  * Perform global search replace such as when migrating site to new URL.
  *
- * @package block_vitrina
+ * @package block_vitrinadb
  * @param string $search
  * @param string $replace
  * @return void
  */
-function block_vitrina_global_db_replace($search, $replace) {
+function block_vitrinadb_global_db_replace($search, $replace) {
     global $DB;
 
-    $instances = $DB->get_recordset('block_instances', ['blockname' => 'vitrina']);
+    $instances = $DB->get_recordset('block_instances', ['blockname' => 'vitrinadb']);
     foreach ($instances as $instance) {
         $config = unserialize_object(base64_decode($instance->configdata));
 
@@ -121,12 +121,12 @@ function block_vitrina_global_db_replace($search, $replace) {
 /**
  * Given an array with a file path, it returns the itemid and the filepath for the defined filearea.
  *
- * @package block_vitrina
+ * @package block_vitrinadb
  * @param string $filearea The filearea.
  * @param array  $args The path (the part after the filearea and before the filename).
  * @return array The itemid and the filepath inside the $args path, for the defined filearea.
  */
-function block_vitrina_get_path_from_pluginfile(string $filearea, array $args): array {
+function block_vitrinadb_get_path_from_pluginfile(string $filearea, array $args): array {
     // This block never has an itemid (the number represents the revision but it's not stored in database).
     array_shift($args);
 

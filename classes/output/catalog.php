@@ -17,11 +17,11 @@
 /**
  * Class containing renderers for the block.
  *
- * @package   block_vitrina
+ * @package   block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace block_vitrina\output;
+namespace block_vitrinadb\output;
 
 use renderable;
 use renderer_base;
@@ -71,14 +71,14 @@ class catalog implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         global $CFG;
 
-        $availableviews = \block_vitrina\local\controller::get_courses_views();
+        $availableviews = \block_vitrinadb\local\controller::get_courses_views();
 
-        $icons = \block_vitrina\local\controller::get_views_icons();
+        $icons = \block_vitrinadb\local\controller::get_views_icons();
 
         $showtabs = [];
         foreach ($availableviews as $k => $view) {
             $one = new \stdClass();
-            $one->title = get_string('tabtitle_' . $view, 'block_vitrina');
+            $one->title = get_string('tabtitle_' . $view, 'block_vitrinadb');
             $one->key = $view;
             $one->icon = $output->image_icon($icons[$view], $one->title);
             $one->state = $view == $this->view ? 'active' : '';
@@ -88,17 +88,17 @@ class catalog implements renderable, templatable {
         // Filter controls.
         $filtercontrols = [];
 
-        $staticfilters = get_config('block_vitrina', 'staticfilters');
+        $staticfilters = get_config('block_vitrinadb', 'staticfilters');
         $staticfilters = explode(',', $staticfilters);
 
         // Filter by category.
         $catfilterview = null;
         if (in_array('categories', $staticfilters)) {
-            $catfilterview = get_config('block_vitrina', 'catfilterview');
+            $catfilterview = get_config('block_vitrinadb', 'catfilterview');
 
             $nested = $catfilterview == 'tree';
 
-            $categoriesoptions = \block_vitrina\local\controller::get_categories([], $nested);
+            $categoriesoptions = \block_vitrinadb\local\controller::get_categories([], $nested);
 
             if (count($categoriesoptions) > 1) {
                 $control = new \stdClass();
@@ -111,7 +111,7 @@ class catalog implements renderable, templatable {
 
         // Filter by language.
         if (in_array('langs', $staticfilters)) {
-            $options = \block_vitrina\local\controller::get_languages();
+            $options = \block_vitrinadb\local\controller::get_languages();
 
             if (count($options) > 1) {
                 $control = new \stdClass();
@@ -125,7 +125,7 @@ class catalog implements renderable, templatable {
         // Filter by custom fields.
 
         // Add to filtercontrols the array returned by the method get_customfieldsfilters.
-        $filtercontrols = array_merge($filtercontrols, \block_vitrina\local\controller::get_customfieldsfilters());
+        $filtercontrols = array_merge($filtercontrols, \block_vitrinadb\local\controller::get_customfieldsfilters());
 
         $filterproperties = new \stdClass();
 
@@ -134,22 +134,22 @@ class catalog implements renderable, templatable {
         }
         // End of filter controls.
 
-        $sortvalue = main::get_config_ex($this->instanceid ?: 0, 'block_vitrina', 'sortbydefault');
+        $sortvalue = main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'sortbydefault');
         if (empty($sortvalue)) {
             $sortvalue = 'default';
         }
 
-        $sortdirectionvalue = main::get_config_ex($this->instanceid ?: 0, 'block_vitrina', 'sortdirection');
+        $sortdirectionvalue = main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'sortdirection');
         if (empty($sortdirectionvalue)) {
             $sortdirectionvalue = 'asc';
         }
 
         $sortlabels = [
-            'default' => get_string('sortdefault', 'block_vitrina'),
-            'startdate' => get_string('sortbystartdate', 'block_vitrina'),
-            'finishdate' => get_string('sortbyfinishdate', 'block_vitrina'),
-            'alphabetically' => get_string('sortalphabetically', 'block_vitrina'),
-            'code' => get_string('sortbycode', 'block_vitrina'),
+            'default' => get_string('sortdefault', 'block_vitrinadb'),
+            'startdate' => get_string('sortbystartdate', 'block_vitrinadb'),
+            'finishdate' => get_string('sortbyfinishdate', 'block_vitrinadb'),
+            'alphabetically' => get_string('sortalphabetically', 'block_vitrinadb'),
+            'code' => get_string('sortbycode', 'block_vitrinadb'),
         ];
 
         $sortoptions = [];

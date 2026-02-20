@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Event observers for Vitrina block.
- *
- * @package    block_vitrina
+ * Event observers for VitrinaDb block.
+
+ * @package    block_vitrinadb
  * @category   event
  * @copyright  2024 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -28,10 +28,10 @@ defined('MOODLE_INTERNAL') || die();
 $observers = [
     [
         'eventname'   => '\core\event\user_enrolment_deleted',
-        'callback'    => 'block_vitrina\local\observer::user_unenrolled',
+        'callback'    => 'block_vitrinadb\local\observer::user_unenrolled',
     ],
     [
         'eventname'   => '\core\event\user_enrolment_updated',
-        'callback'    => 'block_vitrina\local\observer::user_enrolment_updated',
+        'callback'    => 'block_vitrinadb\local\observer::user_enrolment_updated',
     ],
 ];

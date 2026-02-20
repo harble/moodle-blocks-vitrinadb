@@ -17,19 +17,19 @@
 /**
  * Event observer.
  *
- * @package    block_vitrina
+ * @package    block_vitrinadb
  * @copyright  2024 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace block_vitrina\local;
+namespace block_vitrinadb\local;
 
 /**
  * Events observer.
  *
  * Manage all events related to points and others block elements.
  *
- * @package    block_vitrina
+ * @package    block_vitrinadb
  * @copyright  2024 David Herney @ BambuCo
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -90,7 +90,7 @@ class observer {
         global $DB;
 
         $changedenrol = $DB->get_record('enrol', ['id' => $changedenrolment->enrolid]);
-        $premiumenrolledcourse = get_config('block_vitrina', 'premiumenrolledcourse');
+        $premiumenrolledcourse = get_config('block_vitrinadb', 'premiumenrolledcourse');
         $premiumenrolledcourseids = explode(',', $premiumenrolledcourse);
 
         if (empty($premiumenrolledcourse) || !in_array($changedenrol->courseid, $premiumenrolledcourseids)) {
@@ -102,7 +102,7 @@ class observer {
             return;
         }
 
-        $premiumfield = \block_vitrina\local\controller::get_premiumfield();
+        $premiumfield = \block_vitrinadb\local\controller::get_premiumfield();
         if (!$premiumfield) {
             return;
         }

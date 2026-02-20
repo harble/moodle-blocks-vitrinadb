@@ -25,9 +25,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
-    'block_vitrina_get_courses' => [
-        'classname' => '\block_vitrina\external\get_courses',
-        'description' => 'Get the courses list for the Vitrina',
+    'block_vitrinadb_get_courses' => [
+        'classname' => '\block_vitrinadb\external\get_courses',
+        'description' => 'Get the courses list for the VitrinaDb',
         'type' => 'read',
         'ajax' => true,
         'loginrequired' => false,

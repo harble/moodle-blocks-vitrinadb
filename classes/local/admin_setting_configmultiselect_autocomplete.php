@@ -17,11 +17,11 @@
 /**
  * Admin config with multiselect autocomplete.
  *
- * @package   block_vitrina
+ * @package   block_vitrinadb
  * @copyright 2023 David Arias @ BambuCo
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace block_vitrina\local;
+namespace block_vitrinadb\local;
 
 defined('MOODLE_INTERNAL') || die();
 
