@@ -42,7 +42,7 @@ if ($ADMIN->fulltree) {
     foreach ($customfields as $k => $v) {
         $fields[$k] = format_string($v->name, true);
 
-        if (in_array($v->type, localvitrina\controller::CUSTOMFIELDS_SUPPORTED)) {
+        if (in_array($v->type, localvitrinadb\controller::CUSTOMFIELDS_SUPPORTED)) {
             $fieldstofilter[$k] = format_string($v->name, true);
         }
 
@@ -138,7 +138,7 @@ if ($ADMIN->fulltree) {
     $help = get_string('premiumenrolledcourse_help', 'block_vitrinadb');
     $displaylist = $DB->get_records_menu('course', null, 'fullname', 'id, fullname');
     $default = [];
-    $setting = new localvitrina\admin_setting_configmultiselect_autocomplete($name, $title, $help, $default, $displaylist);
+    $setting = new localvitrinadb\admin_setting_configmultiselect_autocomplete($name, $title, $help, $default, $displaylist);
     $settings->add($setting);
 
     // Cohort to recognize premium self enrolment.
@@ -176,7 +176,7 @@ if ($ADMIN->fulltree) {
     $help = get_string('categories_help', 'block_vitrinadb');
     $displaylist = \core_course_category::make_categories_list('moodle/category:manage');
     $default = [];
-    $setting = new localvitrina\admin_setting_configmultiselect_autocomplete($name, $title, $help, $default, $displaylist);
+    $setting = new localvitrinadb\admin_setting_configmultiselect_autocomplete($name, $title, $help, $default, $displaylist);
     $settings->add($setting);
 
     // General filters.
@@ -259,96 +259,96 @@ if ($ADMIN->fulltree) {
     $title = get_string('sortdirection', 'block_vitrinadb');
     $help = get_string('sortdirection_help', 'block_vitrinadb');
     $options = [
-        'asc' => get_string('sortdirection_asc', 'block_vitrina'),
-        'desc' => get_string('sortdirection_desc', 'block_vitrina'),
+        'asc' => get_string('sortdirection_asc', 'block_vitrinadb'),
+        'desc' => get_string('sortdirection_desc', 'block_vitrinadb'),
     ];
     $setting = new admin_setting_configselect($name, $title, $help, 'asc', $options);
     $settings->add($setting);
 
     // Code field for sorting (only if code fields are available).
     if (count($fields) > 0) {
-        $name = 'block_vitrina/codefield';
-        $title = get_string('codefield', 'block_vitrina');
-        $help = get_string('codefield_help', 'block_vitrina');
+        $name = 'block_vitrinadb/codefield';
+        $title = get_string('codefield', 'block_vitrinadb');
+        $help = get_string('codefield_help', 'block_vitrinadb');
         $setting = new admin_setting_configselect($name, $title, $help, 0, $fieldswithempty);
         $settings->add($setting);
     }
 
-    $name = 'block_vitrina/opendetailstarget';
-    $title = get_string('opendetailstarget', 'block_vitrina');
-    $help = get_string('opendetailstarget_help', 'block_vitrina');
+    $name = 'block_vitrinadb/opendetailstarget';
+    $title = get_string('opendetailstarget', 'block_vitrinadb');
+    $help = get_string('opendetailstarget_help', 'block_vitrinadb');
     $options = [
-        '_blank' => get_string('opendetailstarget_blank', 'block_vitrina'),
-        '_self' => get_string('opendetailstarget_self', 'block_vitrina'),
+        '_blank' => get_string('opendetailstarget_blank', 'block_vitrinadb'),
+        '_self' => get_string('opendetailstarget_self', 'block_vitrinadb'),
     ];
     $setting = new admin_setting_configselect($name, $title, $help, '_blank', $options);
     $settings->add($setting);
 
     // Days to upcoming courses.
-    $name = 'block_vitrina/daystoupcoming';
-    $title = get_string('daystoupcoming', 'block_vitrina');
-    $help = get_string('daystoupcoming_help', 'block_vitrina');
+    $name = 'block_vitrinadb/daystoupcoming';
+    $title = get_string('daystoupcoming', 'block_vitrinadb');
+    $help = get_string('daystoupcoming_help', 'block_vitrinadb');
     $setting = new admin_setting_configtext($name, $title, $help, 0, PARAM_INT, 3);
     $settings->add($setting);
 
     // Social networks.
-    $name = 'block_vitrina/networks';
-    $title = get_string('socialnetworks', 'block_vitrina');
-    $help = get_string('socialnetworks_help', 'block_vitrina');
+    $name = 'block_vitrinadb/networks';
+    $title = get_string('socialnetworks', 'block_vitrinadb');
+    $help = get_string('socialnetworks_help', 'block_vitrinadb');
     $setting = new admin_setting_configtextarea($name, $title, $help, '');
     $settings->add($setting);
 
     // Block summary.
-    $name = 'block_vitrina/summary';
-    $title = get_string('summary', 'block_vitrina');
-    $help = get_string('summary_help', 'block_vitrina');
+    $name = 'block_vitrinadb/summary';
+    $title = get_string('summary', 'block_vitrinadb');
+    $help = get_string('summary_help', 'block_vitrinadb');
     $setting = new admin_setting_confightmleditor($name, $title, $help, '');
     $settings->add($setting);
 
     // Block detail info.
-    $name = 'block_vitrina/detailinfo';
-    $title = get_string('detailinfo', 'block_vitrina');
-    $help = get_string('detailinfo_help', 'block_vitrina');
+    $name = 'block_vitrinadb/detailinfo';
+    $title = get_string('detailinfo', 'block_vitrinadb');
+    $help = get_string('detailinfo_help', 'block_vitrinadb');
     $setting = new admin_setting_confightmleditor($name, $title, $help, '');
     $settings->add($setting);
 
     // Tabs view.
     $options = [
-        'default' => get_string('textandicon', 'block_vitrina'),
-        'showtext' => get_string('showtext', 'block_vitrina'),
-        'showicon' => get_string('showicon', 'block_vitrina'),
+        'default' => get_string('textandicon', 'block_vitrinadb'),
+        'showtext' => get_string('showtext', 'block_vitrinadb'),
+        'showicon' => get_string('showicon', 'block_vitrinadb'),
     ];
 
-    $name = 'block_vitrina/tabview';
-    $title = get_string('tabview', 'block_vitrina');
-    $help = get_string('tabview_help', 'block_vitrina');
+    $name = 'block_vitrinadb/tabview';
+    $title = get_string('tabview', 'block_vitrinadb');
+    $help = get_string('tabview_help', 'block_vitrinadb');
     $setting = new admin_setting_configselect($name, $title, $help, 'default', $options);
     $settings->add($setting);
 
     // Views icons.
-    $name = 'block_vitrina/viewsicons';
-    $title = get_string('viewsicons', 'block_vitrina');
-    $help = get_string('viewsicons_help', 'block_vitrina');
+    $name = 'block_vitrinadb/viewsicons';
+    $title = get_string('viewsicons', 'block_vitrinadb');
+    $help = get_string('viewsicons_help', 'block_vitrinadb');
     $setting = new admin_setting_configtextarea($name, $title, $help, '');
     $settings->add($setting);
 
     // Cover image type.
     $options = [
-        'default' => get_string('coverimagetype_default', 'block_vitrina'),
-        'generated' => get_string('coverimagetype_generated', 'block_vitrina'),
-        'none' => get_string('coverimagetype_none', 'block_vitrina'),
+        'default' => get_string('coverimagetype_default', 'block_vitrinadb'),
+        'generated' => get_string('coverimagetype_generated', 'block_vitrinadb'),
+        'none' => get_string('coverimagetype_none', 'block_vitrinadb'),
     ];
 
-    $name = 'block_vitrina/coverimagetype';
-    $title = get_string('coverimagetype', 'block_vitrina');
-    $help = get_string('coverimagetype_help', 'block_vitrina');
+    $name = 'block_vitrinadb/coverimagetype';
+    $title = get_string('coverimagetype', 'block_vitrinadb');
+    $help = get_string('coverimagetype_help', 'block_vitrinadb');
     $setting = new admin_setting_configselect($name, $title, $help, 'default', $options);
     $settings->add($setting);
 
     // Template type.
     $options = ['default' => get_string('default')];
 
-    $path = $CFG->dirroot . '/blocks/vitrina/templates/';
+    $path = $CFG->dirroot . '/blocks/vitrinadb/templates/';
     $files = array_diff(scandir($path), ['..', '.']);
 
     foreach ($files as $file) {
@@ -357,27 +357,27 @@ if ($ADMIN->fulltree) {
         }
     }
 
-    $name = 'block_vitrina/templatetype';
-    $title = get_string('templatetype', 'block_vitrina');
-    $help = get_string('templatetype_help', 'block_vitrina');
+    $name = 'block_vitrinadb/templatetype';
+    $title = get_string('templatetype', 'block_vitrinadb');
+    $help = get_string('templatetype_help', 'block_vitrinadb');
     $setting = new admin_setting_configselect($name, $title, $help, 'default', $options);
     $settings->add($setting);
 
     // Rating components.
     $options = [];
 
-    if (localvitrina\rating\base::rating_available()) {
+    if (localvitrinadb\rating\base::rating_available()) {
         $options['block_rate_course'] = get_string('pluginname', 'block_rate_course') . ' (block_rate_course)';
     }
 
-    if (localvitrina\rating\tool_courserating::rating_available()) {
+    if (localvitrinadb\rating\tool_courserating::rating_available()) {
         $options['tool_courserating'] = get_string('pluginname', 'tool_courserating') . ' (tool_courserating)';
     }
 
     if (count($options) > 0) {
-        $name = 'block_vitrina/ratingmanager';
-        $title = get_string('ratingmanager', 'block_vitrina');
-        $help = get_string('ratingmanager_help', 'block_vitrina');
+        $name = 'block_vitrinadb/ratingmanager';
+        $title = get_string('ratingmanager', 'block_vitrinadb');
+        $help = get_string('ratingmanager_help', 'block_vitrinadb');
         $setting = new admin_setting_configselect($name, $title, $help, '', $options);
         $settings->add($setting);
     }
@@ -385,19 +385,19 @@ if ($ADMIN->fulltree) {
     // Comments components.
     $options = [];
 
-    if (localvitrina\comments\base::comments_available()) {
+    if (localvitrinadb\comments\base::comments_available()) {
         $options['block_comments'] = get_string('pluginname', 'block_comments') . ' (block_comments)';
     }
 
-    if (localvitrina\comments\tool_courserating::comments_available()) {
+    if (localvitrinadb\comments\tool_courserating::comments_available()) {
         $options['tool_courserating'] = get_string('pluginname', 'tool_courserating') . ' (tool_courserating)';
     }
 
     if (count($options) > 0) {
         $defaultvalue = key($options);
-        $name = 'block_vitrina/commentsmanager';
-        $title = get_string('commentsmanager', 'block_vitrina');
-        $help = get_string('commentsmanager_help', 'block_vitrina');
+        $name = 'block_vitrinadb/commentsmanager';
+        $title = get_string('commentsmanager', 'block_vitrinadb');
+        $help = get_string('commentsmanager_help', 'block_vitrinadb');
         $setting = new admin_setting_configselect($name, $title, $help, $defaultvalue, $options);
         $settings->add($setting);
     }
@@ -405,18 +405,18 @@ if ($ADMIN->fulltree) {
     // Shop components.
     $options = [];
 
-    if (localvitrina\shop\local_buybee::available()) {
+    if (localvitrinadb\shop\local_buybee::available()) {
         $options['local_buybee'] = get_string('pluginname', 'local_buybee') . ' (local_buybee)';
     }
 
-    if (localvitrina\shop\local_bazaar::available()) {
+    if (localvitrinadb\shop\local_bazaar::available()) {
         $options['local_bazaar'] = get_string('pluginname', 'local_bazaar') . ' (local_bazaar)';
     }
 
     if (count($options) > 0) {
-        $name = 'block_vitrina/shopmanager';
-        $title = get_string('shopmanager', 'block_vitrina');
-        $help = get_string('shopmanager_help', 'block_vitrina');
+        $name = 'block_vitrinadb/shopmanager';
+        $title = get_string('shopmanager', 'block_vitrinadb');
+        $help = get_string('shopmanager_help', 'block_vitrinadb');
         $setting = new admin_setting_configselect($name, $title, $help, '', $options);
         $settings->add($setting);
     }

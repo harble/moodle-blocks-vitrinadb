@@ -253,4 +253,40 @@ class block_vitrinadb extends block_base {
 
         return true;
     }
+
+    /**
+     * Check if the block content is trusted and avoid JS injection.
+     *
+     * @return bool
+     */
+    public function content_is_trusted() {
+        global $SCRIPT;
+
+        $context = context::instance_by_id($this->instance->parentcontextid, IGNORE_MISSING);
+        if (!$context) {
+            return false;
+        }
+
+        // Find out if this block is on the profile page.
+        if ($context->contextlevel == CONTEXT_USER) {
+            if ($SCRIPT === '/my/index.php') {
+                return true;
+            } else {
+                // No JS on public personal pages, it would be a big security issue.
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Overridden by the block to prevent the block from being dockable.
+     *
+     * @return bool
+     *
+     * Return false as per MDL-64506.
+     */
+    public function instance_can_be_docked() {
+        return false;
+    }
 }
