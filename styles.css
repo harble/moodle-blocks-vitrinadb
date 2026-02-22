@@ -130,33 +130,33 @@
 }
 
 /* Course detail */
-#page-blocks-vitrina-detail .content-layout {
+#page-blocks-vitrinadb-detail .content-layout {
     max-width: 940px;
     margin: auto;
     padding: 0 20px;
 }
 
-#page-blocks-vitrina-detail .content-layout .content-box {
+#page-blocks-vitrinadb-detail .content-layout .content-box {
     padding: 10px 20px;
 }
 
-#page-blocks-vitrina-detail .catalog-return {
+#page-blocks-vitrinadb-detail .catalog-return {
     margin-bottom: 5px;
     padding-bottom: 5px;
 }
 
-#page-blocks-vitrina-detail .catalog-return a {
+#page-blocks-vitrinadb-detail .catalog-return a {
     padding: 5px;
     border-radius: 10px;
     display: inline-block;
 }
 /* End course detail */
 
-#page-blocks-vitrina-index .courses-sort {
+#page-blocks-vitrinadb-index .courses-sort {
     margin: 20px 0;
 }
 
-#page-blocks-vitrina-index .courses-sort ul {
+#page-blocks-vitrinadb-index .courses-sort ul {
     margin: 0;
     padding: 0;
     list-style: none;
@@ -164,15 +164,15 @@
     justify-content: center;
 }
 
-#page-blocks-vitrina-index .courses-sort li {
+#page-blocks-vitrinadb-index .courses-sort li {
     margin: 0 10px;
 }
 
-#page-blocks-vitrina-index .courses-sort li a {
+#page-blocks-vitrinadb-index .courses-sort li a {
     position: relative;
 }
 
-#page-blocks-vitrina-index .courses-sort li a:after {
+#page-blocks-vitrinadb-index .courses-sort li a:after {
     height: 30px;
     width: 30px;
     transform: rotate(45deg);
@@ -181,122 +181,122 @@
     left: calc(50% - 15px);
 }
 
-#page-blocks-vitrina-index .courses-sort.sort-by-default li a[data-sort="default"] {
+#page-blocks-vitrinadb-index .courses-sort.sort-by-default li a[data-sort="default"] {
     font-weight: bold;
     border-bottom: 2px solid;
 }
 
-#page-blocks-vitrina-index .courses-sort.sort-by-default li a[data-sort="default"]:after {
+#page-blocks-vitrinadb-index .courses-sort.sort-by-default li a[data-sort="default"]:after {
     content: "";
 }
 
-#page-blocks-vitrina-index .courses-sort.sort-by-recents li a[data-sort="recents"] {
+#page-blocks-vitrinadb-index .courses-sort.sort-by-recents li a[data-sort="recents"] {
     font-weight: bold;
     border-bottom: 2px solid;
 }
 
-#page-blocks-vitrina-index .courses-sort.sort-by-recents li a[data-sort="recents"]:after {
+#page-blocks-vitrinadb-index .courses-sort.sort-by-recents li a[data-sort="recents"]:after {
     content: "";
 }
 
-#page-blocks-vitrina-index .courses-sort.sort-by-greats li a[data-sort="greats"] {
+#page-blocks-vitrinadb-index .courses-sort.sort-by-greats li a[data-sort="greats"] {
     font-weight: bold;
     border-bottom: 2px solid;
 }
 
-#page-blocks-vitrina-index .courses-sort.sort-by-greats li a[data-sort="greats"]:after {
+#page-blocks-vitrinadb-index .courses-sort.sort-by-greats li a[data-sort="greats"]:after {
     content: "";
 }
 
-#page-blocks-vitrina-index .courses-sort.sort-by-premium li a[data-sort="premium"] {
+#page-blocks-vitrinadb-index .courses-sort.sort-by-premium li a[data-sort="premium"] {
     font-weight: bold;
     border-bottom: 2px solid;
 }
 
-#page-blocks-vitrina-index .courses-sort.sort-by-premium li a[data-sort="premium"]:after {
+#page-blocks-vitrinadb-index .courses-sort.sort-by-premium li a[data-sort="premium"]:after {
     content: "";
 }
 
-#page-blocks-vitrina-detail .context-detail {
+#page-blocks-vitrinadb-detail .context-detail {
     display: flex;
     flex-wrap: wrap;
 }
 
-#page-blocks-vitrina-detail .context-detail .customfield-box {
+#page-blocks-vitrinadb-detail .context-detail .customfield-box {
     padding: 0 10px;
     text-align: center;
     border-right: 1px solid #ddd;
 }
 
-#page-blocks-vitrina-detail .context-detail :last-child {
+#page-blocks-vitrinadb-detail .context-detail :last-child {
     border-right: none;
 }
 
-#page-blocks-vitrina-detail .media-container {
+#page-blocks-vitrinadb-detail .media-container {
     padding: 20px 0 40px;
 }
 
-#page-blocks-vitrina-detail .media-container > div {
+#page-blocks-vitrinadb-detail .media-container > div {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-#page-blocks-vitrina-detail .media-container > div > div {
+#page-blocks-vitrinadb-detail .media-container > div > div {
     width: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-#page-blocks-vitrina-detail .media-content video,
-#page-blocks-vitrina-detail .media-content img,
-#page-blocks-vitrina-detail .media-content audio,
-#page-blocks-vitrina-detail .media-container video,
-#page-blocks-vitrina-detail .media-container img,
-#page-blocks-vitrina-detail .media-container audio {
+#page-blocks-vitrinadb-detail .media-content video,
+#page-blocks-vitrinadb-detail .media-content img,
+#page-blocks-vitrinadb-detail .media-content audio,
+#page-blocks-vitrinadb-detail .media-container video,
+#page-blocks-vitrinadb-detail .media-container img,
+#page-blocks-vitrinadb-detail .media-container audio {
     max-width: 100%;
 }
 
-#page-blocks-vitrina-detail .share-container {
+#page-blocks-vitrinadb-detail .share-container {
     justify-items: center;
     align-items: center;
     border-bottom: 2px solid #e5e5e5;
     padding: 20px 0;
 }
 
-#page-blocks-vitrina-detail .share-container .share-content {
+#page-blocks-vitrinadb-detail .share-container .share-content {
     display: grid;
     grid-template-columns: auto auto auto;
     padding: 0 20px;
 }
 
-#page-blocks-vitrina-detail .share-container .input-container {
+#page-blocks-vitrinadb-detail .share-container .input-container {
     width: 100%;
 }
 
-#page-blocks-vitrina-detail .share-container input[name="courselink"] {
+#page-blocks-vitrinadb-detail .share-container input[name="courselink"] {
     border: 2px solid #d7d7d7;
     font-style: italic;
 }
 
-#page-blocks-vitrina-detail .share-container .input-group-text {
+#page-blocks-vitrinadb-detail .share-container .input-group-text {
     border-color: #d7d7d7;
     border-right: none;
     background-color: #f5f5f5;
 }
 
-#page-blocks-vitrina-detail .share-container .input-group-text i {
+#page-blocks-vitrinadb-detail .share-container .input-group-text i {
     color: #d7d7d7;
 }
 
-#page-blocks-vitrina-detail .share-container .share-icons {
+#page-blocks-vitrinadb-detail .share-container .share-icons {
     display: flex;
     justify-content: center;
     padding: 0 10px;
 }
 
-#page-blocks-vitrina-detail .share-container .share-icons a {
+#page-blocks-vitrinadb-detail .share-container .share-icons a {
     border-radius: 50%;
     color: #6ca0a5;
     display: flex;
@@ -309,11 +309,11 @@
     background-color: #eaeaea;
 }
 
-#page-blocks-vitrina-detail .share-container .share-icons a i {
+#page-blocks-vitrinadb-detail .share-container .share-icons a i {
     color: #6ca0a5;
 }
 
-#page-blocks-vitrina-detail .coursebanner-box {
+#page-blocks-vitrinadb-detail .coursebanner-box {
     position: relative;
     min-height: 178px;
     background-color: #eee;
@@ -326,7 +326,7 @@
     overflow: hidden;
 }
 
-#page-blocks-vitrina-detail .coursebanner-box img {
+#page-blocks-vitrinadb-detail .coursebanner-box img {
     max-width: 100%;
     max-height: 100%;
     width: 100%;
@@ -663,12 +663,12 @@
 /* End Tabs control */
 
 /* Catalog filter layout */
-#page-blocks-vitrina-index .block_vitrina-content {
+#page-blocks-vitrinadb-index .block_vitrina-content {
     display: flex;
 }
 
-#page-blocks-vitrina-index .block_vitrina-content.loading .over-loading {
-	background-image: url([[pix:block_vitrinadb|loading]]);
+#page-blocks-vitrinadb-index .block_vitrina-content.loading .over-loading {
+    background-image: url([[pix:block_vitrinadb|loading]]);
     background-repeat: no-repeat;
     background-position: center;
     background-size: 300px;
@@ -692,29 +692,29 @@
 /* End of catalog filter layout */
 
 /* Filter controls */
-.path-blocks-vitrina .filterfulltext {
+.path-blocks-vitrinadb .filterfulltext {
     width: 100%;
     max-width: 500px;
     margin: 10px auto;
     border-radius: 10px;
 }
 
-.path-blocks-vitrina .filterfulltext input {
+.path-blocks-vitrinadb .filterfulltext input {
     width: calc(100% - 45px);
     outline: none;
 }
 
-.path-blocks-vitrina .filterfulltext button {
+.path-blocks-vitrinadb .filterfulltext button {
     width: 40px;
     padding-left: 5px;
     padding-right: 5px;
 }
 
-.path-blocks-vitrina .filterfulltext button:hover {
+.path-blocks-vitrinadb .filterfulltext button:hover {
     opacity: 0.8;
 }
 
-.path-blocks-vitrina .filtercontrol > h5 {
+.path-blocks-vitrinadb .filtercontrol > h5 {
     display: block;
     width: 100%;
     padding: 5px;
@@ -723,13 +723,13 @@
     border-top: 1px solid #ddd;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions > li {
+.path-blocks-vitrinadb .filtercontrol .filteroptions > li {
     padding-bottom: 5px;
     max-width: 200px;
     display: flex;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions label {
+.path-blocks-vitrinadb .filtercontrol .filteroptions label {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -739,34 +739,34 @@
     width: 100%;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions label:hover {
+.path-blocks-vitrinadb .filtercontrol .filteroptions label:hover {
     background-color: #f5f5f5;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions {
+.path-blocks-vitrinadb .filtercontrol .filteroptions {
     list-style: none;
     padding: 0;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions .filter-optiongroup {
+.path-blocks-vitrinadb .filtercontrol .filteroptions .filter-optiongroup {
     flex-direction: column;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions .filter-optiongroup.haschilds {
+.path-blocks-vitrinadb .filtercontrol .filteroptions .filter-optiongroup.haschilds {
     border-bottom: 1px solid #ddd;
     margin-bottom: 10px;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions .filter-optiongroup.haschilds:last-child {
+.path-blocks-vitrinadb .filtercontrol .filteroptions .filter-optiongroup.haschilds:last-child {
     border-bottom: none;
     margin-bottom: 0;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions .filter-optiongroup.haschilds > .filter-option {
+.path-blocks-vitrinadb .filtercontrol .filteroptions .filter-optiongroup.haschilds > .filter-option {
     font-weight: bold;
 }
 
-.path-blocks-vitrina .filtercontrol .filteroptions .filter-option {
+.path-blocks-vitrinadb .filtercontrol .filteroptions .filter-option {
     display: flex;
 }
 
