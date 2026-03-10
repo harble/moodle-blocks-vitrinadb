@@ -965,6 +965,8 @@ class controller {
             $coverfieldid = null;
             $descriptionfieldid = null;
             $channelsfieldid = null;
+            $sharefilefieldid = null;
+            $showstatusfieldid = null;
 
             foreach ($fields as $field) {
                 switch ($field->description) {
@@ -979,6 +981,12 @@ class controller {
                         break;
                     case 'channels':
                         $channelsfieldid = $field->id;
+                        break;
+                    case 'share_file':
+                        $sharefilefieldid = $field->id;
+                        break;
+                    case 'show_status':
+                        $showstatusfieldid = $field->id;
                         break;
                 }
             }
@@ -1071,6 +1079,43 @@ class controller {
                     }
                 }
 
+                // Optional uploaded file field (share_file).
+                $sharefileurl = '';
+                $sharefilename = '';
+                if (!empty($sharefilefieldid)) {
+                    $sharefilecontent = $DB->get_record('data_content', [
+                        'fieldid' => $sharefilefieldid,
+                        'recordid' => $record->id,
+                    ]);
+
+                    if ($sharefilecontent && !empty($sharefilecontent->content)) {
+                        $fileurl = \moodle_url::make_pluginfile_url(
+                            $context->id,
+                            'mod_data',
+                            'content',
+                            $sharefilecontent->id,
+                            '/',
+                            $sharefilecontent->content
+                        );
+
+                        $sharefileurl = $fileurl->out(false);
+                        $sharefilename = $sharefilecontent->content;
+                    }
+                }
+
+                // Optional display status field (show_status, single select).
+                $showstatus = '';
+                if (!empty($showstatusfieldid)) {
+                    $statuscontent = $DB->get_record('data_content', [
+                        'fieldid' => $showstatusfieldid,
+                        'recordid' => $record->id,
+                    ]);
+
+                    if ($statuscontent && $statuscontent->content !== null && $statuscontent->content !== '') {
+                        $showstatus = $statuscontent->content;
+                    }
+                }
+
                 $resource = new \stdClass();
                 $resource->courseid = $course->id;
                 $resource->category = $course->category;
@@ -1079,6 +1124,9 @@ class controller {
                 $resource->summary = $summary;
                 $resource->imagepath = $imagepath;
                 $resource->channels = $channels;
+                $resource->sharefileurl = $sharefileurl;
+                $resource->sharefilename = $sharefilename;
+                $resource->showstatus = $showstatus;
                 $resource->dataid = $data->id;
                 $resource->recordid = $record->id;
                 $resource->timeadded = $record->timeadded;
