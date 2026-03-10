@@ -905,6 +905,192 @@ class controller {
     }
 
     /**
+     * Get resources stored in database activities for a given course.
+     *
+     * This helper searches all Database (mod_data) activities in the course which
+     * contain the expected fields used for the VitrinaDb block:
+     *   - subject (text)
+     *   - cover_page (image)
+     *   - description (HTML)
+     *
+     * It returns a flat list of resource objects with preprocessed fields so
+     * they can be rendered using the existing course templates where
+     *   fullname  => subject
+     *   imagepath => cover_page
+     *   summary  => description
+     *
+     * @param \stdClass $course Course record.
+     * @return array List of resource objects.
+     */
+    public static function get_course_resources(\stdClass $course): array {
+        global $DB, $CFG;
+
+        require_once($CFG->libdir . '/filelib.php');
+
+        $resources = [];
+
+        // Locate the "data" module id.
+        $dataModuleId = $DB->get_field('modules', 'id', ['name' => 'data']);
+        if (!$dataModuleId) {
+            return $resources;
+        }
+
+        // All database activities in the course.
+        $cms = $DB->get_records('course_modules', [
+            'course' => $course->id,
+            'module' => $dataModuleId,
+            'deletioninprogress' => 0,
+        ]);
+
+        if (empty($cms)) {
+            return $resources;
+        }
+
+        foreach ($cms as $cm) {
+            $data = $DB->get_record('data', ['id' => $cm->instance]);
+            if (!$data) {
+                continue;
+            }
+
+            $context = \context_module::instance($cm->id);
+
+            // Read all fields for this database.
+            $fields = $DB->get_records('data_fields', ['dataid' => $data->id]);
+
+            if (empty($fields)) {
+                continue;
+            }
+
+            $subjectfieldid = null;
+            $coverfieldid = null;
+            $descriptionfieldid = null;
+            $channelsfieldid = null;
+
+            foreach ($fields as $field) {
+                switch ($field->description) {
+                    case 'subject':
+                        $subjectfieldid = $field->id;
+                        break;
+                    case 'cover_page':
+                        $coverfieldid = $field->id;
+                        break;
+                    case 'description':
+                        $descriptionfieldid = $field->id;
+                        break;
+                    case 'channels':
+                        $channelsfieldid = $field->id;
+                        break;
+                }
+            }
+
+            // Require at least a subject to create a resource card.
+            if (empty($subjectfieldid)) {
+                continue;
+            }
+
+            // Get all approved records in this database, newest first.
+            $records = $DB->get_records('data_records', [
+                'dataid' => $data->id,
+                'approved' => 1,
+            ], 'timecreated DESC');
+
+            if (empty($records)) {
+                continue;
+            }
+
+            foreach ($records as $record) {
+                // Subject (plain text).
+                $subjectcontent = $DB->get_record('data_content', [
+                    'fieldid' => $subjectfieldid,
+                    'recordid' => $record->id,
+                ]);
+
+                if (!$subjectcontent || $subjectcontent->content === null || $subjectcontent->content === '') {
+                    continue;
+                }
+
+                $subject = \content_to_text($subjectcontent->content, FORMAT_PLAIN);
+
+                // Description (HTML).
+                $summary = '';
+                if (!empty($descriptionfieldid)) {
+                    $desccontent = $DB->get_record('data_content', [
+                        'fieldid' => $descriptionfieldid,
+                        'recordid' => $record->id,
+                    ]);
+
+                    if ($desccontent && $desccontent->content !== null && $desccontent->content !== '') {
+                        $options = new \stdClass();
+                        $options->para = false;
+
+                        $text = \file_rewrite_pluginfile_urls(
+                            $desccontent->content,
+                            'pluginfile.php',
+                            $context->id,
+                            'mod_data',
+                            'content',
+                            $desccontent->id
+                        );
+
+                        $summary = format_text($text, $desccontent->content1, $options);
+                    }
+                }
+
+                // Cover image.
+                $imagepath = '';
+                if (!empty($coverfieldid)) {
+                    $covercontent = $DB->get_record('data_content', [
+                        'fieldid' => $coverfieldid,
+                        'recordid' => $record->id,
+                    ]);
+
+                    if ($covercontent && !empty($covercontent->content)) {
+                        $imgurl = \moodle_url::make_pluginfile_url(
+                            $context->id,
+                            'mod_data',
+                            'content',
+                            $covercontent->id,
+                            '/',
+                            $covercontent->content
+                        );
+
+                        $imagepath = $imgurl->out(false);
+                    }
+                }
+
+                // Channels (optional, kept for potential future filters or templates).
+                $channels = '';
+                if (!empty($channelsfieldid)) {
+                    $channelscontent = $DB->get_record('data_content', [
+                        'fieldid' => $channelsfieldid,
+                        'recordid' => $record->id,
+                    ]);
+
+                    if ($channelscontent && $channelscontent->content !== null && $channelscontent->content !== '') {
+                        $channels = $channelscontent->content;
+                    }
+                }
+
+                $resource = new \stdClass();
+                $resource->courseid = $course->id;
+                $resource->category = $course->category;
+                $resource->coursename = format_string($course->fullname, true, ['context' => \context_course::instance($course->id)]);
+                $resource->subject = $subject;
+                $resource->summary = $summary;
+                $resource->imagepath = $imagepath;
+                $resource->channels = $channels;
+                $resource->dataid = $data->id;
+                $resource->recordid = $record->id;
+                $resource->timeadded = $record->timeadded;
+
+                $resources[] = $resource;
+            }
+        }
+
+        return $resources;
+    }
+
+    /**
      * Get the icont list for views tabs.
      *
      * @return array The icons list.

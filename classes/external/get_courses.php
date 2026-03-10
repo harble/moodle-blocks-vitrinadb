@@ -170,26 +170,72 @@ class get_courses extends external_api {
         }
         // End of read categories.
 
+        // Get the base courses list using existing logic (categories, filters, sort).
         $courses = \block_vitrinadb\local\controller::get_courses_by_view(
             $params['view'],
             $categoriesids,
             $params['filters'],
             $sort,
             $sortdirection,
-            $params['amount'],
-            $params['initial']
+            0,
+            0
         );
+
+        // For each course, collect resources from its database activities.
+        $allresources = [];
+        foreach ($courses as $course) {
+            $resources = \block_vitrinadb\local\controller::get_course_resources($course);
+            foreach ($resources as $resource) {
+                $allresources[] = $resource;
+            }
+        }
+
+        // Apply paging over resources instead of courses.
+        $initial = $params['initial'];
+        $amount = $params['amount'];
+        $total = count($allresources);
+
+        if (empty($amount) || $amount <= 0) {
+            $amount = $total;
+        }
+
+        if ($initial < 0) {
+            $initial = 0;
+        }
+
+        $pagedresources = array_slice($allresources, $initial, $amount);
 
         $response = [];
         $renderer = $PAGE->get_renderer('block_vitrinadb');
 
-        foreach ($courses as $course) {
-            \block_vitrinadb\local\controller::course_preprocess($course);
+        foreach ($pagedresources as $resource) {
+            // Build a minimal object compatible with course templates.
+            $item = new \stdClass();
+            // Keep ID as the parent course id so existing links to detail.php
+            // continue to work (they will open the course that owns this resource).
+            $item->id = $resource->courseid;
+            $item->category = $resource->category;
+            $item->baseurl = $CFG->wwwroot;
+            $item->fullname = format_string($resource->subject, true);
+            $item->shortname = $item->fullname;
+            $item->summary = $resource->summary;
+            $item->hassummary = !empty($item->summary);
+            $item->imagepath = $resource->imagepath;
+
+            // Fields used by templates but not relevant for resources.
+            $item->active = true;
+            $item->premium = false;
+            $item->completed = null;
+            $item->progress = null;
+            $item->hasprogress = false;
+            $item->hasrating = false;
+            $item->fee = null;
+            $item->hascart = false;
+            $item->instanceid = $instanceid;
 
             $renderedcourse = new \stdClass();
-            $renderedcourse->id = $course->id;
-            $course->instanceid = $instanceid;
-            $renderedcourse->html = $renderer->render_course($course);
+            $renderedcourse->id = $item->id;
+            $renderedcourse->html = $renderer->render_course($item);
 
             $response[] = $renderedcourse;
         }
