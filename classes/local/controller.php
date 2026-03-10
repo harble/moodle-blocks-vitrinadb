@@ -1007,11 +1007,23 @@ class controller {
             }
 
             foreach ($records as $record) {
+                // Prefetch all contents for this record to reduce DB calls.
+                $contents = $DB->get_records('data_content', ['recordid' => $record->id]);
+                $contentsbyfield = [];
+                foreach ($contents as $content) {
+                    $contentsbyfield[$content->fieldid] = $content;
+                }
+
+                // Helper to get content by field id.
+                $getcontent = function (?int $fieldid) use ($contentsbyfield) {
+                    if (empty($fieldid)) {
+                        return null;
+                    }
+                    return $contentsbyfield[$fieldid] ?? null;
+                };
+
                 // Subject (plain text).
-                $subjectcontent = $DB->get_record('data_content', [
-                    'fieldid' => $subjectfieldid,
-                    'recordid' => $record->id,
-                ]);
+                $subjectcontent = $getcontent($subjectfieldid);
 
                 if (!$subjectcontent || $subjectcontent->content === null || $subjectcontent->content === '') {
                     continue;
@@ -1022,10 +1034,7 @@ class controller {
                 // Description (HTML).
                 $summary = '';
                 if (!empty($descriptionfieldid)) {
-                    $desccontent = $DB->get_record('data_content', [
-                        'fieldid' => $descriptionfieldid,
-                        'recordid' => $record->id,
-                    ]);
+                    $desccontent = $getcontent($descriptionfieldid);
 
                     if ($desccontent && $desccontent->content !== null && $desccontent->content !== '') {
                         $options = new \stdClass();
@@ -1047,10 +1056,7 @@ class controller {
                 // Cover image.
                 $imagepath = '';
                 if (!empty($coverfieldid)) {
-                    $covercontent = $DB->get_record('data_content', [
-                        'fieldid' => $coverfieldid,
-                        'recordid' => $record->id,
-                    ]);
+                    $covercontent = $getcontent($coverfieldid);
 
                     if ($covercontent && !empty($covercontent->content)) {
                         $imgurl = \moodle_url::make_pluginfile_url(
@@ -1066,13 +1072,24 @@ class controller {
                     }
                 }
 
+                // If there is no cover image, try to get first image from description HTML.
+                if (empty($imagepath) && !empty($summary)) {
+                    if (preg_match('/<img[^>]+src\s*=\s*"([^"]+)"/i', $summary, $matches) ||
+                        preg_match("/<img[^>]+src\\s*=\\s*'([^']+)'/i", $summary, $matches)) {
+                        $imagepath = $matches[1];
+                    }
+                }
+
+                // If all channels fail, fall back to the same
+                // random/generated course image used in cover image config.
+                if (empty($imagepath)) {
+                    $imagepath = self::get_courseimage($course);
+                }
+
                 // Channels (optional, kept for potential future filters or templates).
                 $channels = '';
                 if (!empty($channelsfieldid)) {
-                    $channelscontent = $DB->get_record('data_content', [
-                        'fieldid' => $channelsfieldid,
-                        'recordid' => $record->id,
-                    ]);
+                    $channelscontent = $getcontent($channelsfieldid);
 
                     if ($channelscontent && $channelscontent->content !== null && $channelscontent->content !== '') {
                         $channels = $channelscontent->content;
@@ -1083,10 +1100,7 @@ class controller {
                 $sharefileurl = '';
                 $sharefilename = '';
                 if (!empty($sharefilefieldid)) {
-                    $sharefilecontent = $DB->get_record('data_content', [
-                        'fieldid' => $sharefilefieldid,
-                        'recordid' => $record->id,
-                    ]);
+                    $sharefilecontent = $getcontent($sharefilefieldid);
 
                     if ($sharefilecontent && !empty($sharefilecontent->content)) {
                         $fileurl = \moodle_url::make_pluginfile_url(
@@ -1106,10 +1120,7 @@ class controller {
                 // Optional display status field (show_status, single select).
                 $showstatus = '';
                 if (!empty($showstatusfieldid)) {
-                    $statuscontent = $DB->get_record('data_content', [
-                        'fieldid' => $showstatusfieldid,
-                        'recordid' => $record->id,
-                    ]);
+                    $statuscontent = $getcontent($showstatusfieldid);
 
                     if ($statuscontent && $statuscontent->content !== null && $statuscontent->content !== '') {
                         $showstatus = $statuscontent->content;
