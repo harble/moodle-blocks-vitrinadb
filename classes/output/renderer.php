@@ -121,6 +121,14 @@ class renderer extends plugin_renderer_base {
         // $template = get_config('block_vitrinadb', 'templatetype');
         $template = main::get_config_ex($course->instanceid ?: 0, 'block_vitrinadb', 'templatetype');
 
+        // Prepare a plain-text summary for safe use in attributes like title.
+        if (!empty($course->summary)) {
+            $summarytext = trim(strip_tags($course->summary));
+            if ($summarytext !== '') {
+                $course->summarytitle = \core_text::substr($summarytext, 0, 200);
+            }
+        }
+
         $path = $CFG->dirroot . '/blocks/vitrinadb/templates/' . $template . '/course.mustache';
 
         if ($template != 'default' && file_exists($path)) {
