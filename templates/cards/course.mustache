@@ -74,9 +74,11 @@
         {{/hasprogress}}
 
         <div class="content-fullinfo">
-            <div class="coursesummary">
-                {{{summary}}}
-            </div>
+            <a  title="{{{shortname}}}" class="content-fullinfo-innerlink" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
+                <div class="coursesummary">
+                    {{{summary}}}
+                </div>
+            </a>
             <a  title="{{{shortname}}}" class="coursebtn submit btn btn-primary" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
                 <span class="get_stringlink">{{# str }} showmore, block_vitrinadb {{/ str }}</span>
             </a>

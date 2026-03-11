@@ -129,6 +129,13 @@ class renderer extends plugin_renderer_base {
             $templatefile = 'block_vitrinadb/course';
         }
 
+        // When using the "cards" template, avoid nested <a> tags by
+        // stripping any anchor tags present in the summary HTML. The
+        // inner text and other markup are preserved.
+        if ($template === 'cards' && !empty($course->summary)) {
+            $course->summary = preg_replace('~</?a\b[^>]*>~i', '', $course->summary);
+        }
+
         if ($shopmanager === null) {
             $shoppluginname = get_config('block_vitrinadb', 'shopmanager');
             if (!empty($shoppluginname)) {
