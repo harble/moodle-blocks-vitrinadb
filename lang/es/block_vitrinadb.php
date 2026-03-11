@@ -54,6 +54,7 @@ $string['customgrenroll'] = 'Matricular en grupo seleccionado';
 $string['customtitle'] = 'Título personalizado';
 $string['daystoupcoming'] = 'Días para cursos próximos';
 $string['daystoupcoming_help'] = 'Número de días para considerar cursos próximos como activos para mostrar en la vista resumen del bloque.';
+$string['daysago'] = 'hace {$a} días';
 $string['decimalpoints'] = 'Puntos decimales';
 $string['decimalpoints_help'] = 'El número de puntos decimales a utilizar en el formato del costo.';
 $string['defaultsort'] = 'Todos';
@@ -173,3 +174,12 @@ $string['viewsicons_help'] = 'Elige los íconos que se mostrarán según la vist
 $string['vitrinadb:addinstance'] = 'Adicionar un nuevo bloque de Vitrina de cursos DB';
 $string['vitrinadb:myaddinstance'] = 'Adicionar un nuevo bloque de Vitrina de cursos DB a Dashboard';
 $string['waiting'] = 'Próximamente';
+
+// Tipos de archivo para recursos compartidos.
+$string['filetype_audio'] = 'Audio';
+$string['filetype_video'] = 'Video';
+$string['filetype_pdf'] = 'PDF';
+$string['filetype_office'] = 'oficina';
+$string['filetype_presentation'] = 'PPT';
+$string['filetype_image'] = 'Imagen';
+$string['filetype_other'] = 'Archivo';

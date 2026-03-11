@@ -64,20 +64,34 @@
         {{/fee}}
     </div>
     <div class="panel-foot clearfix">
-        {{#hasprogress}}
-            <div class="course-progress">
-                <div class="course-progress-bar" style="width: {{progress}}%;"></div>
-                <span>{{#str}}completepercent, block_vitrinadb, {{progress}}{{/str}}</span>
+        <div class="resource-footer">
+            <div class="resource-footer-left">
+                {{#sharefiletypelabel}}
+                    <span class="resource-filetype">
+                        <span class="resource-filetype-icon">
+                            <i class="icon fa {{sharefileicon}} fa-fw" aria-hidden="true"></i>
+                        </span>
+                        <span class="resource-filetype-label">{{sharefiletypelabel}}</span>
+                    </span>
+                {{/sharefiletypelabel}}
             </div>
-        {{/hasprogress}}
-        {{#hasrating}}
-            {{#rating}}
-            <div class="vitrina-ranking-stars">
-                <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
-                {{#pix}}stars_empty, block_vitrinadb{{/pix}}
+            <div class="resource-footer-right">
+                {{#sharedbyname}}
+                    <div class="resource-shareinfo">
+                        {{#sharedbyavatar}}
+                        <div class="resource-share-avatar">
+                            <img src="{{sharedbyavatar}}" alt="{{sharedbyname}}">
+                        </div>
+                        {{/sharedbyavatar}}
+                        <div class="resource-share-text">
+                            <div class="resource-share-name">{{sharedbyname}}</div>
+                            <div class="resource-share-divider"></div>
+                            <div class="resource-share-days">{{shareddayslabel}}</div>
+                        </div>
+                    </div>
+                {{/sharedbyname}}
             </div>
-            {{/rating}}
-        {{/hasrating}}
+        </div>
     </div>
     {{^active}}
         <div class="waiting-label">{{#str}}waiting, block_vitrinadb{{/str}}</div>

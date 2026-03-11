@@ -101,8 +101,68 @@
 }
 
 .block_vitrina-courseslist .coursebox .panel-foot {
-    text-align: center;
-    padding-bottom: 5px;
+    padding: 8px 10px 6px;
+    border-top: 1px solid #e7e7e7;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-footer {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-footer-left {
+    display: flex;
+    align-items: center;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-filetype-icon {
+    margin-right: -8px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-filetype-icon .icon {
+    font-size: 1.5em;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-filetype-label {
+    white-space: nowrap;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-footer-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-shareinfo {
+    display: flex;
+    align-items: stretch;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-share-avatar img {
+    height: 2.2em;
+    width: 2.2em;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-share-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    line-height: 1.1;
+    margin-left: 8px;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-share-name {
+    font-weight: 600;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-share-divider {
+    border-top: 1px solid #e0e0e0;
+    margin: 2px 0;
 }
 
 .block_vitrina-courseslist .coursebox .course_description {

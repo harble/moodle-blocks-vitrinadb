@@ -923,11 +923,12 @@ class controller {
      * @return array List of resource objects.
      */
     public static function get_course_resources(\stdClass $course): array {
-        global $DB, $CFG;
+        global $DB, $CFG, $PAGE;
 
         require_once($CFG->libdir . '/filelib.php');
 
         $resources = [];
+        $now = time();
 
         // Locate the "data" module id.
         $dataModuleId = $DB->get_field('modules', 'id', ['name' => 'data']);
@@ -1216,6 +1217,43 @@ class controller {
                     }
                 }
 
+                // Map share file type to label and icon class for templates.
+                $sharefiletypelabel = '';
+                $sharefileicon = '';
+
+                if (!empty($sharefiletype)) {
+                    switch ($sharefiletype) {
+                        case 'audio':
+                            $sharefiletypelabel = get_string('filetype_audio', 'block_vitrinadb');
+                            $sharefileicon = 'fa-file-audio';
+                            break;
+                        case 'video':
+                            $sharefiletypelabel = get_string('filetype_video', 'block_vitrinadb');
+                            $sharefileicon = 'fa-file-video';
+                            break;
+                        case 'pdf':
+                            $sharefiletypelabel = get_string('filetype_pdf', 'block_vitrinadb');
+                            $sharefileicon = 'fa-file-pdf';
+                            break;
+                        case 'office':
+                            $sharefiletypelabel = get_string('filetype_office', 'block_vitrinadb');
+                            $sharefileicon = 'fa-file-alt';
+                            break;
+                        case 'presentation':
+                            $sharefiletypelabel = get_string('filetype_presentation', 'block_vitrinadb');
+                            $sharefileicon = 'fa-file-powerpoint';
+                            break;
+                        case 'image':
+                            $sharefiletypelabel = get_string('filetype_image', 'block_vitrinadb');
+                            $sharefileicon = 'fa-file-image';
+                            break;
+                        default:
+                            $sharefiletypelabel = get_string('filetype_other', 'block_vitrinadb');
+                            $sharefileicon = 'fa-file';
+                            break;
+                    }
+                }
+
                 $resource = new \stdClass();
                 $resource->courseid = $course->id;
                 $resource->category = $course->category;
@@ -1227,10 +1265,42 @@ class controller {
                 $resource->sharefileurl = $sharefileurl;
                 $resource->sharefilename = $sharefilename;
                 $resource->sharefiletype = $sharefiletype;
+                $resource->sharefiletypelabel = $sharefiletypelabel;
+                $resource->sharefileicon = $sharefileicon;
                 $resource->showstatus = $showstatus;
                 $resource->dataid = $data->id;
                 $resource->recordid = $record->id;
-                $resource->timeadded = $record->timeadded;
+                $resource->timeadded = $record->timecreated;
+
+                // User who shared/created this resource.
+                $resource->sharedbyid = $record->userid;
+                $resource->sharedbyname = '';
+                $resource->sharedbyavatar = null;
+
+                $user = $DB->get_record('user', ['id' => $record->userid]);
+                if ($user) {
+                    // Localised full name.
+                    $resource->sharedbyname = fullname($user, true);
+
+                    // User avatar URL.
+                    $userpicture = new \user_picture($user, ['alttext' => false, 'link' => false]);
+                    $userpicture->size = 100;
+                    $resource->sharedbyavatar = $userpicture->get_url($PAGE);
+                }
+
+                // Time span since this resource was shared, in days (0-999).
+                $days = 0;
+                if (!empty($record->timecreated)) {
+                    $diffseconds = max(0, $now - (int)$record->timecreated);
+                    $days = (int)floor($diffseconds / 86400);
+                }
+
+                if ($days > 999) {
+                    $days = 999;
+                }
+
+                $resource->shareddays = $days;
+                $resource->shareddayslabel = get_string('daysago', 'block_vitrinadb', $days);
 
                 $resources[] = $resource;
             }

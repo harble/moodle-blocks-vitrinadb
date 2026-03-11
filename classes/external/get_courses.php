@@ -222,6 +222,14 @@ class get_courses extends external_api {
             $item->hassummary = !empty($item->summary);
             $item->imagepath = $resource->imagepath;
 
+            // Resource specific metadata used by templates.
+            $item->sharefiletype = $resource->sharefiletype;
+            $item->sharefiletypelabel = $resource->sharefiletypelabel;
+            $item->sharefileicon = $resource->sharefileicon;
+            $item->sharedbyname = $resource->sharedbyname;
+            $item->sharedbyavatar = $resource->sharedbyavatar;
+            $item->shareddayslabel = $resource->shareddayslabel;
+
             // Fields used by templates but not relevant for resources.
             $item->active = true;
             $item->premium = false;

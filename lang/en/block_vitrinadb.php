@@ -56,6 +56,7 @@ $string['customgrenroll'] = 'Enroll in selected group';
 $string['customtitle'] = 'Custom title';
 $string['daystoupcoming'] = 'Days to upcoming courses';
 $string['daystoupcoming_help'] = 'Number of days to consider courses like active to show in block view.';
+$string['daysago'] = '{$a} days ago';
 $string['decimalpoints'] = 'Decimal points';
 $string['decimalpoints_help'] = 'The number of decimal points to use in the cost format.';
 $string['defaultsort'] = 'All items';
@@ -188,3 +189,12 @@ The available views are: default, recents, greats, premium.';
 $string['vitrinadb:addinstance'] = 'Add a new ShowcaseDb block';
 $string['vitrinadb:myaddinstance'] = 'Add a new ShowcaseDb block to Dashboard';
 $string['waiting'] = 'Waiting';
+
+// File types for shared resources.
+$string['filetype_audio'] = 'Audio';
+$string['filetype_video'] = 'Video';
+$string['filetype_pdf'] = 'PDF';
+$string['filetype_office'] = 'Office';
+$string['filetype_presentation'] = 'PPT';
+$string['filetype_image'] = 'Image';
+$string['filetype_other'] = 'File';
