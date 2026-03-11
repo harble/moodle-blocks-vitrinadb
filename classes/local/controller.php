@@ -973,19 +973,19 @@ class controller {
                     case 'subject':
                         $subjectfieldid = $field->id;
                         break;
-                    case 'cover_page':
+                    case 'cover_page':  // file upload field with cover image.
                         $coverfieldid = $field->id;
                         break;
-                    case 'description':
+                    case 'description':  // HTML content field with the resource description.
                         $descriptionfieldid = $field->id;
                         break;
-                    case 'channels':
+                    case 'channels':  // 类别， 比如 传灯频道、慈善频道...
                         $channelsfieldid = $field->id;
                         break;
-                    case 'share_file':
+                    case 'share_file':  // optional file upload field with a resource file to share.
                         $sharefilefieldid = $field->id;
                         break;
-                    case 'show_status':
+                    case 'show_status':  // control the visibility of the resource card. options: show, hide， pin(置顶)
                         $showstatusfieldid = $field->id;
                         break;
                 }
@@ -1099,6 +1099,7 @@ class controller {
                 // Optional uploaded file field (share_file).
                 $sharefileurl = '';
                 $sharefilename = '';
+                $sharefiletype = '';
                 if (!empty($sharefilefieldid)) {
                     $sharefilecontent = $getcontent($sharefilefieldid);
 
@@ -1114,6 +1115,94 @@ class controller {
 
                         $sharefileurl = $fileurl->out(false);
                         $sharefilename = $sharefilecontent->content;
+
+                        // Detect a simple document/media type based on file extension.
+                        $ext = strtolower(pathinfo($sharefilename, PATHINFO_EXTENSION));
+
+                        if (in_array($ext, ['mp3', 'wav', 'ogg', 'flac', 'aac'])) {
+                            $sharefiletype = 'audio';
+                        } else if (in_array($ext, ['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'])) {
+                            $sharefiletype = 'video';
+                        } else if (in_array($ext, ['ppt', 'pptx', 'key'])) {
+                            $sharefiletype = 'presentation';
+                        } else if (in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'odt', 'ods', 'rtf'])) {
+                            $sharefiletype = 'office';
+                        } else if (in_array($ext, ['pdf'])) {
+                            $sharefiletype = 'pdf';
+                        } else if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'])) {
+                            $sharefiletype = 'image';
+                        } else if (!empty($ext)) {
+                            $sharefiletype = 'other';
+                        }
+                    }
+                }
+
+                // If there is no explicit share_file uploaded, try to detect
+                // a candidate file from description HTML, with priority:
+                // audio/video > pdf > office > presentation > image.
+                if (empty($sharefileurl) && !empty($summary)) {
+                    $candidates = [];
+
+                    if (preg_match_all('/(?:href|src)\s*=\s*"([^"]+)"/i', $summary, $matches)) {
+                        foreach ($matches[1] as $index => $url) {
+                            $path = parse_url($url, PHP_URL_PATH) ?? $url;
+                            $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+                            if (empty($ext)) {
+                                continue;
+                            }
+
+                            $type = '';
+                            $priority = 100;
+
+                            // Priority 1: audio/video.
+                            if (in_array($ext, ['mp3', 'wav', 'ogg', 'flac', 'aac', 'mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'])) {
+                                $type = in_array($ext, ['mp3', 'wav', 'ogg', 'flac', 'aac']) ? 'audio' : 'video';
+                                $priority = 1;
+                            } else if (in_array($ext, ['pdf'])) {
+                                // Priority 2: pdf.
+                                $type = 'pdf';
+                                $priority = 2;
+                            } else if (in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'odt', 'ods', 'rtf'])) {
+                                // Priority 3: office.
+                                $type = 'office';
+                                $priority = 3;
+                            } else if (in_array($ext, ['ppt', 'pptx', 'key'])) {
+                                // Priority 4: presentation.
+                                $type = 'presentation';
+                                $priority = 4;
+                            } else if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'])) {
+                                // Priority 5: image.
+                                $type = 'image';
+                                $priority = 5;
+                            }
+
+                            if ($priority < 100) {
+                                $candidates[] = [
+                                    'url' => $url,
+                                    'path' => $path,
+                                    'type' => $type,
+                                    'priority' => $priority,
+                                    'order' => $index,
+                                ];
+                            }
+                        }
+                    }
+
+                    if (!empty($candidates)) {
+                        // Pick the candidate with the best (lowest) priority,
+                        // and if tied, the first in appearance order.
+                        usort($candidates, function ($a, $b) {
+                            if ($a['priority'] === $b['priority']) {
+                                return $a['order'] <=> $b['order'];
+                            }
+                            return $a['priority'] <=> $b['priority'];
+                        });
+
+                        $best = $candidates[0];
+                        $sharefileurl = $best['url'];
+                        $sharefilename = basename($best['path']);
+                        $sharefiletype = $best['type'];
                     }
                 }
 
@@ -1137,6 +1226,7 @@ class controller {
                 $resource->channels = $channels;
                 $resource->sharefileurl = $sharefileurl;
                 $resource->sharefilename = $sharefilename;
+                $resource->sharefiletype = $sharefiletype;
                 $resource->showstatus = $showstatus;
                 $resource->dataid = $data->id;
                 $resource->recordid = $record->id;
