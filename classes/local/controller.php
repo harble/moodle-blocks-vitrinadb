@@ -927,6 +927,7 @@ class controller {
 
         require_once($CFG->libdir . '/filelib.php');
 
+        $pinnedresources = [];
         $resources = [];
         $now = time();
 
@@ -1297,6 +1298,28 @@ class controller {
                     }
                 }
 
+                // Interpret show_status value:
+                // - empty or contains "show" (case-insensitive): shown
+                // - contains "hide" (case-insensitive): not shown
+                // - contains "pin" (case-insensitive): shown and pinned to the top
+                $showstatusvalue = trim((string)$showstatus);
+                $ispinned = false;
+                if ($showstatusvalue !== '') {
+                    $lowerstatus = strtolower($showstatusvalue);
+
+                    // If configured as hide, skip this record entirely.
+                    if (strpos($lowerstatus, 'hide') !== false) {
+                        continue;
+                    }
+
+                    // If contains pin, mark as pinned (will be placed before others).
+                    if (strpos($lowerstatus, 'pin') !== false) {
+                        $ispinned = true;
+                    }
+                    // Otherwise fall back to normal visible item.
+                }
+                // If empty, treat as normal visible (not pinned).
+
                 // Map share file type to label and icon class for templates.
                 $sharefiletypelabel = '';
                 $sharefileicon = '';
@@ -1348,6 +1371,7 @@ class controller {
                 $resource->sharefiletypelabel = $sharefiletypelabel;
                 $resource->sharefileicon = $sharefileicon;
                 $resource->showstatus = $showstatus;
+                $resource->pinned = $ispinned;
                 $resource->dataid = $data->id;
                 $resource->recordid = $record->id;
                 $resource->timeadded = $record->timecreated;
@@ -1382,11 +1406,17 @@ class controller {
                 $resource->shareddays = $days;
                 $resource->shareddayslabel = get_string('daysago', 'block_vitrinadb', $days);
 
-                $resources[] = $resource;
+                if ($ispinned) {
+                    $pinnedresources[] = $resource;
+                } else {
+                    $resources[] = $resource;
+                }
             }
         }
 
-        return $resources;
+        // Pinned items first, then normal items, keeping original relative order
+        // inside each group.
+        return array_merge($pinnedresources, $resources);
     }
 
     /**

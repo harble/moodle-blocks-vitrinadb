@@ -42,6 +42,17 @@
     top: 20%;
 }
 
+/* Pinned badge (show_status contains "pin") */
+.block_vitrina-courseslist .coursebox .vitrinadb-pin-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px;
+    z-index: 3;
+    color: #ffc107; /* Bootstrap warning-like colour, visible on images */
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+}
+
 .block_vitrina-courseslist .coursebox.type-premium:after {
     content: "";
     position: absolute;

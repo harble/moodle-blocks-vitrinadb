@@ -198,3 +198,6 @@ $string['filetype_office'] = 'Office';
 $string['filetype_presentation'] = 'PPT';
 $string['filetype_image'] = 'Image';
 $string['filetype_other'] = 'File';
+
+// Pinned resources.
+$string['pinnedlabel'] = 'Pinned';
