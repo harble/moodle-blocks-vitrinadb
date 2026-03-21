@@ -920,9 +920,25 @@ class controller {
      *   summary  => description
      *
      * @param \stdClass $course Course record.
+     * @param int|null $dataid Optional specific Database (mod_data) instance id to restrict to.
+     * @param string $view View key (kept for future use: default, recents, greats, premium).
+     * @param array $filters Filters list (reserved for future resource-level filtering).
+     * @param string $sort Sort key for records (currently supports timecreated only).
+     * @param string $sortdirection Sort direction (asc or desc).
+     * @param int $amount Max number of records to return (0 = no limit).
+     * @param int $initial Offset from which to start (0-based).
      * @return array List of resource objects.
      */
-    public static function get_course_resources(\stdClass $course): array {
+    public static function get_course_resources(
+        \stdClass $course,
+        ?int $dataid = null,
+        string $view = 'default',
+        array $filters = [],
+        string $sort = 'timecreated',
+        string $sortdirection = 'DESC',
+        int $amount = 0,
+        int $initial = 0
+    ): array {
         global $DB, $CFG, $PAGE;
 
         require_once($CFG->libdir . '/filelib.php');
@@ -930,6 +946,15 @@ class controller {
         $pinnedresources = [];
         $resources = [];
         $now = time();
+
+        // Normalise sort direction.
+        $sortdirection = strtoupper($sortdirection) === 'ASC' ? 'ASC' : 'DESC';
+
+        // Currently we only support sorting by record creation time.
+        $orderby = 'timecreated ' . $sortdirection;
+
+        $initial = max(0, (int)$initial);
+        $amount = (int)$amount;
 
         // Locate the "data" module id.
         $dataModuleId = $DB->get_field('modules', 'id', ['name' => 'data']);
@@ -946,6 +971,17 @@ class controller {
 
         if (empty($cms)) {
             return $resources;
+        }
+
+        // If a specific data instance is requested, restrict the search to it.
+        if ($dataid !== null) {
+            $cms = array_filter($cms, function($cm) use ($dataid) {
+                return (int)$cm->instance === (int)$dataid;
+            });
+
+            if (empty($cms)) {
+                return $resources;
+            }
         }
 
         foreach ($cms as $cm) {
@@ -998,11 +1034,19 @@ class controller {
                 continue;
             }
 
-            // Get all approved records in this database, newest first.
-            $records = $DB->get_records('data_records', [
-                'dataid' => $data->id,
-                'approved' => 1,
-            ], 'timecreated DESC');
+            // Get approved records in this database, applying optional
+            // pagination and sort at DB level when possible.
+            if ($amount > 0 || $initial > 0) {
+                $sql = "SELECT * FROM {data_records}
+                          WHERE dataid = :dataid AND approved = 1
+                       ORDER BY $orderby";
+                $records = $DB->get_records_sql($sql, ['dataid' => $data->id], $initial, $amount);
+            } else {
+                $records = $DB->get_records('data_records', [
+                    'dataid' => $data->id,
+                    'approved' => 1,
+                ], $orderby);
+            }
 
             if (empty($records)) {
                 continue;

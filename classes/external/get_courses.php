@@ -98,7 +98,7 @@ class get_courses extends external_api {
         string $sortdirection = ''
     ): array {
 
-        global $PAGE, $CFG;
+        global $PAGE, $CFG, $DB;
 
         if (!isloggedin() && empty($CFG->guestloginbutton) && empty($CFG->autologinguests)) {
             require_login(null, true);
@@ -170,40 +170,49 @@ class get_courses extends external_api {
         }
         // End of read categories.
 
-        // Get the base courses list using existing logic (categories, filters, sort).
-        $courses = \block_vitrinadb\local\controller::get_courses_by_view(
-            $params['view'],
-            $categoriesids,
-            $params['filters'],
-            $sort,
-            $sortdirection,
-            0,
-            0
-        );
+        $pagedresources = [];
 
-        // For each course, collect resources from its database activities.
-        $allresources = [];
-        foreach ($courses as $course) {
-            $resources = \block_vitrinadb\local\controller::get_course_resources($course);
-            foreach ($resources as $resource) {
-                $allresources[] = $resource;
+        // No categories resolved means nothing to search.
+        if (!empty($categoriesids)) {
+            // Get "data" module id.
+            $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+
+            if ($datamoduleid) {
+                [$catinsql, $catparams] = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
+
+                $paramsdb = $catparams;
+                $paramsdb['siteid'] = SITEID;
+                $paramsdb['now'] = time();
+                $paramsdb['datamoduleid'] = $datamoduleid;
+
+                $sql = "SELECT cm.id, cm.course, cm.instance
+                          FROM {course_modules} cm
+                          JOIN {course} c ON c.id = cm.course
+                         WHERE c.category $catinsql
+                           AND c.visible = 1
+                           AND c.id <> :siteid
+                           AND (c.enddate > :now OR c.enddate = 0)
+                           AND cm.module = :datamoduleid
+                           AND cm.deletioninprogress = 0
+                      ORDER BY cm.id ASC";
+
+                // First database activity across all matching courses.
+                if ($firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE)) {
+                    if ($course = $DB->get_record('course', ['id' => $firstcm->course])) {
+                        $pagedresources = \block_vitrinadb\local\controller::get_course_resources(
+                            $course,
+                            (int)$firstcm->instance,
+                            $params['view'],
+                            $params['filters'],
+                            $sort,
+                            $sortdirection,
+                            $params['amount'],
+                            $params['initial']
+                        );
+                    }
+                }
             }
         }
-
-        // Apply paging over resources instead of courses.
-        $initial = $params['initial'];
-        $amount = $params['amount'];
-        $total = count($allresources);
-
-        if (empty($amount) || $amount <= 0) {
-            $amount = $total;
-        }
-
-        if ($initial < 0) {
-            $initial = 0;
-        }
-
-        $pagedresources = array_slice($allresources, $initial, $amount);
 
         $response = [];
         $renderer = $PAGE->get_renderer('block_vitrinadb');
