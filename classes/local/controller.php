@@ -1060,16 +1060,50 @@ class controller {
                     $covercontent = $getcontent($coverfieldid);
 
                     if ($covercontent && !empty($covercontent->content)) {
-                        $imgurl = \moodle_url::make_pluginfile_url(
-                            $context->id,
-                            'mod_data',
-                            'content',
-                            $covercontent->id,
-                            '/',
-                            $covercontent->content
-                        );
+                        // For logged-in users, keep the standard protected pluginfile URL.
+                        if (isloggedin() && !isguestuser()) {
+                            $imgurl = \moodle_url::make_pluginfile_url(
+                                $context->id,
+                                'mod_data',
+                                'content',
+                                $covercontent->id,
+                                '/',
+                                $covercontent->content
+                            );
 
-                        $imagepath = $imgurl->out(false);
+                            $imagepath = $imgurl->out(false);
+                        } else {
+                            // For guests / not-logged-in users, inline the image as a data URI
+                            // so that browser does not need access to pluginfile.php.
+                            $fs = get_file_storage();
+                            $file = $fs->get_file(
+                                $context->id,
+                                'mod_data',
+                                'content',
+                                $covercontent->id,
+                                '/',
+                                $covercontent->content
+                            );
+
+                            if ($file) {
+                                $mimetype = $file->get_mimetype();
+                                $content = $file->get_content();
+                                $base64 = base64_encode($content);
+                                $imagepath = 'data:' . $mimetype . ';base64,' . $base64;
+                            } else {
+                                // Fallback to the standard URL if file record is not found.
+                                $imgurl = \moodle_url::make_pluginfile_url(
+                                    $context->id,
+                                    'mod_data',
+                                    'content',
+                                    $covercontent->id,
+                                    '/',
+                                    $covercontent->content
+                                );
+
+                                $imagepath = $imgurl->out(false);
+                            }
+                        }
                     }
                 }
 
@@ -1078,6 +1112,52 @@ class controller {
                     if (preg_match('/<img[^>]+src\s*=\s*"([^"]+)"/i', $summary, $matches) ||
                         preg_match("/<img[^>]+src\\s*=\\s*'([^']+)'/i", $summary, $matches)) {
                         $imagepath = $matches[1];
+
+                        // For guests / not-logged-in users, if the image comes from pluginfile.php
+                        // try to inline it as a data URI as well.
+                        if (!empty($imagepath) && (!isloggedin() || isguestuser())) {
+                            $pluginfilebase = $CFG->wwwroot . '/pluginfile.php';
+                            if (strpos($imagepath, $pluginfilebase) === 0) {
+                                $path = parse_url($imagepath, PHP_URL_PATH) ?? '';
+                                $relative = preg_replace('#^/pluginfile\.php/#', '', $path);
+                                $parts = $relative !== '' ? explode('/', $relative) : [];
+
+                                // 重要：pluginfile.php 路径中的文件名和子目录可能包含
+                                // URL 转义（例如中文、空格：%E8%83%8C%E6%99%AF%20...），
+                                // 需要先对每一段执行 urldecode 才能被 file_storage 找到。
+                                if (!empty($parts)) {
+                                    foreach ($parts as &$segment) {
+                                        $segment = urldecode($segment);
+                                    }
+                                    unset($segment);
+                                }
+
+                                if (count($parts) >= 5) {
+                                    $contextid = (int)$parts[0];
+                                    $component = $parts[1];
+                                    $filearea = $parts[2];
+                                    $itemid = (int)$parts[3];
+
+                                    // Remaining parts: optional subdirectories + filename.
+                                    $filename = array_pop($parts);
+                                    $subdirs = array_slice($parts, 4);
+                                    $filepath = '/';
+                                    if (!empty($subdirs)) {
+                                        $filepath .= implode('/', $subdirs) . '/';
+                                    }
+
+                                    $fs = get_file_storage();
+                                    $file = $fs->get_file($contextid, $component, $filearea, $itemid, $filepath, $filename);
+
+                                    if ($file) {
+                                        $mimetype = $file->get_mimetype();
+                                        $content = $file->get_content();
+                                        $base64 = base64_encode($content);
+                                        $imagepath = 'data:' . $mimetype . ';base64,' . $base64;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
