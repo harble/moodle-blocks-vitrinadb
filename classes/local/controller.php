@@ -1910,18 +1910,44 @@ class controller {
     private static function stored_file_to_data_uri(\stored_file $file, int $maxwidth = 600): ?string {
         $mimetype = $file->get_mimetype();
         $content = null;
+        $cachepath = null;
 
-        // Try to use image metadata to decide whether we should resize.
+        // Only consider caching when we actually need to generate a resized image.
         $imageinfo = $file->get_imageinfo();
         if ($imageinfo && !empty($maxwidth) && !empty($imageinfo['width']) && $imageinfo['width'] > $maxwidth) {
-            // Generate a resized image from the original file content.
-            $resized = $file->resize_image($maxwidth, null);
-            if ($resized !== false) {
-                $content = $resized;
+            global $CFG;
+
+            $widthkey = (int)$maxwidth;
+            $hash = $file->get_contenthash();
+
+            if (!empty($hash)) {
+                // This will create $CFG->localcachedir/block_vitrinadb/<widthkey>/ if needed.
+                $cachedir = make_localcache_directory('block_vitrinadb/' . $widthkey, false);
+                if ($cachedir) {
+                    $cachepath = $cachedir . '/' . $hash;
+                    if (is_readable($cachepath)) {
+                        $content = @file_get_contents($cachepath);
+                    }
+                }
+            }
+
+            if ($content === null) {
+                // Generate a resized image from the original file content.
+                $resized = $file->resize_image($maxwidth, null);
+                if ($resized !== false) {
+                    $content = $resized;
+
+                    // Persist resized binary into localcache for subsequent calls.
+                    if ($cachepath && $content !== '' && $content !== false) {
+                        @file_put_contents($cachepath, $content);
+                    }
+                }
             }
         }
 
-        // Fallback to original content when not an image or resize failed / not needed.
+        // If no resize was needed or it failed, fall back to the original content
+        // without caching. For non-image files, get_imageinfo() returns false and
+        // we come directly here.
         if ($content === null) {
             $content = $file->get_content();
         }
