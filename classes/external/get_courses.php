@@ -227,7 +227,7 @@ class get_courses extends external_api {
             $item->baseurl = $CFG->wwwroot;
             $item->fullname = format_string($resource->subject, true);
             $item->shortname = $item->fullname;
-            $item->summary = $resource->summary;
+            $item->summary = self::sanitize_summary($resource->summary);
             $item->hassummary = !empty($item->summary);
             $item->imagepath = $resource->imagepath;
 
@@ -259,6 +259,65 @@ class get_courses extends external_api {
         }
 
         return $response;
+    }
+
+    /**
+     * Remove auto-loading internal media references from a summary HTML fragment.
+     *
+     * Any media elements which point at pluginfile.php are stripped so that the
+     * browser does not perform background requests to protected files, which can
+     * otherwise interfere with login redirect behaviour when sessions expire.
+     *
+     * @param string $summary
+     * @return string
+     */
+    private static function sanitize_summary(string $summary): string {
+        global $CFG;
+
+        if ($summary === '') {
+            return $summary;
+        }
+
+        $pluginfilebase = preg_quote($CFG->wwwroot . '/pluginfile.php', '/');
+
+        // Remove tags whose media-related attributes point directly to pluginfile.php.
+        // Tags: img, video, audio, iframe, embed, object, source.
+        // Attributes: src, srcset, data, poster.
+        $summary = preg_replace(
+            '/<(img|video|audio|iframe|embed|object|source)[^>]+'
+            . '(src|srcset|data|poster)\s*=\s*"' . $pluginfilebase . '[^" ]*"[^>]*>/i',
+            '',
+            $summary
+        );
+        $summary = preg_replace(
+            "/<(img|video|audio|iframe|embed|object|source)[^>]+"
+            . "(src|srcset|data|poster)\s*=\s*'" . $pluginfilebase . "[^' ]*'[^>]*>/i",
+            '',
+            $summary
+        );
+
+        // Remove entire <audio>...</audio> or <video>...</video> blocks which contain
+        // any pluginfile.php URL inside their content (as in the provided audio example
+        // where the URL appears as inner text rather than an attribute).
+        $summary = preg_replace(
+            '/<audio\b[^>]*>.*?' . $pluginfilebase . '.*?<\/audio>/is',
+            '',
+            $summary
+        );
+        $summary = preg_replace(
+            '/<video\b[^>]*>.*?' . $pluginfilebase . '.*?<\/video>/is',
+            '',
+            $summary
+        );
+
+        // Finally, remove any bare pluginfile.php URLs that might remain in text nodes.
+        $summary = preg_replace(
+            '/' . $pluginfilebase . '[^\s"<\']*/i',
+            '',
+            $summary
+        );
+
+        return $summary;
     }
 
     /**
