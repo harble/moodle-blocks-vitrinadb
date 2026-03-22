@@ -1118,7 +1118,7 @@ class controller {
                         );
 
                         if ($file) {
-                            $imagepath = self::stored_file_to_data_uri($file, 800);
+                            $imagepath = self::stored_file_to_cached_url($file, 800);
                         } else {
                             // Fallback to the standard URL if file record is not found.
                             $imgurl = \moodle_url::make_pluginfile_url(
@@ -1178,7 +1178,7 @@ class controller {
                                     $file = $fs->get_file($contextid, $component, $filearea, $itemid, $filepath, $filename);
 
                                     if ($file) {
-                                        $imagepath = self::stored_file_to_data_uri($file, 800);
+                                        $imagepath = self::stored_file_to_cached_url($file, 800);
                                     }
                                 }
                             }
@@ -1896,67 +1896,75 @@ class controller {
     }
 
     /**
-     * Convert a stored_file image to a data URI, optionally downscaling wide images.
+     * Ensure a cached copy of the file exists (optionally resized) and return
+     * a public URL that serves it via imagecache.php.
      *
-     * If the underlying file is an image and its width exceeds $maxwidth, a resized
-     * version is generated once from the original before base64 encoding. We always
-     * base the resize on the original stored_file content so the image is not
-     * repeatedly downscaled across calls.
+     * Behaviour:
+     * - All files are cached under $CFG->localcachedir/block_vitrinadb/<widthkey>/<hash>
+     * - If the file is an image wider than $maxwidth, a resized version is cached
+     *   (widthkey = maxwidth). Otherwise the original bytes are cached (widthkey = 0).
+     * - The returned URL does not require login and is suitable for browser caching.
      *
      * @param \stored_file $file
      * @param int $maxwidth Maximum width in pixels before downscaling (0 to disable).
-     * @return string|null Data URI string or null on failure.
+     * @return string|null Public URL to the cached file or null on failure.
      */
-    private static function stored_file_to_data_uri(\stored_file $file, int $maxwidth = 600): ?string {
-        $mimetype = $file->get_mimetype();
-        $content = null;
-        $cachepath = null;
+    public static function stored_file_to_cached_url(\stored_file $file, int $maxwidth = 600): ?string {
+        global $CFG;
 
-        // Only consider caching when we actually need to generate a resized image.
-        $imageinfo = $file->get_imageinfo();
-        if ($imageinfo && !empty($maxwidth) && !empty($imageinfo['width']) && $imageinfo['width'] > $maxwidth) {
-            global $CFG;
-
-            $widthkey = (int)$maxwidth;
-            $hash = $file->get_contenthash();
-
-            if (!empty($hash)) {
-                // This will create $CFG->localcachedir/block_vitrinadb/<widthkey>/ if needed.
-                $cachedir = make_localcache_directory('block_vitrinadb/' . $widthkey, false);
-                if ($cachedir) {
-                    $cachepath = $cachedir . '/' . $hash;
-                    if (is_readable($cachepath)) {
-                        $content = @file_get_contents($cachepath);
-                    }
-                }
-            }
-
-            if ($content === null) {
-                // Generate a resized image from the original file content.
-                $resized = $file->resize_image($maxwidth, null);
-                if ($resized !== false) {
-                    $content = $resized;
-
-                    // Persist resized binary into localcache for subsequent calls.
-                    if ($cachepath && $content !== '' && $content !== false) {
-                        @file_put_contents($cachepath, $content);
-                    }
-                }
-            }
-        }
-
-        // If no resize was needed or it failed, fall back to the original content
-        // without caching. For non-image files, get_imageinfo() returns false and
-        // we come directly here.
-        if ($content === null) {
-            $content = $file->get_content();
-        }
-
-        if ($content === '' || $content === false) {
+        $hash = $file->get_contenthash();
+        if (empty($hash)) {
             return null;
         }
 
-        $base64 = base64_encode($content);
-        return 'data:' . $mimetype . ';base64,' . $base64;
+        // Decide whether we need a resized variant or the original bytes.
+        $widthkey = 0;
+        $imageinfo = $file->get_imageinfo();
+        if ($imageinfo && !empty($maxwidth) && !empty($imageinfo['width']) && $imageinfo['width'] > $maxwidth) {
+            $widthkey = (int)$maxwidth;
+        }
+
+        $cachedir = make_localcache_directory('block_vitrinadb/' . $widthkey, false);
+        if (!$cachedir) {
+            return null;
+        }
+
+        $cachepath = $cachedir . '/' . $hash;
+
+        if (!is_readable($cachepath)) {
+            $content = null;
+
+            if ($widthkey > 0 && $imageinfo) {
+                // Try to generate a resized image from the original content.
+                $resized = $file->resize_image($maxwidth, null);
+                if ($resized !== false && $resized !== '') {
+                    $content = $resized;
+                }
+            }
+
+            // If resize is not needed or failed, fall back to the original content.
+            if ($content === null) {
+                $content = $file->get_content();
+            }
+
+            if ($content === '' || $content === false) {
+                return null;
+            }
+
+            @file_put_contents($cachepath, $content);
+        }
+
+        if (!is_readable($cachepath)) {
+            return null;
+        }
+
+        // Build a public URL that will serve the cached file without requiring login.
+        $params = ['h' => $hash];
+        if ($widthkey > 0) {
+            $params['w'] = $widthkey;
+        }
+
+        $url = new \moodle_url('/blocks/vitrinadb/imagecache.php', $params);
+        return $url->out(false);
     }
 }
