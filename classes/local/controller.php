@@ -1105,8 +1105,22 @@ class controller {
                     $covercontent = $getcontent($coverfieldid);
 
                     if ($covercontent && !empty($covercontent->content)) {
-                        // For logged-in users, keep the standard protected pluginfile URL.
-                        if (isloggedin() && !isguestuser()) {
+                        // Always inline the cover image as a data URI so that the
+                        // browser never has to call pluginfile.php for card images.
+                        $fs = get_file_storage();
+                        $file = $fs->get_file(
+                            $context->id,
+                            'mod_data',
+                            'content',
+                            $covercontent->id,
+                            '/',
+                            $covercontent->content
+                        );
+
+                        if ($file) {
+                            $imagepath = self::stored_file_to_data_uri($file, 800);
+                        } else {
+                            // Fallback to the standard URL if file record is not found.
                             $imgurl = \moodle_url::make_pluginfile_url(
                                 $context->id,
                                 'mod_data',
@@ -1117,37 +1131,6 @@ class controller {
                             );
 
                             $imagepath = $imgurl->out(false);
-                        } else {
-                            // For guests / not-logged-in users, inline the image as a data URI
-                            // so that browser does not need access to pluginfile.php.
-                            $fs = get_file_storage();
-                            $file = $fs->get_file(
-                                $context->id,
-                                'mod_data',
-                                'content',
-                                $covercontent->id,
-                                '/',
-                                $covercontent->content
-                            );
-
-                            if ($file) {
-                                $mimetype = $file->get_mimetype();
-                                $content = $file->get_content();
-                                $base64 = base64_encode($content);
-                                $imagepath = 'data:' . $mimetype . ';base64,' . $base64;
-                            } else {
-                                // Fallback to the standard URL if file record is not found.
-                                $imgurl = \moodle_url::make_pluginfile_url(
-                                    $context->id,
-                                    'mod_data',
-                                    'content',
-                                    $covercontent->id,
-                                    '/',
-                                    $covercontent->content
-                                );
-
-                                $imagepath = $imgurl->out(false);
-                            }
                         }
                     }
                 }
@@ -1158,9 +1141,9 @@ class controller {
                         preg_match("/<img[^>]+src\\s*=\\s*'([^']+)'/i", $summary, $matches)) {
                         $imagepath = $matches[1];
 
-                        // For guests / not-logged-in users, if the image comes from pluginfile.php
-                        // try to inline it as a data URI as well.
-                        if (!empty($imagepath) && (!isloggedin() || isguestuser())) {
+                        // If the image comes from pluginfile.php, try to inline it as a data URI
+                        // so that the browser does not request pluginfile.php directly.
+                        if (!empty($imagepath)) {
                             $pluginfilebase = $CFG->wwwroot . '/pluginfile.php';
                             if (strpos($imagepath, $pluginfilebase) === 0) {
                                 $path = parse_url($imagepath, PHP_URL_PATH) ?? '';
@@ -1195,10 +1178,7 @@ class controller {
                                     $file = $fs->get_file($contextid, $component, $filearea, $itemid, $filepath, $filename);
 
                                     if ($file) {
-                                        $mimetype = $file->get_mimetype();
-                                        $content = $file->get_content();
-                                        $base64 = base64_encode($content);
-                                        $imagepath = 'data:' . $mimetype . ';base64,' . $base64;
+                                        $imagepath = self::stored_file_to_data_uri($file, 800);
                                     }
                                 }
                             }
@@ -1913,5 +1893,44 @@ class controller {
             default:
                 return '\block_vitrinadb\local\comments\base';
         }
+    }
+
+    /**
+     * Convert a stored_file image to a data URI, optionally downscaling wide images.
+     *
+     * If the underlying file is an image and its width exceeds $maxwidth, a resized
+     * version is generated once from the original before base64 encoding. We always
+     * base the resize on the original stored_file content so the image is not
+     * repeatedly downscaled across calls.
+     *
+     * @param \stored_file $file
+     * @param int $maxwidth Maximum width in pixels before downscaling (0 to disable).
+     * @return string|null Data URI string or null on failure.
+     */
+    private static function stored_file_to_data_uri(\stored_file $file, int $maxwidth = 600): ?string {
+        $mimetype = $file->get_mimetype();
+        $content = null;
+
+        // Try to use image metadata to decide whether we should resize.
+        $imageinfo = $file->get_imageinfo();
+        if ($imageinfo && !empty($maxwidth) && !empty($imageinfo['width']) && $imageinfo['width'] > $maxwidth) {
+            // Generate a resized image from the original file content.
+            $resized = $file->resize_image($maxwidth, null);
+            if ($resized !== false) {
+                $content = $resized;
+            }
+        }
+
+        // Fallback to original content when not an image or resize failed / not needed.
+        if ($content === null) {
+            $content = $file->get_content();
+        }
+
+        if ($content === '' || $content === false) {
+            return null;
+        }
+
+        $base64 = base64_encode($content);
+        return 'data:' . $mimetype . ';base64,' . $base64;
     }
 }
