@@ -1456,6 +1456,8 @@ class controller {
                 $resource->dataid = $data->id;
                 $resource->recordid = $record->id;
                 $resource->timeadded = $record->timecreated;
+                // Last modification time (fallback to creation time if empty).
+                $resource->timemodified = !empty($record->timemodified) ? (int)$record->timemodified : (int)$record->timecreated;
 
                 // User who shared/created this resource.
                 $resource->sharedbyid = $record->userid;
@@ -1493,6 +1495,31 @@ class controller {
                     $resources[] = $resource;
                 }
             }
+        }
+
+        // If the selected view is "recents" (Next courses tab), we ignore
+        // the manual sort options and PIN order, and simply show the most
+        // recently updated resources first.
+        if ($view === 'recents') {
+            $allresources = array_merge($pinnedresources, $resources);
+
+            usort($allresources, function($a, $b) {
+                $ta = $a->timemodified ?? $a->timeadded ?? 0;
+                $tb = $b->timemodified ?? $b->timeadded ?? 0;
+
+                if ($ta == $tb) {
+                    return 0;
+                }
+
+                // Descending: newest first.
+                return ($ta > $tb) ? -1 : 1;
+            });
+
+            if ($amount > 0 || $initial > 0) {
+                $allresources = array_slice($allresources, $initial, $amount);
+            }
+
+            return $allresources;
         }
 
         // Sort resources according to the selected mode while preserving
