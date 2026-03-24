@@ -1496,8 +1496,9 @@ class controller {
             return [];
         }
 
-        // Split on comma/semicolon (full/half width) and line breaks.
-        $parts = preg_split('/[;,，；\r\n]+/u', $raw);
+        // Split on comma/semicolon (full/half width), line breaks and the
+        // "##" separator used by Data module multi-select (multimenu) fields.
+        $parts = preg_split('/(?:[;,，；\r\n]+|##)+/u', $raw);
 
         $result = [];
         foreach ($parts as $part) {
