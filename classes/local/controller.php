@@ -947,6 +947,10 @@ class controller {
         $resources = [];
         $now = time();
 
+        // Normalise any fulltext search value (applies to resource subject,
+        // description and channels) and channels filter provided from caller.
+        $fulltext = '';
+
         // Normalise any channels filter provided (from block instance config or API caller).
         $channelsfilter = [];
         foreach ($filters as $filter) {
@@ -956,6 +960,11 @@ class controller {
                     foreach ($parts as $part) {
                         $channelsfilter[] = mb_strtolower($part);
                     }
+                }
+            } else if (!empty($filter['type']) && $filter['type'] === 'fulltext' && !empty($filter['values'])) {
+                $text = trim(implode(' ', (array)$filter['values']));
+                if ($text !== '') {
+                    $fulltext = mb_strtolower($text);
                 }
             }
         }
@@ -1255,6 +1264,21 @@ class controller {
 
                     if ($codecontent && $codecontent->content !== null && $codecontent->content !== '') {
                         $code = \content_to_text($codecontent->content, FORMAT_PLAIN);
+                    }
+                }
+
+                // Apply fulltext search (if any) against subject, summary,
+                // channels and code. All comparisons are case-insensitive.
+                if ($fulltext !== '') {
+                    $haystack = mb_strtolower(
+                        $subject . ' ' .
+                        strip_tags((string)$summary) . ' ' .
+                        (string)$channels . ' ' .
+                        (string)$code
+                    );
+
+                    if (mb_strpos($haystack, $fulltext) === false) {
+                        continue;
                     }
                 }
 
