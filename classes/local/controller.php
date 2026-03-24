@@ -1497,11 +1497,21 @@ class controller {
             }
         }
 
-        // If the selected view is "recents" (Next courses tab), we ignore
-        // the manual sort options and PIN order, and simply show the most
-        // recently updated resources first.
-        if ($view === 'recents') {
+        // For special views we override the generic sort behaviour:
+        // - "recents" (Next courses): all visible resources ordered by
+        //   last modification date (newest first), ignoring PIN order.
+        // - "premium" (Premium courses): only resources whose show_status
+        //   contains "prime" (case-insensitive), also ordered by
+        //   last modification date and ignoring PIN order.
+        if ($view === 'recents' || $view === 'premium') {
             $allresources = array_merge($pinnedresources, $resources);
+
+            if ($view === 'premium') {
+                $allresources = array_values(array_filter($allresources, function($resource) {
+                    $status = strtolower((string)($resource->showstatus ?? ''));
+                    return $status !== '' && strpos($status, 'prime') !== false;
+                }));
+            }
 
             usort($allresources, function($a, $b) {
                 $ta = $a->timemodified ?? $a->timeadded ?? 0;
