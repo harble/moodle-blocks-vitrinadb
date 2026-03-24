@@ -267,7 +267,8 @@ class get_courses extends external_api {
             $item->sharedbyname = $resource->sharedbyname;
             $item->sharedbyavatar = $resource->sharedbyavatar;
             $item->shareddayslabel = $resource->shareddayslabel;
-            $item->pinned = !empty($resource->pinned);
+            // Only show the pinned badge in the "All courses" (default) view.
+            $item->pinned = ($view === 'default') && !empty($resource->pinned);
 
             // Fields used by templates but not relevant for resources.
             $item->active = true;
