@@ -1475,10 +1475,11 @@ class controller {
                     $resource->sharedbyavatar = $userpicture->get_url($PAGE);
                 }
 
-                // Time span since this resource was shared, in days (0-999).
+                // Time span since this resource was last updated, in days (0-999).
                 $days = 0;
-                if (!empty($record->timecreated)) {
-                    $diffseconds = max(0, $now - (int)$record->timecreated);
+                $basetime = $resource->timemodified ?? $record->timemodified ?? $record->timecreated ?? 0;
+                if (!empty($basetime)) {
+                    $diffseconds = max(0, $now - (int)$basetime);
                     $days = (int)floor($diffseconds / 86400);
                 }
 
