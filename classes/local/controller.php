@@ -947,6 +947,22 @@ class controller {
         $resources = [];
         $now = time();
 
+        // Normalise any channels filter provided (from block instance config or API caller).
+        $channelsfilter = [];
+        foreach ($filters as $filter) {
+            if (!empty($filter['type']) && $filter['type'] === 'channels' && !empty($filter['values'])) {
+                foreach ($filter['values'] as $value) {
+                    $parts = self::normalize_channels_list((string)$value);
+                    foreach ($parts as $part) {
+                        $channelsfilter[] = mb_strtolower($part);
+                    }
+                }
+            }
+        }
+        if (!empty($channelsfilter)) {
+            $channelsfilter = array_values(array_unique($channelsfilter));
+        }
+
         // Normalise sort direction.
         $sortdirection = strtoupper($sortdirection) === 'ASC' ? 'ASC' : 'DESC';
 
@@ -1192,13 +1208,34 @@ class controller {
                     $imagepath = self::get_courseimage($course);
                 }
 
-                // Channels (optional, kept for potential future filters or templates).
+                // Channels (optional, now used for filtering when a channels filter is configured).
                 $channels = '';
                 if (!empty($channelsfieldid)) {
                     $channelscontent = $getcontent($channelsfieldid);
 
                     if ($channelscontent && $channelscontent->content !== null && $channelscontent->content !== '') {
                         $channels = $channelscontent->content;
+                    }
+                }
+
+                // Apply channels filter (if any): skip resources whose channels do not match.
+                if (!empty($channelsfilter)) {
+                    $resourcechannels = self::normalize_channels_list($channels);
+
+                    if (empty($resourcechannels)) {
+                        continue;
+                    }
+
+                    $matched = false;
+                    foreach ($resourcechannels as $rch) {
+                        if (in_array(mb_strtolower($rch), $channelsfilter, true)) {
+                            $matched = true;
+                            break;
+                        }
+                    }
+
+                    if (!$matched) {
+                        continue;
                     }
                 }
 
@@ -1441,6 +1478,40 @@ class controller {
         // Pinned items first, then normal items, keeping original relative order
         // inside each group.
         return array_merge($pinnedresources, $resources);
+    }
+
+    /**
+     * Normalise a raw channels string into a list of individual channel names.
+     *
+    * Splits on commas/semicolons (including full-width variants) and newlines,
+    * then trims whitespace around each value.
+     *
+     * @param string $raw Raw channels string.
+     * @return array List of non-empty channel names.
+     */
+    public static function normalize_channels_list(string $raw): array {
+        $raw = trim($raw);
+
+        if ($raw === '') {
+            return [];
+        }
+
+        // Split on comma/semicolon (full/half width) and line breaks.
+        $parts = preg_split('/[;,，；\r\n]+/u', $raw);
+
+        $result = [];
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if ($part !== '') {
+                $result[] = $part;
+            }
+        }
+
+        if (empty($result)) {
+            return [];
+        }
+
+        return array_values(array_unique($result));
     }
 
     /**

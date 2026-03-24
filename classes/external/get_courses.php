@@ -170,6 +170,35 @@ class get_courses extends external_api {
         }
         // End of read categories.
 
+        // Read channels filter from block instance config (if provided).
+        if (!empty($params['instanceid'])) {
+            if (!isset($block)) {
+                $block = block_instance_by_id($params['instanceid']);
+            }
+
+            if ($block && !empty($block->config) && !empty($block->config->channels)) {
+                $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list((string)$block->config->channels);
+
+                if (!empty($configuredchannels)) {
+                    // Only add a channels filter if one is not already present.
+                    $haschannelfilter = false;
+                    foreach ($params['filters'] as $filter) {
+                        if (!empty($filter['type']) && $filter['type'] === 'channels') {
+                            $haschannelfilter = true;
+                            break;
+                        }
+                    }
+
+                    if (!$haschannelfilter) {
+                        $params['filters'][] = [
+                            'type' => 'channels',
+                            'values' => $configuredchannels,
+                        ];
+                    }
+                }
+            }
+        }
+
         $pagedresources = [];
 
         // No categories resolved means nothing to search.

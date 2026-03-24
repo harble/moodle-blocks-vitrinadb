@@ -90,6 +90,11 @@ class block_vitrinadb_edit_form extends block_edit_form {
             $options
         );
 
+        // Channels filter (optional, free-text, comma/semicolon separated).
+        $mform->addElement('text', 'config_channels', get_string('channels', 'block_vitrinadb'));
+        $mform->setType('config_channels', PARAM_TEXT);
+        $mform->addHelpButton('config_channels', 'channels', 'block_vitrinadb');
+
         // ------- NEW ADDED
         // Sort by default.
         $sortOptions = [
