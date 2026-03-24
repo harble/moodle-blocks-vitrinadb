@@ -95,12 +95,9 @@ class block_vitrinadb_edit_form extends block_edit_form {
         $mform->setType('config_channels', PARAM_TEXT);
         $mform->addHelpButton('config_channels', 'channels', 'block_vitrinadb');
 
-        // ------- NEW ADDED
-        // Sort by default.
+        // Sort by default (per instance, same three modes as global setting).
         $sortOptions = [
             'default' => get_string('sortdefault', 'block_vitrinadb'),
-            'startdate' => get_string('sortbystartdate', 'block_vitrinadb'),
-            'finishdate' => get_string('sortbyfinishdate', 'block_vitrinadb'),
             'alphabetically' => get_string('sortalphabetically', 'block_vitrinadb'),
             'code' => get_string('sortbycode', 'block_vitrinadb'),
         ];

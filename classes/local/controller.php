@@ -922,9 +922,9 @@ class controller {
      * @param \stdClass $course Course record.
      * @param int|null $dataid Optional specific Database (mod_data) instance id to restrict to.
      * @param string $view View key (kept for future use: default, recents, greats, premium).
-     * @param array $filters Filters list (reserved for future resource-level filtering).
-     * @param string $sort Sort key for records (currently supports timecreated only).
-     * @param string $sortdirection Sort direction (asc or desc).
+    * @param array $filters Filters list (reserved for future resource-level filtering).
+    * @param string $sort Sort key for records (supported: default, alphabetically, code).
+    * @param string $sortdirection Sort direction (asc or desc).
      * @param int $amount Max number of records to return (0 = no limit).
      * @param int $initial Offset from which to start (0-based).
      * @return array List of resource objects.
@@ -965,8 +965,19 @@ class controller {
 
         // Normalise sort direction.
         $sortdirection = strtoupper($sortdirection) === 'ASC' ? 'ASC' : 'DESC';
+        $sortasc = $sortdirection === 'ASC';
 
-        // Currently we only support sorting by record creation time.
+        // Normalise sort key for resources.
+        $sort = trim(strtolower($sort));
+        if ($sort === '' || $sort === 'timecreated' || $sort === 'default') {
+            $sort = 'default';
+        } else if ($sort !== 'alphabetically' && $sort !== 'code') {
+            // Any unsupported key falls back to default.
+            $sort = 'default';
+        }
+
+        // DB-level ordering is always by creation time; additional sorting
+        // (alphabetically/code) is applied in PHP after building resources.
         $orderby = 'timecreated ' . $sortdirection;
 
         $initial = max(0, (int)$initial);
@@ -1019,6 +1030,7 @@ class controller {
             $coverfieldid = null;
             $descriptionfieldid = null;
             $channelsfieldid = null;
+            $codefieldid = null;
             $sharefilefieldid = null;
             $showstatusfieldid = null;
 
@@ -1036,6 +1048,9 @@ class controller {
                     case 'channels':  // 类别， 比如 传灯频道、慈善频道...
                         $channelsfieldid = $field->id;
                         break;
+                    case 'code':  // Optional code field used for custom ordering.
+                        $codefieldid = $field->id;
+                        break;
                     case 'share_file':  // optional file upload field with a resource file to share.
                         $sharefilefieldid = $field->id;
                         break;
@@ -1050,19 +1065,13 @@ class controller {
                 continue;
             }
 
-            // Get approved records in this database, applying optional
-            // pagination and sort at DB level when possible.
-            if ($amount > 0 || $initial > 0) {
-                $sql = "SELECT * FROM {data_records}
-                          WHERE dataid = :dataid AND approved = 1
-                       ORDER BY $orderby";
-                $records = $DB->get_records_sql($sql, ['dataid' => $data->id], $initial, $amount);
-            } else {
-                $records = $DB->get_records('data_records', [
-                    'dataid' => $data->id,
-                    'approved' => 1,
-                ], $orderby);
-            }
+            // Get all approved records in this database. Pagination and
+            // alternative sorting (alphabetically/code) are applied after
+            // building the full resources list.
+            $records = $DB->get_records('data_records', [
+                'dataid' => $data->id,
+                'approved' => 1,
+            ], $orderby);
 
             if (empty($records)) {
                 continue;
@@ -1236,6 +1245,16 @@ class controller {
 
                     if (!$matched) {
                         continue;
+                    }
+                }
+
+                // Optional code field for custom ordering.
+                $code = '';
+                if (!empty($codefieldid)) {
+                    $codecontent = $getcontent($codefieldid);
+
+                    if ($codecontent && $codecontent->content !== null && $codecontent->content !== '') {
+                        $code = \content_to_text($codecontent->content, FORMAT_PLAIN);
                     }
                 }
 
@@ -1426,6 +1445,7 @@ class controller {
                 $resource->summary = $summary;
                 $resource->imagepath = $imagepath;
                 $resource->channels = $channels;
+                $resource->code = $code;
                 $resource->sharefileurl = $sharefileurl;
                 $resource->sharefilename = $sharefilename;
                 $resource->sharefiletype = $sharefiletype;
@@ -1475,9 +1495,68 @@ class controller {
             }
         }
 
-        // Pinned items first, then normal items, keeping original relative order
-        // inside each group.
-        return array_merge($pinnedresources, $resources);
+        // Sort resources according to the selected mode while preserving
+        // the principle that pinned items always appear first.
+
+        $sortkey = function($resource) use ($sort) {
+            switch ($sort) {
+                case 'alphabetically':
+                    $value = $resource->subject ?? '';
+                    break;
+                case 'code':
+                    $value = $resource->code ?? '';
+                    break;
+                case 'default':
+                default:
+                    // For default we keep DB order, so rely on a monotonically
+                    // increasing index to make this comparator a no-op later.
+                    static $i = 0;
+                    $value = $i++;
+                    break;
+            }
+
+            if (is_string($value)) {
+                $value = \core_text::strtolower($value);
+            }
+
+            return $value;
+        };
+
+        $sortresources = function(array &$list) use ($sort, $sortasc, $sortkey) {
+            if ($sort === 'default') {
+                // Preserve DB order as returned above.
+                return;
+            }
+
+            usort($list, function($a, $b) use ($sortasc, $sortkey) {
+                $ka = $sortkey($a);
+                $kb = $sortkey($b);
+
+                if ($ka == $kb) {
+                    return 0;
+                }
+
+                if ($sortasc) {
+                    return ($ka < $kb) ? -1 : 1;
+                }
+
+                return ($ka > $kb) ? -1 : 1;
+            });
+        };
+
+        // Apply sorting inside each group so that pinned resources always
+        // stay on top for any sort mode.
+        $sortresources($pinnedresources);
+        $sortresources($resources);
+
+        $allresources = array_merge($pinnedresources, $resources);
+
+        // Apply pagination after sorting to support infinite scroll.
+        if ($amount > 0 || $initial > 0) {
+            $allresources = array_slice($allresources, $initial, $amount);
+        }
+
+        return $allresources;
     }
 
     /**

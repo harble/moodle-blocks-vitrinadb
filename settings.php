@@ -239,11 +239,9 @@ if ($ADMIN->fulltree) {
     $setting = new admin_setting_configtext($name, $title, $help, 3, PARAM_INT, 5);
     $settings->add($setting);
 
-    // Sort by default.
+    // Sort by default (only the supported resource sort modes).
     $options = [
         'default' => get_string('sortdefault', 'block_vitrinadb'),
-        'startdate' => get_string('sortbystartdate', 'block_vitrinadb'),
-        'finishdate' => get_string('sortbyfinishdate', 'block_vitrinadb'),
         'alphabetically' => get_string('sortalphabetically', 'block_vitrinadb'),
         'code' => get_string('sortbycode', 'block_vitrinadb'),
     ];
