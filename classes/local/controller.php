@@ -1086,6 +1086,29 @@ class controller {
                 continue;
             }
 
+            // Prefetch user ratings aggregated per record using core rating
+            // table (mod_data entry ratings, aggregated as AVG).
+            $ratingsbyrecord = [];
+            $recordids = array_keys($records);
+            if (!empty($recordids)) {
+                list($insql, $inparams) = $DB->get_in_or_equal($recordids, SQL_PARAMS_NAMED, 'rec');
+                $ratingparams = ['contextid' => $context->id] + $inparams;
+                $ratingsql = "SELECT itemid, AVG(rating) AS avgrating, COUNT(1) AS numratings
+                                FROM {rating}
+                               WHERE contextid = :contextid
+                                 AND component = 'mod_data'
+                                 AND ratingarea = 'entry'
+                                 AND itemid $insql
+                            GROUP BY itemid";
+
+                $aggregates = $DB->get_records_sql($ratingsql, $ratingparams);
+                if (!empty($aggregates)) {
+                    foreach ($aggregates as $agg) {
+                        $ratingsbyrecord[$agg->itemid] = $agg;
+                    }
+                }
+            }
+
             foreach ($records as $record) {
                 // Prefetch all contents for this record to reduce DB calls.
                 $contents = $DB->get_records('data_content', ['recordid' => $record->id]);
@@ -1267,14 +1290,36 @@ class controller {
                     }
                 }
 
+                // Rating based on Moodle's rating subsystem for mod_data entries.
+                $ratingtotal = 0.0;
+                $ratingcount = 0;
+                if (isset($ratingsbyrecord[$record->id])) {
+                    $agg = $ratingsbyrecord[$record->id];
+                    if ($agg && $agg->avgrating !== null) {
+                        $ratingvalue = (float)$agg->avgrating;
+                        // Clamp to 0-5 range to keep consistent with block_vitrina.
+                        if ($ratingvalue < 0) {
+                            $ratingvalue = 0.0;
+                        } else if ($ratingvalue > 5) {
+                            $ratingvalue = 5.0;
+                        }
+
+                        if ($ratingvalue > 0) {
+                            $ratingtotal = $ratingvalue;
+                            $ratingcount = (int)$agg->numratings;
+                        }
+                    }
+                }
+
                 // Apply fulltext search (if any) against subject, summary,
-                // channels and code. All comparisons are case-insensitive.
+                // channels, code and rating. All comparisons are case-insensitive.
                 if ($fulltext !== '') {
                     $haystack = mb_strtolower(
                         $subject . ' ' .
                         strip_tags((string)$summary) . ' ' .
                         (string)$channels . ' ' .
-                        (string)$code
+                        (string)$code . ' ' .
+                        ($ratingtotal > 0 ? (string)$ratingtotal : '')
                     );
 
                     if (mb_strpos($haystack, $fulltext) === false) {
@@ -1470,6 +1515,19 @@ class controller {
                 $resource->imagepath = $imagepath;
                 $resource->channels = $channels;
                 $resource->code = $code;
+                // Rating info mapped similarly to course ratings in block_vitrina.
+                $resource->rating = null;
+                $resource->hasrating = false;
+                if ($ratingtotal > 0 && $ratingcount > 0) {
+                    $ratingobj = new \stdClass();
+                    $ratingobj->total = round($ratingtotal, 1);
+                    $ratingobj->count = $ratingcount;
+                    $ratingobj->percent = round($ratingobj->total * 20);
+                    $ratingobj->formated = str_pad($ratingobj->total, 3, '.0');
+                    $ratingobj->stars = $ratingobj->total > 0 ? range(1, (int)round($ratingobj->total)) : null;
+                    $resource->rating = $ratingobj;
+                    $resource->hasrating = true;
+                }
                 $resource->sharefileurl = $sharefileurl;
                 $resource->sharefilename = $sharefilename;
                 $resource->sharefiletype = $sharefiletype;

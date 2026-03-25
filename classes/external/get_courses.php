@@ -270,13 +270,16 @@ class get_courses extends external_api {
             // Only show the pinned badge in the "All courses" (default) view.
             $item->pinned = ($view === 'default') && !empty($resource->pinned);
 
+            // Rating information coming from the database activity.
+            $item->hasrating = !empty($resource->hasrating) && !empty($resource->rating);
+            $item->rating = $item->hasrating ? $resource->rating : null;
+
             // Fields used by templates but not relevant for resources.
             $item->active = true;
             $item->premium = false;
             $item->completed = null;
             $item->progress = null;
             $item->hasprogress = false;
-            $item->hasrating = false;
             $item->fee = null;
             $item->hascart = false;
             $item->instanceid = $instanceid;
