@@ -1525,6 +1525,11 @@ class controller {
                     $ratingobj->percent = round($ratingobj->total * 20);
                     $ratingobj->formated = str_pad($ratingobj->total, 3, '.0');
                     $ratingobj->stars = $ratingobj->total > 0 ? range(1, (int)round($ratingobj->total)) : null;
+                    // Localised hover title, e.g. "2次评价，均分3.5".
+                    $ratingobj->title = get_string('rating_detail_title', 'block_vitrinadb', (object) [
+                        'avg' => $ratingobj->formated,
+                        'count' => $ratingobj->count,
+                    ]);
                     $resource->rating = $ratingobj;
                     $resource->hasrating = true;
                 }
