@@ -72,12 +72,23 @@
         <div class="resource-footer">
             <div class="resource-footer-left">
                 {{#sharefiletypelabel}}
-                    <span class="resource-filetype">
-                        <span class="resource-filetype-icon">
+                    <div class="resource-filetype">
+                        <div class="resource-filetype-icon">
                             <i class="icon fa {{sharefileicon}} fa-fw" aria-hidden="true"></i>
-                        </span>
-                        <span class="resource-filetype-label">{{sharefiletypelabel}}</span>
-                    </span>
+                        </div>
+                        <div class="resource-filetype-text">
+                            <div class="resource-filetype-label">{{sharefiletypelabel}}</div>
+                            {{#hasrating}}
+                                {{#rating}}
+                                <div class="resource-filetype-rating">
+                                    <div class="vitrina-ranking-stars" title="{{title}}">
+                                        <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
+                                    </div>
+                                </div>
+                                {{/rating}}
+                            {{/hasrating}}
+                        </div>
+                    </div>
                 {{/sharefiletypelabel}}
             </div>
             <div class="resource-footer-right">
