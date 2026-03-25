@@ -51,13 +51,6 @@
         <a class="" title="{{summarytitle}}" href="{{{baseurl}}}/blocks/vitrina/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
             <div class="courseimage" {{#imagepath}}style="background-image: url({{imagepath}});"{{/imagepath}}></div>
         </a>
-        {{#hasrating}}
-            {{#rating}}
-            <div class="vitrina-ranking-stars">
-                <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
-            </div>
-            {{/rating}}
-        {{/hasrating}}
         <h3 class="course-name">
             {{{fullname}}}
         </h3>
@@ -79,12 +72,23 @@
         <div class="resource-footer">
             <div class="resource-footer-left">
                 {{#sharefiletypelabel}}
-                    <span class="resource-filetype">
-                        <span class="resource-filetype-icon">
+                    <div class="resource-filetype">
+                        <div class="resource-filetype-icon">
                             <i class="icon fa {{sharefileicon}} fa-fw" aria-hidden="true"></i>
-                        </span>
-                        <span class="resource-filetype-label">{{sharefiletypelabel}}</span>
-                    </span>
+                        </div>
+                        <div class="resource-filetype-text">
+                            <div class="resource-filetype-label">{{sharefiletypelabel}}</div>
+                            {{#hasrating}}
+                                {{#rating}}
+                                <div class="resource-filetype-rating">
+                                    <div class="vitrina-ranking-stars">
+                                        <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
+                                    </div>
+                                </div>
+                                {{/rating}}
+                            {{/hasrating}}
+                        </div>
+                    </div>
                 {{/sharefiletypelabel}}
             </div>
             <div class="resource-footer-right">

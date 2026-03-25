@@ -121,6 +121,7 @@
     align-items: stretch;
     justify-content: space-between;
     font-size: 0.85rem;
+    height: 45px;
 }
 
 .block_vitrina-courseslist .coursebox .panel-foot .resource-footer-left {
@@ -130,12 +131,13 @@
 
 .block_vitrina-courseslist .coursebox .panel-foot .resource-filetype-icon {
     margin-right: -8px;
+    margin-top: -6px;
     display: inline-flex;
     align-items: center;
 }
 
 .block_vitrina-courseslist .coursebox .panel-foot .resource-filetype-icon .icon {
-    font-size: 1.5em;
+    font-size: 1.8em;
 }
 
 .block_vitrina-courseslist .coursebox .panel-foot .resource-filetype-label {
@@ -150,6 +152,10 @@
 .block_vitrina-courseslist .coursebox .panel-foot .resource-shareinfo {
     display: flex;
     align-items: stretch;
+}
+
+.block_vitrina-courseslist .coursebox .panel-foot .resource-share-avatar {
+    line-height: 40px;
 }
 
 .block_vitrina-courseslist .coursebox .panel-foot .resource-share-avatar img {
