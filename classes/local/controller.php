@@ -1586,11 +1586,67 @@ class controller {
         }
 
         // For special views we override the generic sort behaviour:
+        // - "greats" (Outstanding courses): only resources with an
+        //   average rating greater than 3, ordered by rating (and then
+        //   by number of ratings and last modification date).
         // - "recents" (Next courses): all visible resources ordered by
         //   last modification date (newest first), ignoring PIN order.
         // - "premium" (Premium courses): only resources whose show_status
         //   contains "prime" (case-insensitive), also ordered by
         //   last modification date and ignoring PIN order.
+
+        if ($view === 'greats') {
+            $allresources = array_merge($pinnedresources, $resources);
+
+            // Keep only resources that have a rating higher than 3.
+            $allresources = array_values(array_filter($allresources, function($resource) {
+                if (empty($resource->hasrating) || empty($resource->rating)) {
+                    return false;
+                }
+
+                $total = (float)($resource->rating->total ?? 0);
+
+                return $total > 3.0;
+            }));
+
+            // Order by rating DESC, then by number of ratings DESC, and finally
+            // by last modification date DESC so that the most relevant
+            // resources appear first.
+            usort($allresources, function($a, $b) {
+                $ra = isset($a->rating->total) ? (float)$a->rating->total : 0.0;
+                $rb = isset($b->rating->total) ? (float)$b->rating->total : 0.0;
+
+                if ($ra == $rb) {
+                    $ca = isset($a->rating->count) ? (int)$a->rating->count : 0;
+                    $cb = isset($b->rating->count) ? (int)$b->rating->count : 0;
+
+                    if ($ca == $cb) {
+                        $ta = $a->timemodified ?? $a->timeadded ?? 0;
+                        $tb = $b->timemodified ?? $b->timeadded ?? 0;
+
+                        if ($ta == $tb) {
+                            return 0;
+                        }
+
+                        // Descending: newest first.
+                        return ($ta > $tb) ? -1 : 1;
+                    }
+
+                    // Descending: more ratings first.
+                    return ($ca > $cb) ? -1 : 1;
+                }
+
+                // Descending: higher rating first.
+                return ($ra > $rb) ? -1 : 1;
+            });
+
+            if ($amount > 0 || $initial > 0) {
+                $allresources = array_slice($allresources, $initial, $amount);
+            }
+
+            return $allresources;
+        }
+
         if ($view === 'recents' || $view === 'premium') {
             $allresources = array_merge($pinnedresources, $resources);
 
