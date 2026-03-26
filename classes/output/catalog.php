@@ -91,20 +91,22 @@ class catalog implements renderable, templatable {
         $staticfilters = get_config('block_vitrinadb', 'staticfilters');
         $staticfilters = explode(',', $staticfilters);
 
-        // Filter by category.
+        // Filter by channels (displayed as categories) using the configured
+        // Database activity "channels" field instead of Moodle course
+        // categories.
         $catfilterview = null;
         if (in_array('categories', $staticfilters)) {
             $catfilterview = get_config('block_vitrinadb', 'catfilterview');
 
-            $nested = $catfilterview == 'tree';
+            $channelsoptions = \block_vitrinadb\local\controller::get_channels_filter_options((int)$this->instanceid);
 
-            $categoriesoptions = \block_vitrinadb\local\controller::get_categories([], $nested);
-
-            if (count($categoriesoptions) > 1) {
+            if (count($channelsoptions) > 0) {
                 $control = new \stdClass();
+                // Reuse the generic "category" label so the UI still
+                // shows a categories-like list with checkboxes.
                 $control->title = get_string('category');
-                $control->key = 'categories';
-                $control->options = $categoriesoptions;
+                $control->key = 'channels';
+                $control->options = $channelsoptions;
                 $filtercontrols[] = $control;
             }
         }

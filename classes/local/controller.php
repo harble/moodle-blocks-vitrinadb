@@ -1955,6 +1955,158 @@ class controller {
     }
 
     /**
+     * Get the available channels list from the configured Database activity.
+     *
+     * This reads the "channels" field from the first Database (mod_data)
+     * activity found in the courses configured for this block instance and
+     * returns its configured options (or, as a fallback, the distinct values
+     * currently used by records) as a flat checkbox list.
+     *
+     * @param int $instanceid The block instance id.
+     * @return array The channels options list.
+     */
+    public static function get_channels_filter_options(int $instanceid): array {
+        global $DB;
+
+        $options = [];
+
+        if (empty($instanceid)) {
+            return $options;
+        }
+
+        $block = block_instance_by_id($instanceid);
+        if (!$block || empty($block->config) || empty($block->config->categories) || !is_array($block->config->categories)) {
+            return $options;
+        }
+
+        $categoriesids = array_map('intval', $block->config->categories);
+        $categoriesids = array_filter($categoriesids);
+
+        if (empty($categoriesids)) {
+            return $options;
+        }
+
+        // Locate the "data" module id.
+        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+        if (!$datamoduleid) {
+            return $options;
+        }
+
+        [$catinsql, $catparams] = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
+
+        $paramsdb = $catparams;
+        $paramsdb['siteid'] = SITEID;
+        $paramsdb['now'] = time();
+        $paramsdb['datamoduleid'] = $datamoduleid;
+
+        $sql = "SELECT cm.id, cm.course, cm.instance
+                  FROM {course_modules} cm
+                  JOIN {course} c ON c.id = cm.course
+                 WHERE c.category $catinsql
+                   AND c.visible = 1
+                   AND c.id <> :siteid
+                   AND (c.enddate > :now OR c.enddate = 0)
+                   AND cm.module = :datamoduleid
+                   AND cm.deletioninprogress = 0
+              ORDER BY cm.id ASC";
+
+        // Use the same Database activity that the catalog listing uses
+        // (first match across the configured categories).
+        $firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE);
+        if (!$firstcm) {
+            return $options;
+        }
+
+        $data = $DB->get_record('data', ['id' => $firstcm->instance]);
+        if (!$data) {
+            return $options;
+        }
+
+        $fields = $DB->get_records('data_fields', ['dataid' => $data->id]);
+        if (empty($fields)) {
+            return $options;
+        }
+
+        $channelsfield = null;
+        foreach ($fields as $field) {
+            if (trim((string)$field->description) === 'channels') {
+                $channelsfield = $field;
+                break;
+            }
+        }
+
+        if (!$channelsfield) {
+            return $options;
+        }
+
+        $rawvalues = [];
+
+        // Preferred source: options configured on the field (for menu-like fields
+        // param1 is a newline-separated list of options).
+        if (!empty($channelsfield->param1)) {
+            $lines = preg_split('/[\r\n]+/', (string)$channelsfield->param1);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line !== '') {
+                    $rawvalues[] = $line;
+                }
+            }
+        }
+
+        // Fallback: collect distinct values actually used by records.
+        if (empty($rawvalues)) {
+            $contents = $DB->get_records('data_content', ['fieldid' => $channelsfield->id], '', 'id, content');
+            if (!empty($contents)) {
+                foreach ($contents as $content) {
+                    if ($content->content === null || $content->content === '') {
+                        continue;
+                    }
+                    $parts = self::normalize_channels_list((string)$content->content);
+                    foreach ($parts as $part) {
+                        $rawvalues[] = $part;
+                    }
+                }
+            }
+        }
+
+        if (empty($rawvalues)) {
+            return $options;
+        }
+
+        // Normalise and de-duplicate.
+        $unique = [];
+        foreach ($rawvalues as $value) {
+            $value = trim($value);
+            if ($value === '') {
+                continue;
+            }
+            $unique[$value] = $value;
+        }
+
+        if (empty($unique)) {
+            return $options;
+        }
+
+        // Sort alphabetically for a stable, user-friendly list.
+        $labels = array_values($unique);
+        usort($labels, function(string $a, string $b) {
+            $la = \core_text::strtolower($a);
+            $lb = \core_text::strtolower($b);
+            return $la <=> $lb;
+        });
+
+        foreach ($labels as $label) {
+            $options[] = [
+                'value' => $label,
+                'label' => format_string($label, true),
+                'selected' => false,
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
      * Get the available custom fields to filter.
      *
      * @param array $selectedvalues The selected values.
