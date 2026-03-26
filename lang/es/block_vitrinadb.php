@@ -188,3 +188,6 @@ $string['filetype_html'] = 'HTML';
 
 // Recursos fijados.
 $string['pinnedlabel'] = 'Fijado';
+
+// Título de canales en el icono de tipo de archivo.
+$string['resource_channels_title'] = 'Categorías: {$a}';

@@ -264,6 +264,7 @@ class get_courses extends external_api {
             $item->sharefiletype = $resource->sharefiletype;
             $item->sharefiletypelabel = $resource->sharefiletypelabel;
             $item->sharefileicon = $resource->sharefileicon;
+            $item->sharefiletitle = $resource->sharefiletitle ?? '';
             $item->sharedbyname = $resource->sharedbyname;
             $item->sharedbyavatar = $resource->sharedbyavatar;
             $item->shareddayslabel = $resource->shareddayslabel;

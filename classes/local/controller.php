@@ -1523,6 +1523,29 @@ class controller {
                     }
                 }
 
+                // Build a localised title based on the record's channels, if any.
+                // The channels field may contain multiple values; join them with separators.
+                $sharefiletitle = '';
+                if (!empty($channels)) {
+                    if (is_array($channels)) {
+                        $channelslist = array_filter(array_map('trim', $channels), function($v) {
+                            return $v !== '';
+                        });
+                        $channelsstr = implode('/', $channelslist);
+                    } else {
+                        $channelsstr = trim((string)$channels);
+                        // Some database multi-selects store values separated by "##".
+                        // Normalise these to "/" for display.
+                        if ($channelsstr !== '') {
+                            $channelsstr = str_replace('##', ' / ', $channelsstr);
+                        }
+                    }
+
+                    if ($channelsstr !== '') {
+                        $sharefiletitle = get_string('resource_channels_title', 'block_vitrinadb', $channelsstr);
+                    }
+                }
+
                 $resource = new \stdClass();
                 $resource->courseid = $course->id;
                 $resource->category = $course->category;
@@ -1532,6 +1555,7 @@ class controller {
                 $resource->imagepath = $imagepath;
                 $resource->channels = $channels;
                 $resource->code = $code;
+                $resource->sharefiletitle = $sharefiletitle;
                 // Rating info mapped similarly to course ratings in block_vitrina.
                 $resource->rating = null;
                 $resource->hasrating = false;

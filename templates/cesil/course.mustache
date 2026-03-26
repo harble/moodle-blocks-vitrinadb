@@ -48,7 +48,7 @@
     </div>
     {{/pinned}}
     <div class="panel-heading">
-        <a class="" title="{{{fullname}}}" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}">
+        <a class="" title="{{{shortname}}}" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}">
             {{{fullname}}}
         </a>
     </div>
@@ -75,7 +75,7 @@
             <div class="resource-footer-left">
                 {{#sharefiletypelabel}}
                     <div class="resource-filetype">
-                        <div class="resource-filetype-icon">
+                        <div class="resource-filetype-icon" {{#sharefiletitle}}title="{{sharefiletitle}}"{{/sharefiletitle}}>
                             <i class="icon fa {{sharefileicon}} fa-fw" aria-hidden="true"></i>
                         </div>
                         <div class="resource-filetype-text">

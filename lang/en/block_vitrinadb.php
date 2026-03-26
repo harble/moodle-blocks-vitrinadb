@@ -203,5 +203,8 @@ $string['filetype_image'] = 'Image';
 $string['filetype_other'] = 'File';
 $string['filetype_html'] = 'HTML';
 
+// Resource channels title for hover on filetype icon.
+$string['resource_channels_title'] = 'Categories: {$a}';
+
 // Pinned resources.
 $string['pinnedlabel'] = 'Pinned';
