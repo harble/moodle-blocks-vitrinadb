@@ -100,6 +100,23 @@ if (count($categoriesids) > 0) {
     $filtersselected[] = (object) ['key' => 'categories', 'values' => $categoriesids];
 }
 
+// Preselect channels filter from block configuration (Channels filter setting)
+// when opening the catalog via "view all", so that the checkbox list on the
+// left matches the resources already being filtered by channels.
+if (!empty($instanceid)) {
+    if (!isset($block)) {
+        $block = block_instance_by_id($instanceid);
+    }
+
+    if ($block && !empty($block->config) && !empty($block->config->channels)) {
+        $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list((string)$block->config->channels);
+
+        if (!empty($configuredchannels)) {
+            $filtersselected[] = (object) ['key' => 'channels', 'values' => $configuredchannels];
+        }
+    }
+}
+
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'filters', [$uniqueid, $filtersselected]);
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $view, $instanceid, $bypage]);
 
