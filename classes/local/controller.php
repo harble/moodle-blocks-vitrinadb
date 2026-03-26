@@ -1437,6 +1437,19 @@ class controller {
                     }
                 }
 
+                // Ensure we always expose some file type information to
+                // templates, even when there is no explicit file or
+                // embedded resource detected. If there is HTML description
+                // content, treat it as an "HTML" resource; otherwise fall
+                // back to a generic "other" file type.
+                if (empty($sharefiletype)) {
+                    if (!empty($summary)) {
+                        $sharefiletype = 'html';
+                    } else {
+                        $sharefiletype = 'other';
+                    }
+                }
+
                 // Optional display status field (show_status, single select).
                 $showstatus = '';
                 if (!empty($showstatusfieldid)) {
@@ -1498,6 +1511,10 @@ class controller {
                         case 'image':
                             $sharefiletypelabel = get_string('filetype_image', 'block_vitrinadb');
                             $sharefileicon = 'fa-file-image';
+                            break;
+                        case 'html':
+                            $sharefiletypelabel = get_string('filetype_html', 'block_vitrinadb');
+                            $sharefileicon = 'fa-file-code';
                             break;
                         default:
                             $sharefiletypelabel = get_string('filetype_other', 'block_vitrinadb');

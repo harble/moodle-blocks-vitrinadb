@@ -184,6 +184,7 @@ $string['filetype_office'] = 'oficina';
 $string['filetype_presentation'] = 'PPT';
 $string['filetype_image'] = 'Imagen';
 $string['filetype_other'] = 'Archivo';
+$string['filetype_html'] = 'HTML';
 
 // Recursos fijados.
 $string['pinnedlabel'] = 'Fijado';
