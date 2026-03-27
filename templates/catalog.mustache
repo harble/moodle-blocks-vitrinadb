@@ -114,6 +114,11 @@
                     </div>
                 {{/authorfilter}}
 
+                <div class="filterpending form-check">
+                    <input type="checkbox" class="form-check-input" id="vitrina-pending-{{uniqueid}}" name="pending" value="1">
+                    <label class="form-check-label" for="vitrina-pending-{{uniqueid}}">{{#str}}pendingfilter, block_vitrinadb{{/str}}</label>
+                </div>
+
                 {{#filtercontrols}}
                     <div class="filtercontrol" data-key="{{key}}">
                         <h5>{{title}}</h5>

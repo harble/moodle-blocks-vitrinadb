@@ -957,6 +957,8 @@ class controller {
         $showstatusfilter = '';
         // Normalise any author filter provided (single user id).
         $authorfilter = 0;
+        // Normalise any "only pending" filter (checkbox) for approval status.
+        $onlypending = false;
         foreach ($filters as $filter) {
             if (!empty($filter['type']) && $filter['type'] === 'channels' && !empty($filter['values'])) {
                 foreach ($filter['values'] as $value) {
@@ -981,6 +983,14 @@ class controller {
                 $candidate = (int)reset($filter['values']);
                 if ($candidate > 0) {
                     $authorfilter = $candidate;
+                }
+            } else if (!empty($filter['type']) && $filter['type'] === 'pending') {
+                // Checkbox filter: any truthy value turns it on.
+                if (!empty($filter['values'])) {
+                    $candidate = reset($filter['values']);
+                    if ($candidate !== '' && $candidate !== '0' && $candidate !== 0) {
+                        $onlypending = true;
+                    }
                 }
             }
         }
@@ -1090,12 +1100,16 @@ class controller {
                 continue;
             }
 
-            // Get all approved records in this database. Pagination and
-            // alternative sorting (alphabetically/code) are applied after
-            // building the full resources list.
+            // Get all records in this database matching the approval state.
+            // By default only approved records are shown; when the
+            // "only pending" filter is active, only unapproved records
+            // are retrieved. Pagination and alternative sorting
+            // (alphabetically/code) are applied after building the full
+            // resources list.
+            $approvedstate = $onlypending ? 0 : 1;
             $records = $DB->get_records('data_records', [
                 'dataid' => $data->id,
-                'approved' => 1,
+                'approved' => $approvedstate,
             ], $orderby);
 
             if (empty($records)) {

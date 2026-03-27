@@ -148,6 +148,15 @@ function loadCourses(uniqueid, $tabcontent) {
             }
         }
 
+        // Pending approval checkbox.
+        var $pendingcontrol = $filtersbox.find('.filterpending input[name="pending"]');
+        if ($pendingcontrol.length > 0 && $pendingcontrol.is(':checked')) {
+            filters.push({
+                'values': ['1'],
+                'type': 'pending',
+            });
+        }
+
         $filtersbox.find('.filtercontrol').each(function() {
             var $control = $(this);
             var values = [];
@@ -419,6 +428,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
     $filtersbox.find('.filtersortdirection select[name="sortdirection"]').on('change', applyFilters);
     $filtersbox.find('.filtershowstatus select[name="show_status"]').on('change', applyFilters);
     $filtersbox.find('.filterauthor select[name="author"]').on('change', applyFilters);
+    $filtersbox.find('.filterpending input[name="pending"]').on('change', applyFilters);
 
     $filtersbox.find('.filterfulltext button').on('click', applyFilters);
     $filtersbox.find('.filterfulltext input').on('keypress', function(e) {

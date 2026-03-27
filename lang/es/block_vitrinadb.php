@@ -194,8 +194,11 @@ $string['resource_channels_title'] = 'Categorías: {$a}';
 
 // Filtro de estado de visualización.
 $string['showstatusfilter'] = 'Estado de visualización';
-$string['showstatus_all'] = '';
+$string['showstatus_all'] = 'Todos';
 
 // Filtro de autor.
 $string['authorfilter'] = 'Autor';
 $string['author_all'] = 'Todos';
+
+// Filtro de registros pendientes de aprobación.
+$string['pendingfilter'] = 'Solo registros pendientes de aprobación';

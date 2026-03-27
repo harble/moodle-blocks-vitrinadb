@@ -211,8 +211,11 @@ $string['pinnedlabel'] = 'Pinned';
 
 // Show status filter.
 $string['showstatusfilter'] = 'Display status';
-$string['showstatus_all'] = '';
+$string['showstatus_all'] = 'All';
 
 // Author filter.
 $string['authorfilter'] = 'Author';
 $string['author_all'] = 'All';
+
+// Pending approval filter.
+$string['pendingfilter'] = 'Only pending approval records';
