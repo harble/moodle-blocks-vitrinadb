@@ -124,6 +124,18 @@ function loadCourses(uniqueid, $tabcontent) {
             }
         }
 
+        // Show status dropdown (single-select).
+        var $showstatuscontrol = $filtersbox.find('.filtershowstatus select[name="show_status"]');
+        if ($showstatuscontrol.length > 0) {
+            var showstatus = $showstatuscontrol.val();
+            if (showstatus) {
+                filters.push({
+                    'values': [showstatus],
+                    'type': 'show_status',
+                });
+            }
+        }
+
         $filtersbox.find('.filtercontrol').each(function() {
             var $control = $(this);
             var values = [];
@@ -160,7 +172,7 @@ function loadCourses(uniqueid, $tabcontent) {
 
     loading = true;
         Ajax.call([{
-		methodname: 'block_vitrinadb_get_courses',
+        methodname: 'block_vitrinadb_get_courses',
         args: {'view': view, 'filters': filters, 'instanceid': instanceid[uniqueid],
             'amount': bypage[uniqueid], 'initial': paging[uniqueid][view].loaded,
             'sort': sort, 'sortdirection': sortdirection},
@@ -393,6 +405,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
     $filtersbox.find('.filtercontrol .filteroptions input').on('change', applyFilters);
     $filtersbox.find('.filtersort select[name="sort"]').on('change', applyFilters);
     $filtersbox.find('.filtersortdirection select[name="sortdirection"]').on('change', applyFilters);
+    $filtersbox.find('.filtershowstatus select[name="show_status"]').on('change', applyFilters);
 
     $filtersbox.find('.filterfulltext button').on('click', applyFilters);
     $filtersbox.find('.filterfulltext input').on('keypress', function(e) {

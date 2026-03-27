@@ -948,11 +948,13 @@ class controller {
         $now = time();
 
         // Normalise any fulltext search value (applies to resource subject,
-        // description and channels) and channels filter provided from caller.
+        // description and channels) and filters provided from caller.
         $fulltext = '';
 
         // Normalise any channels filter provided (from block instance config or API caller).
         $channelsfilter = [];
+        // Normalise any show_status filter provided (single value).
+        $showstatusfilter = '';
         foreach ($filters as $filter) {
             if (!empty($filter['type']) && $filter['type'] === 'channels' && !empty($filter['values'])) {
                 foreach ($filter['values'] as $value) {
@@ -965,6 +967,12 @@ class controller {
                 $text = trim(implode(' ', (array)$filter['values']));
                 if ($text !== '') {
                     $fulltext = mb_strtolower($text);
+                }
+            } else if (!empty($filter['type']) && $filter['type'] === 'show_status' && !empty($filter['values'])) {
+                // Single-select dropdown: first non-empty value wins.
+                $candidate = trim((string)reset($filter['values']));
+                if ($candidate !== '') {
+                    $showstatusfilter = mb_strtolower($candidate);
                 }
             }
         }
@@ -1460,27 +1468,36 @@ class controller {
                     }
                 }
 
-                // Interpret show_status value:
-                // - empty or contains "show" (case-insensitive): shown
-                // - contains "hide" (case-insensitive): not shown
-                // - contains "pin" (case-insensitive): shown and pinned to the top
+                // Interpret show_status value and apply visibility logic.
+                // 1) 无筛选(showstatusfilter为空)：
+                //    - 包含 "hide" 的记录被完全隐藏
+                //    - 包含 "pin" 的记录标记为置顶
+                // 2) 有筛选(showstatusfilter非空)：
+                //    - 不再自动隐藏 "hide"；
+                //    - 仅保留 show_status 与筛选值相同的记录（不区分大小写）；
+                //    - 仍然根据是否包含 "pin" 决定是否置顶。
                 $showstatusvalue = trim((string)$showstatus);
+                $lowerstatus = $showstatusvalue !== '' ? mb_strtolower($showstatusvalue) : '';
                 $ispinned = false;
-                if ($showstatusvalue !== '') {
-                    $lowerstatus = strtolower($showstatusvalue);
 
-                    // If configured as hide, skip this record entirely.
-                    if (strpos($lowerstatus, 'hide') !== false) {
+                // 始终根据是否包含 pin 来决定是否置顶。
+                if ($lowerstatus !== '' && strpos($lowerstatus, 'pin') !== false) {
+                    $ispinned = true;
+                }
+
+                if ($showstatusfilter === '') {
+                    // 无筛选时，包含 hide 的记录永远不显示。
+                    if ($lowerstatus !== '' && strpos($lowerstatus, 'hide') !== false) {
                         continue;
                     }
-
-                    // If contains pin, mark as pinned (will be placed before others).
-                    if (strpos($lowerstatus, 'pin') !== false) {
-                        $ispinned = true;
+                    // 其它情况：正常可见（可能置顶或普通）。
+                } else {
+                    // 有筛选时：只保留 show_status 与筛选值一致的记录。
+                    // 为空的状态永远不会匹配任何筛选值。
+                    if ($lowerstatus === '' || $lowerstatus !== $showstatusfilter) {
+                        continue;
                     }
-                    // Otherwise fall back to normal visible item.
                 }
-                // If empty, treat as normal visible (not pinned).
 
                 // Map share file type to label and icon class for templates.
                 $sharefiletypelabel = '';
@@ -2141,6 +2158,154 @@ class controller {
                 'value' => $label,
                 'label' => format_string($label, true),
                 'selected' => false,
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Get the available show_status options from the configured Database activity.
+     *
+     * This reads the "show_status" field from the same Database (mod_data)
+     * activity used by the catalog and returns its configured options as a
+     * simple list, suitable to be rendered as a dropdown.
+     *
+     * @param int $instanceid The block instance id.
+     * @return array The show_status options list.
+     */
+    public static function get_showstatus_filter_options(int $instanceid): array {
+        global $DB;
+
+        $options = [];
+
+        if (empty($instanceid)) {
+            return $options;
+        }
+
+        $block = block_instance_by_id($instanceid);
+        if (!$block || empty($block->config) || empty($block->config->categories) || !is_array($block->config->categories)) {
+            return $options;
+        }
+
+        $categoriesids = array_map('intval', $block->config->categories);
+        $categoriesids = array_filter($categoriesids);
+
+        if (empty($categoriesids)) {
+            return $options;
+        }
+
+        // Locate the "data" module id.
+        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+        if (!$datamoduleid) {
+            return $options;
+        }
+
+        [$catinsql, $catparams] = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
+
+        $paramsdb = $catparams;
+        $paramsdb['siteid'] = SITEID;
+        $paramsdb['now'] = time();
+        $paramsdb['datamoduleid'] = $datamoduleid;
+
+        $sql = "SELECT cm.id, cm.course, cm.instance
+                  FROM {course_modules} cm
+                  JOIN {course} c ON c.id = cm.course
+                 WHERE c.category $catinsql
+                   AND c.visible = 1
+                   AND c.id <> :siteid
+                   AND (c.enddate > :now OR c.enddate = 0)
+                   AND cm.module = :datamoduleid
+                   AND cm.deletioninprogress = 0
+              ORDER BY cm.id ASC";
+
+        $firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE);
+        if (!$firstcm) {
+            return $options;
+        }
+
+        $data = $DB->get_record('data', ['id' => $firstcm->instance]);
+        if (!$data) {
+            return $options;
+        }
+
+        $fields = $DB->get_records('data_fields', ['dataid' => $data->id]);
+        if (empty($fields)) {
+            return $options;
+        }
+
+        $statusfield = null;
+        foreach ($fields as $field) {
+            if (trim((string)$field->description) === 'show_status') {
+                $statusfield = $field;
+                break;
+            }
+        }
+
+        if (!$statusfield) {
+            return $options;
+        }
+
+        $rawvalues = [];
+
+        // Preferred source: options configured on the field (for menu-like
+        // fields param1 is a newline-separated list of options).
+        if (!empty($statusfield->param1)) {
+            $lines = preg_split('/[\r\n]+/', (string)$statusfield->param1);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line !== '') {
+                    $rawvalues[] = $line;
+                }
+            }
+        }
+
+        // Fallback: collect distinct values actually used by records.
+        if (empty($rawvalues)) {
+            $contents = $DB->get_records('data_content', ['fieldid' => $statusfield->id], '', 'id, content');
+            if (!empty($contents)) {
+                foreach ($contents as $content) {
+                    if ($content->content === null || $content->content === '') {
+                        continue;
+                    }
+                    $value = trim((string)$content->content);
+                    if ($value !== '') {
+                        $rawvalues[] = $value;
+                    }
+                }
+            }
+        }
+
+        if (empty($rawvalues)) {
+            return $options;
+        }
+
+        // Normalise and de-duplicate.
+        $unique = [];
+        foreach ($rawvalues as $value) {
+            $value = trim($value);
+            if ($value === '') {
+                continue;
+            }
+            $unique[$value] = $value;
+        }
+
+        if (empty($unique)) {
+            return $options;
+        }
+
+        // Sort alphabetically for a stable, user-friendly list.
+        $labels = array_values($unique);
+        usort($labels, function(string $a, string $b) {
+            $la = \core_text::strtolower($a);
+            $lb = \core_text::strtolower($b);
+            return $la <=> $lb;
+        });
+
+        foreach ($labels as $label) {
+            $options[] = [
+                'value' => $label,
+                'label' => format_string($label, true),
             ];
         }
 

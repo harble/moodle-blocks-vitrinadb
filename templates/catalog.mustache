@@ -90,6 +90,18 @@
                     </div>
                 </div>
 
+                {{#showstatusfilter}}
+                    <div class="filtershowstatus">
+                        <label for="vitrina-showstatus-{{uniqueid}}">{{#str}}showstatusfilter, block_vitrinadb{{/str}}</label>
+                        <select id="vitrina-showstatus-{{uniqueid}}" name="show_status" class="form-control">
+                            <option value="">{{#str}}showstatus_all, block_vitrinadb{{/str}}</option>
+                            {{#options}}
+                                <option value="{{value}}">{{label}}</option>
+                            {{/options}}
+                        </select>
+                    </div>
+                {{/showstatusfilter}}
+
                 {{#filtercontrols}}
                     <div class="filtercontrol" data-key="{{key}}">
                         <h5>{{title}}</h5>

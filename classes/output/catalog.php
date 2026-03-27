@@ -111,6 +111,17 @@ class catalog implements renderable, templatable {
             }
         }
 
+        // Filter by show_status (display status) using the configured
+        // Database activity "show_status" field. This is rendered as a
+        // dropdown above the categories list.
+        $showstatusoptions = \block_vitrinadb\local\controller::get_showstatus_filter_options((int)$this->instanceid);
+        $showstatusfilter = null;
+        if (!empty($showstatusoptions)) {
+            $showstatusfilter = (object) [
+                'options' => $showstatusoptions,
+            ];
+        }
+
         // Filter by language.
         if (in_array('langs', $staticfilters)) {
             $options = \block_vitrinadb\local\controller::get_languages();
@@ -185,6 +196,7 @@ class catalog implements renderable, templatable {
             'showtext' => \block_vitrinadb\local\controller::show_tabtext(),
             'filtercontrols' => $filtercontrols,
             'filterproperties' => $filterproperties,
+            'showstatusfilter' => $showstatusfilter,
             'sortoptions' => $sortoptions,
             'sortdirectionoptions' => $sortdirectionoptions,
             'catfilterview' => $catfilterview,

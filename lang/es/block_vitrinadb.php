@@ -191,3 +191,7 @@ $string['pinnedlabel'] = 'Fijado';
 
 // Título de canales en el icono de tipo de archivo.
 $string['resource_channels_title'] = 'Categorías: {$a}';
+
+// Filtro de estado de visualización.
+$string['showstatusfilter'] = 'Estado de visualización';
+$string['showstatus_all'] = '';

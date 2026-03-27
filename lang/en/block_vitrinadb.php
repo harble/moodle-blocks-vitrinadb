@@ -208,3 +208,7 @@ $string['resource_channels_title'] = 'Categories: {$a}';
 
 // Pinned resources.
 $string['pinnedlabel'] = 'Pinned';
+
+// Show status filter.
+$string['showstatusfilter'] = 'Display status';
+$string['showstatus_all'] = '';
