@@ -136,6 +136,18 @@ function loadCourses(uniqueid, $tabcontent) {
             }
         }
 
+        // Author dropdown (single-select).
+        var $authorcontrol = $filtersbox.find('.filterauthor select[name="author"]');
+        if ($authorcontrol.length > 0) {
+            var author = $authorcontrol.val();
+            if (author) {
+                filters.push({
+                    'values': [author],
+                    'type': 'author',
+                });
+            }
+        }
+
         $filtersbox.find('.filtercontrol').each(function() {
             var $control = $(this);
             var values = [];
@@ -406,6 +418,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
     $filtersbox.find('.filtersort select[name="sort"]').on('change', applyFilters);
     $filtersbox.find('.filtersortdirection select[name="sortdirection"]').on('change', applyFilters);
     $filtersbox.find('.filtershowstatus select[name="show_status"]').on('change', applyFilters);
+    $filtersbox.find('.filterauthor select[name="author"]').on('change', applyFilters);
 
     $filtersbox.find('.filterfulltext button').on('click', applyFilters);
     $filtersbox.find('.filterfulltext input').on('keypress', function(e) {

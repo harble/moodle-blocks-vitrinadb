@@ -195,3 +195,7 @@ $string['resource_channels_title'] = 'Categorías: {$a}';
 // Filtro de estado de visualización.
 $string['showstatusfilter'] = 'Estado de visualización';
 $string['showstatus_all'] = '';
+
+// Filtro de autor.
+$string['authorfilter'] = 'Autor';
+$string['author_all'] = 'Todos';

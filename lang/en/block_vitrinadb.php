@@ -212,3 +212,7 @@ $string['pinnedlabel'] = 'Pinned';
 // Show status filter.
 $string['showstatusfilter'] = 'Display status';
 $string['showstatus_all'] = '';
+
+// Author filter.
+$string['authorfilter'] = 'Author';
+$string['author_all'] = 'All';

@@ -122,6 +122,18 @@ class catalog implements renderable, templatable {
             ];
         }
 
+        // Filter by author (record creator) using the distinct users who
+        // created entries in the configured Database activity. This is
+        // rendered as a dropdown above the categories list (alongside
+        // show_status).
+        $authoroptions = \block_vitrinadb\local\controller::get_authors_filter_options((int)$this->instanceid);
+        $authorfilter = null;
+        if (!empty($authoroptions)) {
+            $authorfilter = (object) [
+                'options' => $authoroptions,
+            ];
+        }
+
         // Filter by language.
         if (in_array('langs', $staticfilters)) {
             $options = \block_vitrinadb\local\controller::get_languages();
@@ -197,6 +209,7 @@ class catalog implements renderable, templatable {
             'filtercontrols' => $filtercontrols,
             'filterproperties' => $filterproperties,
             'showstatusfilter' => $showstatusfilter,
+            'authorfilter' => $authorfilter,
             'sortoptions' => $sortoptions,
             'sortdirectionoptions' => $sortdirectionoptions,
             'catfilterview' => $catfilterview,

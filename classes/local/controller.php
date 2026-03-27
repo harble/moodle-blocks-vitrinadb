@@ -955,6 +955,8 @@ class controller {
         $channelsfilter = [];
         // Normalise any show_status filter provided (single value).
         $showstatusfilter = '';
+        // Normalise any author filter provided (single user id).
+        $authorfilter = 0;
         foreach ($filters as $filter) {
             if (!empty($filter['type']) && $filter['type'] === 'channels' && !empty($filter['values'])) {
                 foreach ($filter['values'] as $value) {
@@ -973,6 +975,12 @@ class controller {
                 $candidate = trim((string)reset($filter['values']));
                 if ($candidate !== '') {
                     $showstatusfilter = mb_strtolower($candidate);
+                }
+            } else if (!empty($filter['type']) && $filter['type'] === 'author' && !empty($filter['values'])) {
+                // Single-select dropdown: first non-empty value wins.
+                $candidate = (int)reset($filter['values']);
+                if ($candidate > 0) {
+                    $authorfilter = $candidate;
                 }
             }
         }
@@ -1495,6 +1503,14 @@ class controller {
                     // 有筛选时：只保留 show_status 与筛选值一致的记录。
                     // 为空的状态永远不会匹配任何筛选值。
                     if ($lowerstatus === '' || $lowerstatus !== $showstatusfilter) {
+                        continue;
+                    }
+                }
+
+                // Apply author filter (if any): keep only records created by
+                // the selected user id.
+                if ($authorfilter > 0) {
+                    if ((int)$record->userid !== $authorfilter) {
                         continue;
                     }
                 }
@@ -2103,6 +2119,8 @@ class controller {
      * @return array The channels options list.
      */
     public static function get_channels_filter_options(int $instanceid): array {
+        global $DB;
+
         $options = [];
         $channelsfield = self::get_data_field_for_instance($instanceid, 'channels');
         if (!$channelsfield) {
@@ -2254,6 +2272,111 @@ class controller {
         foreach ($labels as $label) {
             $options[] = [
                 'value' => $label,
+                'label' => format_string($label, true),
+            ];
+        }
+
+        return $options;
+    }
+
+    /**
+     * Get the available authors list from the configured Database activity.
+     *
+     * This inspects the Database (mod_data) activity used by the catalog and
+     * returns the distinct users who created records there, as a simple list
+     * suitable for rendering as a dropdown.
+     *
+     * @param int $instanceid The block instance id.
+     * @return array The authors options list.
+     */
+    public static function get_authors_filter_options(int $instanceid): array {
+        global $DB;
+
+        $options = [];
+
+        if (empty($instanceid)) {
+            return $options;
+        }
+
+        $block = block_instance_by_id($instanceid);
+        if (!$block || empty($block->config) || empty($block->config->categories) || !is_array($block->config->categories)) {
+            return $options;
+        }
+
+        $categoriesids = array_map('intval', $block->config->categories);
+        $categoriesids = array_filter($categoriesids);
+
+        if (empty($categoriesids)) {
+            return $options;
+        }
+
+        // Locate the "data" module id.
+        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+        if (!$datamoduleid) {
+            return $options;
+        }
+
+        [$catinsql, $catparams] = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
+
+        $paramsdb = $catparams;
+        $paramsdb['siteid'] = SITEID;
+        $paramsdb['now'] = time();
+        $paramsdb['datamoduleid'] = $datamoduleid;
+
+        $sql = "SELECT cm.id, cm.course, cm.instance
+                  FROM {course_modules} cm
+                  JOIN {course} c ON c.id = cm.course
+                 WHERE c.category $catinsql
+                   AND c.visible = 1
+                   AND c.id <> :siteid
+                   AND (c.enddate > :now OR c.enddate = 0)
+                   AND cm.module = :datamoduleid
+                   AND cm.deletioninprogress = 0
+              ORDER BY cm.id ASC";
+
+        // Use the same Database activity that the catalog listing uses
+        // (first match across the configured categories).
+        $firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE);
+        if (!$firstcm) {
+            return $options;
+        }
+
+        $data = $DB->get_record('data', ['id' => $firstcm->instance]);
+        if (!$data) {
+            return $options;
+        }
+
+        // Distinct record creators for this Database.
+        $authors = $DB->get_records_sql(
+            "SELECT DISTINCT u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
+                    u.middlename, u.alternatename
+               FROM {data_records} r
+               JOIN {user} u ON u.id = r.userid
+              WHERE r.dataid = :dataid",
+            ['dataid' => $data->id]
+        );
+
+        if (empty($authors)) {
+            return $options;
+        }
+
+        // Build a map id => label so we can sort by label.
+        $labels = [];
+        foreach ($authors as $author) {
+            $label = fullname($author, true);
+            $labels[$author->id] = $label;
+        }
+
+        if (empty($labels)) {
+            return $options;
+        }
+
+        // Sort alphabetically by display name.
+        asort($labels, SORT_NATURAL | SORT_FLAG_CASE);
+
+        foreach ($labels as $id => $label) {
+            $options[] = [
+                'value' => (string)$id,
                 'label' => format_string($label, true),
             ];
         }

@@ -102,6 +102,18 @@
                     </div>
                 {{/showstatusfilter}}
 
+                {{#authorfilter}}
+                    <div class="filterauthor">
+                        <label for="vitrina-author-{{uniqueid}}">{{#str}}authorfilter, block_vitrinadb{{/str}}</label>
+                        <select id="vitrina-author-{{uniqueid}}" name="author" class="form-control">
+                            <option value="">{{#str}}author_all, block_vitrinadb{{/str}}</option>
+                            {{#options}}
+                                <option value="{{value}}">{{label}}</option>
+                            {{/options}}
+                        </select>
+                    </div>
+                {{/authorfilter}}
+
                 {{#filtercontrols}}
                     <div class="filtercontrol" data-key="{{key}}">
                         <h5>{{title}}</h5>
