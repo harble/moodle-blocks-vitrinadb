@@ -2013,41 +2013,38 @@ class controller {
     }
 
     /**
-     * Get the available channels list from the configured Database activity.
+     * Resolve a single Database (mod_data) field used by this block instance.
      *
-     * This reads the "channels" field from the first Database (mod_data)
-     * activity found in the courses configured for this block instance and
-     * returns its configured options (or, as a fallback, the distinct values
-     * currently used by records) as a flat checkbox list.
+     * Shared helper for filters that need to read options from a specific
+     * data_fields.description (for example, "channels" or "show_status").
      *
      * @param int $instanceid The block instance id.
-     * @return array The channels options list.
+     * @param string $fielddescription The data_fields.description to look for.
+     * @return ?\stdClass The matching data_fields record or null if not found.
      */
-    public static function get_channels_filter_options(int $instanceid): array {
+    protected static function get_data_field_for_instance(int $instanceid, string $fielddescription): ?\stdClass {
         global $DB;
 
-        $options = [];
-
         if (empty($instanceid)) {
-            return $options;
+            return null;
         }
 
         $block = block_instance_by_id($instanceid);
         if (!$block || empty($block->config) || empty($block->config->categories) || !is_array($block->config->categories)) {
-            return $options;
+            return null;
         }
 
         $categoriesids = array_map('intval', $block->config->categories);
         $categoriesids = array_filter($categoriesids);
 
         if (empty($categoriesids)) {
-            return $options;
+            return null;
         }
 
         // Locate the "data" module id.
         $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
         if (!$datamoduleid) {
-            return $options;
+            return null;
         }
 
         [$catinsql, $catparams] = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
@@ -2072,27 +2069,42 @@ class controller {
         // (first match across the configured categories).
         $firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE);
         if (!$firstcm) {
-            return $options;
+            return null;
         }
 
         $data = $DB->get_record('data', ['id' => $firstcm->instance]);
         if (!$data) {
-            return $options;
+            return null;
         }
 
         $fields = $DB->get_records('data_fields', ['dataid' => $data->id]);
         if (empty($fields)) {
-            return $options;
+            return null;
         }
 
-        $channelsfield = null;
         foreach ($fields as $field) {
-            if (trim((string)$field->description) === 'channels') {
-                $channelsfield = $field;
-                break;
+            if (trim((string)$field->description) === $fielddescription) {
+                return $field;
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Get the available channels list from the configured Database activity.
+     *
+     * This reads the "channels" field from the first Database (mod_data)
+     * activity found in the courses configured for this block instance and
+     * returns its configured options (or, as a fallback, the distinct values
+     * currently used by records) as a flat checkbox list.
+     *
+     * @param int $instanceid The block instance id.
+     * @return array The channels options list.
+     */
+    public static function get_channels_filter_options(int $instanceid): array {
+        $options = [];
+        $channelsfield = self::get_data_field_for_instance($instanceid, 'channels');
         if (!$channelsfield) {
             return $options;
         }
@@ -2178,70 +2190,7 @@ class controller {
         global $DB;
 
         $options = [];
-
-        if (empty($instanceid)) {
-            return $options;
-        }
-
-        $block = block_instance_by_id($instanceid);
-        if (!$block || empty($block->config) || empty($block->config->categories) || !is_array($block->config->categories)) {
-            return $options;
-        }
-
-        $categoriesids = array_map('intval', $block->config->categories);
-        $categoriesids = array_filter($categoriesids);
-
-        if (empty($categoriesids)) {
-            return $options;
-        }
-
-        // Locate the "data" module id.
-        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
-        if (!$datamoduleid) {
-            return $options;
-        }
-
-        [$catinsql, $catparams] = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
-
-        $paramsdb = $catparams;
-        $paramsdb['siteid'] = SITEID;
-        $paramsdb['now'] = time();
-        $paramsdb['datamoduleid'] = $datamoduleid;
-
-        $sql = "SELECT cm.id, cm.course, cm.instance
-                  FROM {course_modules} cm
-                  JOIN {course} c ON c.id = cm.course
-                 WHERE c.category $catinsql
-                   AND c.visible = 1
-                   AND c.id <> :siteid
-                   AND (c.enddate > :now OR c.enddate = 0)
-                   AND cm.module = :datamoduleid
-                   AND cm.deletioninprogress = 0
-              ORDER BY cm.id ASC";
-
-        $firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE);
-        if (!$firstcm) {
-            return $options;
-        }
-
-        $data = $DB->get_record('data', ['id' => $firstcm->instance]);
-        if (!$data) {
-            return $options;
-        }
-
-        $fields = $DB->get_records('data_fields', ['dataid' => $data->id]);
-        if (empty($fields)) {
-            return $options;
-        }
-
-        $statusfield = null;
-        foreach ($fields as $field) {
-            if (trim((string)$field->description) === 'show_status') {
-                $statusfield = $field;
-                break;
-            }
-        }
-
+        $statusfield = self::get_data_field_for_instance($instanceid, 'show_status');
         if (!$statusfield) {
             return $options;
         }
