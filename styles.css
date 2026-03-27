@@ -264,6 +264,15 @@
 }
 /* End course detail */
 
+/* Extra spacing between Display status, Author and Pending filters
+ * in the catalog filter column.
+ */
+.block_vitrina-content .filterscolbox .filtershowstatus,
+.block_vitrina-content .filterscolbox .filterauthor,
+.block_vitrina-content .filterscolbox .filterpending {
+    margin-bottom: 12px;
+}
+
 #page-blocks-vitrinadb-index .courses-sort {
     margin: 20px 0;
 }
