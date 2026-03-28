@@ -126,6 +126,23 @@ class get_courses extends external_api {
         // Read the categories if is a block instance call or the filter by categories is defined.
         $categoriesids = [];
 
+        // Detect explicit "no channels selected" filter (channels present with
+        // an empty values array). In that case, we must return no resources
+        // instead of falling back to the block default channels.
+        $explicitemptychannels = false;
+        foreach ($params['filters'] as $filter) {
+            if (!empty($filter['type']) && $filter['type'] === 'channels') {
+                if (empty($filter['values'])) {
+                    $explicitemptychannels = true;
+                    break;
+                }
+            }
+        }
+
+        if ($explicitemptychannels) {
+            return [];
+        }
+
         foreach ($params['filters'] as $filter) {
             if ($filter['type'] == 'categories') {
                 $categoriesids = $filter['values'];

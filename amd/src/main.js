@@ -159,6 +159,7 @@ function loadCourses(uniqueid, $tabcontent) {
 
         $filtersbox.find('.filtercontrol').each(function() {
             var $control = $(this);
+            var key = $control.data('key');
             var values = [];
 
             $control.find('.filteroptions input:checked').each(function() {
@@ -169,7 +170,16 @@ function loadCourses(uniqueid, $tabcontent) {
             if (values.length > 0) {
                 filters.push({
                     'values': values,
-                    'type': $control.data('key')
+                    'type': key
+                });
+            } else if (key === 'channels') {
+                // User has explicitly unselected all categories (channels).
+                // Send an explicit empty channels filter so the backend can
+                // distinguish this case from "no channels filter" and
+                // return no resources instead of falling back to defaults.
+                filters.push({
+                    'values': [],
+                    'type': key
                 });
             }
         });

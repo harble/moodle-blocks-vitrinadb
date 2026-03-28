@@ -117,6 +117,33 @@ if (!empty($instanceid)) {
     }
 }
 
+// If no channels filter has been defined (neither via URL filters nor block
+// instance configuration), preselect all available channels so that the UI
+// state matches the "search in all channels" behaviour.
+$haschannelfilter = false;
+foreach ($filtersselected as $selected) {
+    if ($selected->key === 'channels') {
+        $haschannelfilter = true;
+        break;
+    }
+}
+
+if (!$haschannelfilter && !empty($instanceid)) {
+    $allchannels = \block_vitrinadb\local\controller::get_channels_filter_options((int)$instanceid);
+    if (!empty($allchannels)) {
+        $values = [];
+        foreach ($allchannels as $opt) {
+            if (!empty($opt['value'])) {
+                $values[] = (string)$opt['value'];
+            }
+        }
+        if (!empty($values)) {
+            $values = array_values(array_unique($values));
+            $filtersselected[] = (object) ['key' => 'channels', 'values' => $values];
+        }
+    }
+}
+
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'filters', [$uniqueid, $filtersselected]);
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $view, $instanceid, $bypage]);
 
