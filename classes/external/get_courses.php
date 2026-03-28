@@ -284,6 +284,7 @@ class get_courses extends external_api {
             $item->sharefiletitle = $resource->sharefiletitle ?? '';
             $item->sharedbyname = $resource->sharedbyname;
             $item->sharedbyavatar = $resource->sharedbyavatar;
+            $item->sharedbyid = $resource->sharedbyid;
             $item->shareddayslabel = $resource->shareddayslabel;
             // Only show the pinned badge in the "All courses" (default) view.
             $item->pinned = ($view === 'default') && !empty($resource->pinned);
@@ -300,6 +301,8 @@ class get_courses extends external_api {
             $item->hasprogress = false;
             $item->fee = null;
             $item->hascart = false;
+            // View key used to build deep links back to the catalog.
+            $item->view = $view;
             $item->instanceid = $instanceid;
 
             $renderedcourse = new \stdClass();
