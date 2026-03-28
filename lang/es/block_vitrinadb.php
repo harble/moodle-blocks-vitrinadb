@@ -186,8 +186,10 @@ $string['filetype_image'] = 'Imagen';
 $string['filetype_other'] = 'Archivo';
 $string['filetype_html'] = 'HTML';
 
-// Recursos fijados.
+// Recursos fijados / destacados / ocultos.
 $string['pinnedlabel'] = 'Fijado';
+$string['primelabel'] = 'Destacado';
+$string['hidelabel'] = 'Oculto';
 
 // Título de canales en el icono de tipo de archivo.
 $string['resource_channels_title'] = 'Categorías: {$a}';

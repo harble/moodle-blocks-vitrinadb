@@ -286,6 +286,10 @@ class get_courses extends external_api {
             $item->sharedbyavatar = $resource->sharedbyavatar;
             $item->sharedbyid = $resource->sharedbyid;
             $item->shareddayslabel = $resource->shareddayslabel;
+            // Display/visibility status flags coming from show_status.
+            $item->showstatus = $resource->showstatus;
+            $item->isprime = !empty($resource->prime);
+            $item->ishidden = !empty($resource->hidden);
             // Only show the pinned badge in the "All courses" (default) view.
             $item->pinned = ($view === 'default') && !empty($resource->pinned);
 

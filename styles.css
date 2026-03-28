@@ -53,6 +53,34 @@
     text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
 }
 
+/* Prime badge (show_status contains "prime"). Styled as a golden badge. */
+.block_vitrina-courseslist .coursebox .vitrinadb-prime-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px;
+    z-index: 3;
+    color: #ffc107;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+}
+
+/* When PIN and PRIME both exist, shift PRIME a bit to the left so
+ * the two icons appear side by side instead of overlapping. */
+.block_vitrina-courseslist .coursebox .vitrinadb-pin-badge + .vitrinadb-prime-badge {
+    right: -18px;
+}
+
+/* Hide badge (show_status contains "hide"). Styled in red. */
+.block_vitrina-courseslist .coursebox .vitrinadb-hide-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 4px;
+    z-index: 3;
+    color: #dc3545; /* Bootstrap danger-like red */
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+}
+
 .block_vitrina-courseslist .coursebox.type-premium:after {
     content: "";
     position: absolute;

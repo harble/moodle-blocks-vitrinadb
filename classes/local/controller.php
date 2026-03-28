@@ -1505,15 +1505,23 @@ class controller {
                 $showstatusvalue = trim((string)$showstatus);
                 $lowerstatus = $showstatusvalue !== '' ? mb_strtolower($showstatusvalue) : '';
                 $ispinned = false;
+                $isprime = false;
+                $ishidden = false;
 
-                // 始终根据是否包含 pin 来决定是否置顶。
+                // 始终根据是否包含 pin / prime / hide 来标记状态。
                 if ($lowerstatus !== '' && strpos($lowerstatus, 'pin') !== false) {
                     $ispinned = true;
+                }
+                if ($lowerstatus !== '' && strpos($lowerstatus, 'prime') !== false) {
+                    $isprime = true;
+                }
+                if ($lowerstatus !== '' && strpos($lowerstatus, 'hide') !== false) {
+                    $ishidden = true;
                 }
 
                 if ($showstatusfilter === '') {
                     // 无筛选时，包含 hide 的记录永远不显示。
-                    if ($lowerstatus !== '' && strpos($lowerstatus, 'hide') !== false) {
+                    if ($ishidden) {
                         continue;
                     }
                     // 其它情况：正常可见（可能置顶或普通）。
@@ -1632,6 +1640,8 @@ class controller {
                 $resource->sharefileicon = $sharefileicon;
                 $resource->showstatus = $showstatus;
                 $resource->pinned = $ispinned;
+                $resource->prime = $isprime;
+                $resource->hidden = $ishidden;
                 $resource->dataid = $data->id;
                 $resource->recordid = $record->id;
                 $resource->timeadded = $record->timecreated;

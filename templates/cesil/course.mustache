@@ -47,6 +47,16 @@
         <i class="icon fa fa-thumbtack fa-fw" aria-hidden="true"></i>
     </div>
     {{/pinned}}
+    {{#isprime}}
+    <div class="vitrinadb-prime-badge" title="{{#str}}primelabel, block_vitrinadb{{/str}}" aria-label="{{#str}}primelabel, block_vitrinadb{{/str}}">
+        <i class="icon fa fa-certificate fa-fw" aria-hidden="true"></i>
+    </div>
+    {{/isprime}}
+    {{#ishidden}}
+    <div class="vitrinadb-hide-badge" title="{{#str}}hidelabel, block_vitrinadb{{/str}}" aria-label="{{#str}}hidelabel, block_vitrinadb{{/str}}">
+        <i class="icon fa fa-eye-slash fa-fw" aria-hidden="true"></i>
+    </div>
+    {{/ishidden}}
     <div class="panel-heading">
         <a class="" title="{{{shortname}}}" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}">
             {{{fullname}}}
