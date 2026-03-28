@@ -424,6 +424,14 @@ export const filters = (uniqueid, selectedfilters = []) => {
             return;
         }
 
+        if (filter.key === 'author') {
+            if (filter.values && filter.values.length > 0) {
+                var authorValue = String(filter.values[0]);
+                $filtersbox.find('.filterauthor select[name="author"]').val(authorValue);
+            }
+            return;
+        }
+
         $filtersbox.find('.filtercontrol[data-key="' + filter.key + '"] .filteroptions').each(function() {
             var $filteroptions = $(this);
 

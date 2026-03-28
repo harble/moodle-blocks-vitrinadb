@@ -29,6 +29,7 @@ $instanceid = optional_param('id', 0, PARAM_INT);
 $view = optional_param('view', 'default', PARAM_TEXT);
 $filters = optional_param('filters', '', PARAM_TEXT);
 $q = optional_param('q', '', PARAM_TEXT);
+$authorid = optional_param('author', 0, PARAM_INT);
 
 require_login(null, true);
 
@@ -85,6 +86,23 @@ if (!empty($filters)) {
 
 if (!empty($q)) {
     $filtersselected[] = (object) ['key' => 'fulltext', 'values' => [$q]];
+}
+
+// Preselect author filter from URL parameter when provided. This allows
+// links like .../index.php?author=123 to open the catalog already filtered
+// by that user in the Author dropdown.
+if (!empty($authorid)) {
+    $hasauthorfilter = false;
+    foreach ($filtersselected as $selected) {
+        if ($selected->key === 'author') {
+            $hasauthorfilter = true;
+            break;
+        }
+    }
+
+    if (!$hasauthorfilter) {
+        $filtersselected[] = (object) ['key' => 'author', 'values' => [(string)$authorid]];
+    }
 }
 
 $categoriesids = [];
