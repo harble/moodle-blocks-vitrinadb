@@ -432,6 +432,24 @@ export const filters = (uniqueid, selectedfilters = []) => {
             return;
         }
 
+        if (filter.key === 'pending') {
+            if (filter.values && filter.values.length > 0) {
+                var pendingValue = String(filter.values[0]);
+                if (pendingValue !== '' && pendingValue !== '0') {
+                    // Check the "Only pending approval records" checkbox.
+                    $filtersbox.find('.filterpending input[name="pending"]').prop('checked', true);
+
+                    // When starting in pending mode, also select all
+                    // channels so that pending records are fetched from all
+                    // available categories, not just a subset.
+                    $filtersbox
+                        .find('.filtercontrol[data-key="channels"] .filteroptions input[type="checkbox"]')
+                        .prop('checked', true);
+                }
+            }
+            return;
+        }
+
         $filtersbox.find('.filtercontrol[data-key="' + filter.key + '"] .filteroptions').each(function() {
             var $filteroptions = $(this);
 

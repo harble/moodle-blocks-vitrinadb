@@ -30,6 +30,7 @@ $view = optional_param('view', 'default', PARAM_TEXT);
 $filters = optional_param('filters', '', PARAM_TEXT);
 $q = optional_param('q', '', PARAM_TEXT);
 $authorid = optional_param('author', 0, PARAM_INT);
+$pendingflag = optional_param('pending', 0, PARAM_INT);
 
 require_login(null, true);
 
@@ -102,6 +103,23 @@ if (!empty($authorid)) {
 
     if (!$hasauthorfilter) {
         $filtersselected[] = (object) ['key' => 'author', 'values' => [(string)$authorid]];
+    }
+}
+
+// Preselect pending approval filter from URL parameter when provided for
+// site administrators. This allows links like .../index.php?pending=1 to
+// open the catalog already restricted to only pending approval records.
+if (!empty($pendingflag) && (int)$pendingflag === 1 && is_siteadmin()) {
+    $haspendingfilter = false;
+    foreach ($filtersselected as $selected) {
+        if ($selected->key === 'pending') {
+            $haspendingfilter = true;
+            break;
+        }
+    }
+
+    if (!$haspendingfilter) {
+        $filtersselected[] = (object) ['key' => 'pending', 'values' => ['1']];
     }
 }
 
