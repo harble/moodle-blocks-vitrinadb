@@ -69,6 +69,16 @@
         <div class="course-summary" style="display: none;">
          {{{summary}}}
         </div>
+        {{#ispending}}
+            <div class="vitrinadb-pending-approval">
+                <div class="vitrinadb-pending-approval-icon" title="{{#str}}pendinglabel, block_vitrinadb{{/str}}" aria-label="{{#str}}pendinglabel, block_vitrinadb{{/str}}">
+                    <i class="icon fa fa-clock-o fa-fw" aria-hidden="true"></i>
+                </div>
+                <div class="vitrinadb-pending-approval-text">
+                    {{#str}}pendinglabel, block_vitrinadb{{/str}}
+                </div>
+            </div>
+        {{/ispending}}
         {{#fee}}
             <div class="coursefee">
                 <div class="feeinfo">

@@ -1679,6 +1679,12 @@ class controller {
                 $resource->shareddays = $days;
                 $resource->shareddayslabel = get_string('daysago', 'block_vitrinadb', $days);
 
+                // Mark whether this resource list comes from the
+                // "Only pending approval records" filter. When true,
+                // catalog templates can show a dedicated pending
+                // placeholder on the card.
+                $resource->ispending = $onlypending;
+
                 if ($ispinned) {
                     $pinnedresources[] = $resource;
                 } else {

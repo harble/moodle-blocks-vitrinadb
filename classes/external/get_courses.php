@@ -286,6 +286,9 @@ class get_courses extends external_api {
             $item->sharedbyavatar = $resource->sharedbyavatar;
             $item->sharedbyid = $resource->sharedbyid;
             $item->shareddayslabel = $resource->shareddayslabel;
+            // Pending-approval state (true only when the catalog is
+            // filtered by "Only pending approval records").
+            $item->ispending = !empty($resource->ispending);
             // Display/visibility status flags coming from show_status.
             $item->showstatus = $resource->showstatus;
             $item->isprime = !empty($resource->prime);

@@ -81,6 +81,36 @@
     text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
 }
 
+/* Pending approval placeholder shown when the catalog is filtered
+ * by "Only pending approval records". The icon is centered with a
+ * fixed 50px width and the label is displayed underneath.
+ */
+.block_vitrina-courseslist .coursebox .vitrinadb-pending-approval {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.block_vitrina-courseslist .coursebox .vitrinadb-pending-approval-icon {
+    display: inline-block;
+    width: 166px;
+    height: 50px;
+    color: red;
+    font-size: 50px;
+}
+
+.block_vitrina-courseslist .coursebox .vitrinadb-pending-approval-text {
+    margin-top: 4px;
+    font-size: 1rem;
+    color: red;
+	border-radius: 15px;
+	background-color: white;
+}
+
 .block_vitrina-courseslist .coursebox.type-premium:after {
     content: "";
     position: absolute;

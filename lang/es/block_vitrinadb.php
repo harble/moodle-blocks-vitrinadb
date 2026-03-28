@@ -191,6 +191,9 @@ $string['pinnedlabel'] = 'Fijado';
 $string['primelabel'] = 'Destacado';
 $string['hidelabel'] = 'Oculto';
 
+// Etiqueta para el aviso de pendiente de aprobación.
+$string['pendinglabel'] = 'Pendiente de aprobación';
+
 // Título de canales en el icono de tipo de archivo.
 $string['resource_channels_title'] = 'Categorías: {$a}';
 

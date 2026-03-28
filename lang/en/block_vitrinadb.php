@@ -211,6 +211,9 @@ $string['pinnedlabel'] = 'Pinned';
 $string['primelabel'] = 'Featured';
 $string['hidelabel'] = 'Hidden';
 
+// Pending approval badge label.
+$string['pendinglabel'] = 'Waiting for approval';
+
 // Show status filter.
 $string['showstatusfilter'] = 'Display status';
 $string['showstatus_all'] = 'All';
