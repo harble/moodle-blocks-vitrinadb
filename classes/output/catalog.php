@@ -71,6 +71,8 @@ class catalog implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         global $CFG;
 
+        $isadmin = \is_siteadmin();
+
         $availableviews = \block_vitrinadb\local\controller::get_courses_views();
 
         $icons = \block_vitrinadb\local\controller::get_views_icons();
@@ -116,13 +118,16 @@ class catalog implements renderable, templatable {
 
         // Filter by show_status (display status) using the configured
         // Database activity "show_status" field. This is rendered as a
-        // dropdown above the categories list.
-        $showstatusoptions = \block_vitrinadb\local\controller::get_showstatus_filter_options((int)$this->instanceid);
+        // dropdown above the categories list. Only site administrators can
+        // see and use this filter.
         $showstatusfilter = null;
-        if (!empty($showstatusoptions)) {
-            $showstatusfilter = (object) [
-                'options' => $showstatusoptions,
-            ];
+        if ($isadmin) {
+            $showstatusoptions = \block_vitrinadb\local\controller::get_showstatus_filter_options((int)$this->instanceid);
+            if (!empty($showstatusoptions)) {
+                $showstatusfilter = (object) [
+                    'options' => $showstatusoptions,
+                ];
+            }
         }
 
         // Filter by author (record creator) using the distinct users who
@@ -160,6 +165,10 @@ class catalog implements renderable, templatable {
         if (in_array('fulltext', $staticfilters)) {
             $filterproperties->fulltext = true;
         }
+
+        // Only administrators can see and use the "Only pending approval
+        // records" checkbox.
+        $pendingfilter = $isadmin;
         // End of filter controls.
 
         $sortvalue = main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'sortbydefault');
@@ -212,6 +221,7 @@ class catalog implements renderable, templatable {
             'filtercontrols' => $filtercontrols,
             'filterproperties' => $filterproperties,
             'showstatusfilter' => $showstatusfilter,
+            'pendingfilter' => $pendingfilter,
             'authorfilter' => $authorfilter,
             'sortoptions' => $sortoptions,
             'sortdirectionoptions' => $sortdirectionoptions,

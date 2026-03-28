@@ -959,6 +959,8 @@ class controller {
         $authorfilter = 0;
         // Normalise any "only pending" filter (checkbox) for approval status.
         $onlypending = false;
+
+        $isadmin = \is_siteadmin();
         foreach ($filters as $filter) {
             if (!empty($filter['type']) && $filter['type'] === 'channels' && !empty($filter['values'])) {
                 foreach ($filter['values'] as $value) {
@@ -972,8 +974,9 @@ class controller {
                 if ($text !== '') {
                     $fulltext = mb_strtolower($text);
                 }
-            } else if (!empty($filter['type']) && $filter['type'] === 'show_status' && !empty($filter['values'])) {
-                // Single-select dropdown: first non-empty value wins.
+            } else if (!empty($filter['type']) && $filter['type'] === 'show_status' && !empty($filter['values']) && $isadmin) {
+                // Single-select dropdown: first non-empty value wins. This
+                // filter is only available to site administrators.
                 $candidate = trim((string)reset($filter['values']));
                 if ($candidate !== '') {
                     $showstatusfilter = mb_strtolower($candidate);
@@ -984,8 +987,9 @@ class controller {
                 if ($candidate > 0) {
                     $authorfilter = $candidate;
                 }
-            } else if (!empty($filter['type']) && $filter['type'] === 'pending') {
-                // Checkbox filter: any truthy value turns it on.
+            } else if (!empty($filter['type']) && $filter['type'] === 'pending' && $isadmin) {
+                // Checkbox filter: any truthy value turns it on. This filter
+                // is only available to site administrators.
                 if (!empty($filter['values'])) {
                     $candidate = reset($filter['values']);
                     if ($candidate !== '' && $candidate !== '0' && $candidate !== 0) {
