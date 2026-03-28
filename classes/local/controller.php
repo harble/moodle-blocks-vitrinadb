@@ -2182,7 +2182,9 @@ class controller {
             if ($value === '') {
                 continue;
             }
-            $unique[$value] = $value;
+            if (!array_key_exists($value, $unique)) {
+                $unique[$value] = $value;
+            }
         }
 
         if (empty($unique)) {
@@ -2197,12 +2199,102 @@ class controller {
             return $la <=> $lb;
         });
 
+        // Build a multi-level tree based on "Parent/Child/Subchild" patterns.
+        // Each segment between "/" is one level. Only explicitly defined
+        // channel strings participate in the tree, i.e. "安心禅茶/禅茶子项A/孙子项X"
+        // is treated as a third-level node under "安心禅茶/禅茶子项A" if, and only
+        // if, that intermediate path also appears as a configured value.
+
+        $nodes = [];
+        $parents = [];
+        $children = [];
+
+        // First pass: create a node for each distinct label.
         foreach ($labels as $label) {
-            $options[] = [
+            $label = trim($label);
+            if ($label === '') {
+                continue;
+            }
+
+            $parts = preg_split('/\//u', $label);
+            if ($parts === false) {
+                $parts = [$label];
+            }
+
+            $parts = array_map('trim', $parts);
+            $parts = array_filter($parts, function($p) {
+                return $p !== '';
+            });
+
+            if (empty($parts)) {
+                continue;
+            }
+
+            $segmentlabel = end($parts);
+
+            $nodes[$label] = [
                 'value' => $label,
-                'label' => format_string($label, true),
+                'label' => format_string($segmentlabel, true),
                 'selected' => false,
             ];
+        }
+
+        if (empty($nodes)) {
+            return $options;
+        }
+
+        // Second pass: determine parent/child relationships using the last
+        // "/" as separator so that labels can form deeper hierarchies such
+        // as "安心禅茶/禅茶子项A/孙子项X".
+        foreach (array_keys($nodes) as $label) {
+            $pos = mb_strrpos($label, '/');
+            if ($pos === false) {
+                continue;
+            }
+
+            $parentlabel = trim(mb_substr($label, 0, $pos));
+            if ($parentlabel === '' || !array_key_exists($parentlabel, $nodes)) {
+                continue;
+            }
+
+            $parents[$label] = $parentlabel;
+            if (!isset($children[$parentlabel])) {
+                $children[$parentlabel] = [];
+            }
+            $children[$parentlabel][] = $label;
+        }
+
+        // Helper to build the options tree recursively, assigning the
+        // appropriate indent level for each depth.
+        $buildnode = function(string $label, int $depth, array $nodes, array $children, callable $self) {
+            $option = [
+                'value' => $nodes[$label]['value'],
+                'label' => $nodes[$label]['label'],
+                'selected' => false,
+                'haschilds' => !empty($children[$label]),
+                'childs' => [],
+                'indent' => $depth,
+            ];
+
+            if (!empty($children[$label])) {
+                foreach ($children[$label] as $childlabel) {
+                    $option['childs'][] = $self($childlabel, $depth + 1, $nodes, $children, $self);
+                }
+            }
+
+            return $option;
+        };
+
+        // Root nodes are those without a registered parent.
+        foreach ($labels as $label) {
+            $label = trim($label);
+            if ($label === '' || !isset($nodes[$label])) {
+                continue;
+            }
+
+            if (!array_key_exists($label, $parents)) {
+                $options[] = $buildnode($label, 0, $nodes, $children, $buildnode);
+            }
         }
 
         return $options;
