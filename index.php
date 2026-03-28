@@ -171,11 +171,21 @@ if (!$haschannelfilter && !empty($instanceid)) {
     $allchannels = \block_vitrinadb\local\controller::get_channels_filter_options((int)$instanceid, $nested);
     if (!empty($allchannels)) {
         $values = [];
-        foreach ($allchannels as $opt) {
-            if (!empty($opt['value'])) {
-                $values[] = (string)$opt['value'];
+
+        // Collect all channel values, including children in tree mode.
+        $collectvalues = function(array $options, array &$acc) use (&$collectvalues) {
+            foreach ($options as $opt) {
+                if (!empty($opt['value'])) {
+                    $acc[] = (string)$opt['value'];
+                }
+                if (!empty($opt['childs']) && is_array($opt['childs'])) {
+                    $collectvalues($opt['childs'], $acc);
+                }
             }
-        }
+        };
+
+        $collectvalues($allchannels, $values);
+
         if (!empty($values)) {
             $values = array_values(array_unique($values));
             $filtersselected[] = (object) ['key' => 'channels', 'values' => $values];
