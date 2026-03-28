@@ -183,8 +183,11 @@ if (!$haschannelfilter && !empty($instanceid)) {
     }
 }
 
-// Build catalog header metadata: [category] / [database activity name].
+// Build catalog header metadata: [category] / [database activity name], and
+// capture the related course so we can show its cover image on the catalog
+// page header.
 $catalogmeta = '';
+$catalogcourseimage = '';
 if (!empty($instanceid)) {
     global $DB;
 
@@ -232,6 +235,32 @@ if (!empty($instanceid)) {
                 $coursename = format_string($firstcm->coursename, true);
                 $dataname = format_string($firstcm->dataname, true);
                 $catalogmeta = $catname . ' / ' . $coursename . ' / ' . $dataname;
+
+                // Load the full course record to obtain its *explicit* cover image
+                // (course overview image). Do not use generated or default images
+                // here so that the catalog header image only appears when the
+                // course has a real cover selected by the user.
+                $course = get_course($firstcm->course);
+                if ($course) {
+                    global $CFG;
+
+                    $coursefull = new \core_course_list_element($course);
+                    foreach ($coursefull->get_course_overviewfiles() as $file) {
+                        if ($file->is_valid_image()) {
+                            $urlpath = '/' . $file->get_contextid() . '/' . $file->get_component() . '/';
+                            $urlpath .= $file->get_filearea() . $file->get_filepath() . $file->get_filename();
+
+                            $url = \moodle_url::make_file_url(
+                                "$CFG->wwwroot/pluginfile.php",
+                                $urlpath,
+                                false
+                            );
+
+                            $catalogcourseimage = (string)$url;
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -256,6 +285,18 @@ $summary = get_config('block_vitrinadb', 'summary');
 
 if ($catalogmeta !== '') {
     echo html_writer::tag('div', s($catalogmeta), ['class' => 'vitrinadb-catalog-meta']);
+}
+
+// Show the course cover image (if any) for the course that owns the
+// configured Database activity. It is displayed below the page header
+// (and catalog meta) and above the summary HTML.
+if (!empty($catalogcourseimage)) {
+    $img = html_writer::empty_tag('img', [
+        'src' => $catalogcourseimage,
+        'alt' => '',
+        'class' => 'vitrinadb-catalog-courseimage-img',
+    ]);
+    echo html_writer::div($img, 'vitrinadb-catalog-courseimage');
 }
 
 echo format_text($summary, FORMAT_HTML, ['trusted' => true, 'noclean' => true]);

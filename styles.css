@@ -241,6 +241,23 @@
     animation: boxin 0.3s;
 }
 
+/* Catalog page course cover image (under page header, above summary). */
+.vitrinadb-catalog-courseimage {
+    width: 100%;
+    max-width: 100%;
+    height: 160px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.vitrinadb-catalog-courseimage-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+}
+
 /* Course detail */
 #page-blocks-vitrinadb-detail .content-layout {
     max-width: 940px;
