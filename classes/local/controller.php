@@ -1584,7 +1584,7 @@ class controller {
                         // Some database multi-selects store values separated by "##".
                         // Normalise these to "/" for display.
                         if ($channelsstr !== '') {
-                            $channelsstr = str_replace('##', ' / ', $channelsstr);
+                            $channelsstr = str_replace('##', ' | ', $channelsstr);
                         }
                     }
 
@@ -2132,7 +2132,7 @@ class controller {
      * @param int $instanceid The block instance id.
      * @return array The channels options list.
      */
-    public static function get_channels_filter_options(int $instanceid): array {
+    public static function get_channels_filter_options(int $instanceid, bool $nested = false): array {
         global $DB;
 
         $options = [];
@@ -2199,11 +2199,30 @@ class controller {
             return $la <=> $lb;
         });
 
-        // Build a multi-level tree based on "Parent/Child/Subchild" patterns.
-        // Each segment between "/" is one level. Only explicitly defined
-        // channel strings participate in the tree, i.e. "安心禅茶/禅茶子项A/孙子项X"
-        // is treated as a third-level node under "安心禅茶/禅茶子项A" if, and only
-        // if, that intermediate path also appears as a configured value.
+        // Flat mode: just return a plain list of options, one per channel
+        // value, without any hierarchy. This is used when the "Category
+        // filter view" is set to "default".
+        if (!$nested) {
+            foreach ($labels as $label) {
+                $options[] = [
+                    'value' => $label,
+                    'label' => format_string($label, true),
+                    'selected' => false,
+                    'haschilds' => false,
+                    'childs' => [],
+                    'indent' => 0,
+                ];
+            }
+
+            return $options;
+        }
+
+        // Tree mode: build a multi-level tree based on
+        // "Parent/Child/Subchild" patterns. Each segment between "/" is
+        // one level. Only explicitly defined channel strings participate in
+        // the tree, i.e. "安心禅茶/禅茶子项A/孙子项X" is treated as a third-level
+        // node under "安心禅茶/禅茶子项A" if, and only if, that intermediate path
+        // also appears as a configured value.
 
         $nodes = [];
         $parents = [];

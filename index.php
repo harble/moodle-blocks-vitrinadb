@@ -129,7 +129,10 @@ foreach ($filtersselected as $selected) {
 }
 
 if (!$haschannelfilter && !empty($instanceid)) {
-    $allchannels = \block_vitrinadb\local\controller::get_channels_filter_options((int)$instanceid);
+    $catfilterview = get_config('block_vitrinadb', 'catfilterview');
+    $nested = ($catfilterview == 'tree');
+
+    $allchannels = \block_vitrinadb\local\controller::get_channels_filter_options((int)$instanceid, $nested);
     if (!empty($allchannels)) {
         $values = [];
         foreach ($allchannels as $opt) {

@@ -93,12 +93,15 @@ class catalog implements renderable, templatable {
 
         // Filter by channels (displayed as categories) using the configured
         // Database activity "channels" field instead of Moodle course
-        // categories.
+        // categories. Honour the "Category filter view" setting so that the
+        // list can be shown either flat or as a tree.
         $catfilterview = null;
         if (in_array('categories', $staticfilters)) {
             $catfilterview = get_config('block_vitrinadb', 'catfilterview');
 
-            $channelsoptions = \block_vitrinadb\local\controller::get_channels_filter_options((int)$this->instanceid);
+            $nested = ($catfilterview == 'tree');
+
+            $channelsoptions = \block_vitrinadb\local\controller::get_channels_filter_options((int)$this->instanceid, $nested);
 
             if (count($channelsoptions) > 0) {
                 $control = new \stdClass();
