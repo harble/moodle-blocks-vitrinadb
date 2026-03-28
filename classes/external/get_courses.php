@@ -286,6 +286,19 @@ class get_courses extends external_api {
             $item->sharedbyavatar = $resource->sharedbyavatar;
             $item->sharedbyid = $resource->sharedbyid;
             $item->shareddayslabel = $resource->shareddayslabel;
+            // Underlying database activity and record ids, used to
+            // build deep links to mod/data/view.php for this entry.
+            $item->dataid = $resource->dataid;
+            $item->recordid = $resource->recordid;
+            $recordurl = new \moodle_url('/mod/data/view.php', [
+                'd' => $item->dataid,
+                'advanced' => 0,
+                'paging' => 1,
+                'page' => 0,
+                'rid' => $item->recordid,
+                'filter' => 1,
+            ]);
+            $item->recordurl = $recordurl->out(false);
             // Pending-approval state (true only when the catalog is
             // filtered by "Only pending approval records").
             $item->ispending = !empty($resource->ispending);

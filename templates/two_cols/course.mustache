@@ -58,10 +58,10 @@
     </div>
     {{/ishidden}}
     <div class="panel-body clearfix">
-        <a class="" title="{{summarytitle}}" href="{{{baseurl}}}/blocks/vitrina/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
+        <a class="" title="{{summarytitle}}" href="{{{recordurl}}}" target="{{opendetailstarget}}">
             <div class="courseimage" {{#imagepath}}style="background-image: url({{imagepath}});"{{/imagepath}}></div>
         </a>
-        <a  title="{{{fullname}}}" class="coursebtn submit btn btn-info btn-sm" href="{{{baseurl}}}/blocks/vitrina/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
+        <a  title="{{{fullname}}}" class="coursebtn submit btn btn-info btn-sm" href="{{{recordurl}}}" target="{{opendetailstarget}}">
             {{{fullname}}}
         </a>
         {{#ispending}}

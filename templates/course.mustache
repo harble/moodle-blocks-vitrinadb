@@ -57,7 +57,7 @@
         <i class="icon fa fa-eye-slash fa-fw" aria-hidden="true"></i>
     </div>
     {{/ishidden}}
-    <a class="courseimage-link" title="{{summarytitle}}" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}" target="{{opendetailstarget}}">
+    <a class="courseimage-link" title="{{summarytitle}}" href="{{{recordurl}}}" target="{{opendetailstarget}}">
         <div class="courseimage" {{#imagepath}}style="background-image: url({{imagepath}});"{{/imagepath}}>
             {{#hassummary}}
                 <div class="course_description" style="display: none;">
@@ -69,7 +69,7 @@
     <div class="panel-heading">
     </div>
     <div class="panel-body clearfix">
-        <a class="course-subject" title="{{{fullname}}}" href="{{{baseurl}}}/blocks/vitrinadb/detail.php?id={{{id}}}">
+        <a class="course-subject" title="{{{fullname}}}" href="{{{recordurl}}}">
             {{{fullname}}}
         </a>
         {{#ispending}}
