@@ -144,12 +144,80 @@ if (!$haschannelfilter && !empty($instanceid)) {
     }
 }
 
+// Build catalog header metadata: [category] / [database activity name].
+$catalogmeta = '';
+if (!empty($instanceid)) {
+    global $DB;
+
+    // Determine categories to look in (same logic as the external service).
+    $metaCategories = [];
+    if (!empty($categoriesids)) {
+        $metaCategories = $categoriesids;
+    } else if (!empty($block) && $block->config && !empty($block->config->categories)) {
+        $metaCategories = $block->config->categories;
+    }
+
+    $metaCategories = array_map('intval', $metaCategories);
+    $metaCategories = array_filter($metaCategories);
+
+    if (!empty($metaCategories)) {
+        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+
+        if ($datamoduleid) {
+            list($catinsql, $catparams) = $DB->get_in_or_equal($metaCategories, SQL_PARAMS_NAMED, 'cat');
+
+            $paramsdb = $catparams;
+            $paramsdb['siteid'] = SITEID;
+            $paramsdb['now'] = time();
+            $paramsdb['datamoduleid'] = $datamoduleid;
+
+            $sql = "SELECT cm.id, cm.course, cm.instance,
+                           c.category AS categoryid,
+                           c.fullname AS coursename,
+                           cc.name AS categoryname,
+                           d.name AS dataname
+                      FROM {course_modules} cm
+                      JOIN {course} c ON c.id = cm.course
+                      JOIN {course_categories} cc ON cc.id = c.category
+                      JOIN {data} d ON d.id = cm.instance
+                     WHERE c.category $catinsql
+                       AND c.visible = 1
+                       AND c.id <> :siteid
+                       AND (c.enddate > :now OR c.enddate = 0)
+                       AND cm.module = :datamoduleid
+                       AND cm.deletioninprogress = 0
+                  ORDER BY cm.id ASC";
+
+            if ($firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE)) {
+                $catname = format_string($firstcm->categoryname, true);
+                $coursename = format_string($firstcm->coursename, true);
+                $dataname = format_string($firstcm->dataname, true);
+                $catalogmeta = $catname . ' / ' . $coursename . ' / ' . $dataname;
+            }
+        }
+    }
+
+    if ($catalogmeta !== '') {
+        $PAGE->requires->js_init_code("require(['jquery'], function(\$) {
+            var meta = $('.vitrinadb-catalog-meta').first();
+            var title = $('#page-header h1').first();
+            if (meta.length && title.length) {
+                meta.insertAfter(title);
+            }
+        });");
+    }
+}
+
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'filters', [$uniqueid, $filtersselected]);
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $view, $instanceid, $bypage]);
 
 echo $OUTPUT->header();
 
 $summary = get_config('block_vitrinadb', 'summary');
+
+if ($catalogmeta !== '') {
+    echo html_writer::tag('div', s($catalogmeta), ['class' => 'vitrinadb-catalog-meta']);
+}
 
 echo format_text($summary, FORMAT_HTML, ['trusted' => true, 'noclean' => true]);
 

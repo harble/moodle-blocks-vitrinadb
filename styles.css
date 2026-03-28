@@ -264,6 +264,19 @@
 }
 /* End course detail */
 
+/* Catalog header metadata: [category] / [database activity name] shown
+ * inline with the main "Catalog" header in the catalog page.
+ */
+.path-blocks-vitrinadb #page-header .vitrinadb-catalog-meta {
+    display: inline-block;
+    margin-left: 1rem;
+    color: #6c757d; /* Muted grey text. */
+    font-size: 0.9rem;
+}
+.path-blocks-vitrinadb #page-header h1 {
+    display: inline-block;
+}
+
 /* Extra spacing between Display status, Author and Pending filters
  * in the catalog filter column.
  */
