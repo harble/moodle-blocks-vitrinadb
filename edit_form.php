@@ -74,21 +74,48 @@ class block_vitrinadb_edit_form extends block_edit_form {
             $mform->addElement('select', 'config_premium', get_string('premium', 'block_vitrinadb'), $options);
         }
 
-        // Select courses categories.
-        $displaylist = \core_course_category::make_categories_list('moodle/course:create');
+        // Select source course, based on global Categories setting and presence of database activities.
+        $sourcecourseoptions = [0 => ''];
 
-        $options = [
-            'multiple' => true,
-            'noselectionstring' => get_string('selectcategories', 'block_vitrinadb'),
-        ];
+        // Read global categories configuration for this block.
+        $globalcategories = get_config('block_vitrinadb', 'categories');
+        $categoriesids = [];
+        if (!empty($globalcategories)) {
+            if (is_array($globalcategories)) {
+                $categoriesids = array_map('intval', $globalcategories);
+            } else {
+                $categoriesids = array_filter(array_map('intval', explode(',', (string)$globalcategories)));
+            }
+        }
 
-        $mform->addElement(
-            'autocomplete',
-            'config_categories',
-            get_string('coursecategory', 'block_vitrinadb'),
-            $displaylist,
-            $options
-        );
+        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+
+        if ($datamoduleid) {
+            $params = ['siteid' => SITEID, 'now' => time(), 'datamoduleid' => $datamoduleid];
+            $categorywhere = '';
+
+            if (!empty($categoriesids)) {
+                list($catinsql, $catparams) = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
+                $categorywhere = " AND c.category $catinsql";
+                $params = array_merge($params, $catparams);
+            }
+
+            $sql = "SELECT DISTINCT c.id, c.fullname
+                      FROM {course_modules} cm
+                      JOIN {course} c ON c.id = cm.course
+                     WHERE c.id <> :siteid
+                       AND c.visible = 1
+                       AND (c.enddate > :now OR c.enddate = 0)
+                       AND cm.module = :datamoduleid
+                       AND cm.deletioninprogress = 0" .
+                   $categorywhere .
+                   " ORDER BY c.fullname ASC";
+
+            $sourcecourseoptions = [0 => ''] + $DB->get_records_sql_menu($sql, $params);
+        }
+
+        $mform->addElement('select', 'config_sourcecourse', get_string('sourcecourse', 'block_vitrinadb'), $sourcecourseoptions);
+        $mform->addHelpButton('config_sourcecourse', 'sourcecourse', 'block_vitrinadb');
 
         // Channels filter (optional, free-text, comma/semicolon separated).
         $mform->addElement('text', 'config_channels', get_string('channels', 'block_vitrinadb'));

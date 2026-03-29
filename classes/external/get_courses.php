@@ -125,6 +125,7 @@ class get_courses extends external_api {
 
         // Read the categories if is a block instance call or the filter by categories is defined.
         $categoriesids = [];
+        $sourcecourseid = 0;
 
         // Detect explicit "no channels selected" filter (channels present with
         // an empty values array). In that case, we must return no resources
@@ -168,24 +169,35 @@ class get_courses extends external_api {
         $sort = $params['sort'];
         $sortdirection = $params['sortdirection'];
 
-        if (count($categoriesids) == 0) {
-            if (!empty($params['instanceid'])) {
-                $block = block_instance_by_id($params['instanceid']);
+        if (!empty($params['instanceid'])) {
+            $block = block_instance_by_id($params['instanceid']);
 
-                if ($block->config && count($block->config->categories) > 0) {
-                    $categoriesids = $block->config->categories;
+            if ($block && !empty($block->config)) {
+                // Preferred: an explicit source course configured for this block instance.
+                if (!empty($block->config->sourcecourse)) {
+                    $sourcecourseid = (int)$block->config->sourcecourse;
                 }
 
-                if ($block->config && $block->config->sort != '' && empty($sort)) {
+                // Backward-compatible: resolve categories from legacy per-instance configuration
+                // only when no source course is configured and no categories filter was provided.
+                if ($sourcecourseid === 0 && count($categoriesids) === 0 && !empty($block->config->categories)) {
+                    if (is_array($block->config->categories)) {
+                        $categoriesids = array_map('intval', $block->config->categories);
+                    } else {
+                        $categoriesids = array_filter(array_map('intval', explode(',', (string)$block->config->categories)));
+                    }
+                }
+
+                if (!empty($block->config->sort) && empty($sort)) {
                     $sort = $block->config->sort;
                 }
 
-                if ($block->config && !empty($block->config->sortdirection) && empty($sortdirection)) {
+                if (!empty($block->config->sortdirection) && empty($sortdirection)) {
                     $sortdirection = $block->config->sortdirection;
                 }
             }
         }
-        // End of read categories.
+        // End of read categories and source course.
 
         // Read channels filter from block instance config (if provided).
         if (!empty($params['instanceid'])) {
@@ -218,8 +230,46 @@ class get_courses extends external_api {
 
         $pagedresources = [];
 
-        // No categories resolved means nothing to search.
-        if (!empty($categoriesids)) {
+        // Prefer an explicit source course when configured on the block instance.
+        if ($sourcecourseid > 0) {
+            // Get "data" module id.
+            $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+
+            if ($datamoduleid && $course = $DB->get_record('course', ['id' => $sourcecourseid])) {
+                $paramsdb = [
+                    'courseid' => $sourcecourseid,
+                    'siteid' => SITEID,
+                    'now' => time(),
+                    'datamoduleid' => $datamoduleid,
+                ];
+
+                $sql = "SELECT cm.id, cm.instance
+                          FROM {course_modules} cm
+                          JOIN {course} c ON c.id = cm.course
+                         WHERE c.id = :courseid
+                           AND c.visible = 1
+                           AND c.id <> :siteid
+                           AND (c.enddate > :now OR c.enddate = 0)
+                           AND cm.module = :datamoduleid
+                           AND cm.deletioninprogress = 0
+                      ORDER BY cm.id ASC";
+
+                if ($firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE)) {
+                    $pagedresources = \block_vitrinadb\local\controller::get_course_resources(
+                        $course,
+                        (int)$firstcm->instance,
+                        $params['view'],
+                        $params['filters'],
+                        $sort,
+                        $sortdirection,
+                        $params['amount'],
+                        $params['initial']
+                    );
+                }
+            }
+        } else if (!empty($categoriesids)) {
+            // No explicit source course: fall back to the first database activity
+            // across all matching courses in the resolved categories.
             // Get "data" module id.
             $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
 
