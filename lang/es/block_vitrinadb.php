@@ -70,6 +70,9 @@ $string['enrollrequired'] = '¡Matricúlate para tomar el curso!';
 $string['filtercustomfields'] = 'Filtrar por campos personalizados';
 $string['filtercustomfields_help'] = 'Seleccione los campos personalizados que desea usar para filtrar los cursos.
 Sólo se aceptan campos de lista desplegable y casillas de verificación.';
+$string['resourcetagsfilter'] = 'Etiquetas de elementos';
+$string['resourcetagsfilter_help'] = 'Seleccione una o más etiquetas para que estén disponibles como filtros en el catálogo. Al seleccionar una etiqueta en el catálogo, solo se mostrarán los recursos que tengan al menos esa etiqueta.';
+$string['selecttags'] = 'Elija etiquetas de elementos';
 $string['fulltextsearch'] = 'Búsqueda de texto';
 $string['gotocourse'] = 'Ir al curso';
 $string['greats'] = 'Destacados';

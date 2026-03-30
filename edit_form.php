@@ -122,6 +122,40 @@ class block_vitrinadb_edit_form extends block_edit_form {
         $mform->setType('config_channels', PARAM_TEXT);
         $mform->addHelpButton('config_channels', 'channels', 'block_vitrinadb');
 
+        // Tags filter configuration: choose which item tags are available
+        // in the catalog filter. Options include standard tags and tags
+        // already used on Database (mod_data) records.
+        $tagoptions = [];
+        $tagrecords = $DB->get_records_sql(
+            "SELECT DISTINCT t.id, t.name
+               FROM {tag} t
+          LEFT JOIN {tag_instance} ti ON ti.tagid = t.id
+                 AND ti.component = 'mod_data'
+                 AND ti.itemtype = 'data_records'
+              WHERE t.isstandard = 1 OR ti.id IS NOT NULL
+           ORDER BY t.name ASC"
+        );
+
+        foreach ($tagrecords as $tagrecord) {
+            $tagoptions[$tagrecord->id] = $tagrecord->name;
+        }
+
+        if (!empty($tagoptions)) {
+            $tagselectoptions = [
+                'multiple' => true,
+                'noselectionstring' => get_string('selecttags', 'block_vitrinadb'),
+            ];
+
+            $mform->addElement(
+                'autocomplete',
+                'config_tags',
+                get_string('resourcetagsfilter', 'block_vitrinadb'),
+                $tagoptions,
+                $tagselectoptions
+            );
+            $mform->addHelpButton('config_tags', 'resourcetagsfilter', 'block_vitrinadb');
+        }
+
         // Sort by default (per instance, same three modes as global setting).
         $sortOptions = [
             'default' => get_string('sortdefault', 'block_vitrinadb'),

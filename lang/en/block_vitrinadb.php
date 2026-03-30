@@ -76,6 +76,9 @@ $string['feeinfoinlist'] = '{$a}';
 $string['filtercustomfields'] = 'Custom fields to filter';
 $string['filtercustomfields_help'] = 'Select the custom fields to filter the courses in the catalog.
 Only select and check fields are available to filter.';
+$string['resourcetagsfilter'] = 'Item tags';
+$string['resourcetagsfilter_help'] = 'Select one or more tags to make them available as filters in the catalog. Only resources having at least one of these tags will be displayed when that tag is selected.';
+$string['selecttags'] = 'Choose item tags';
 $string['fulltextsearch'] = 'Full text search';
 $string['gotocourse'] = 'Go to course';
 $string['greats'] = 'Top rated';

@@ -148,6 +148,19 @@ function loadCourses(uniqueid, $tabcontent) {
             }
         }
 
+        // Tags dropdown filter (single-select). If a tag is selected, add a
+        // "tags" filter for the backend.
+        var $tagselect = $filtersbox.find('select[name="tagsfilter"]');
+        if ($tagselect.length > 0) {
+            var tagvalue = $tagselect.val();
+            if (tagvalue) {
+                filters.push({
+                    'values': [tagvalue],
+                    'type': 'tags',
+                });
+            }
+        }
+
         // Pending approval checkbox.
         var $pendingcontrol = $filtersbox.find('.filterpending input[name="pending"]');
         if ($pendingcontrol.length > 0 && $pendingcontrol.is(':checked')) {
@@ -464,6 +477,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
     $filtersbox.find('.filtersortdirection select[name="sortdirection"]').on('change', applyFilters);
     $filtersbox.find('.filtershowstatus select[name="show_status"]').on('change', applyFilters);
     $filtersbox.find('.filterauthor select[name="author"]').on('change', applyFilters);
+    $filtersbox.find('.filtertags select[name="tagsfilter"]').on('change', applyFilters);
     $filtersbox.find('.filterpending input[name="pending"]').on('change', applyFilters);
 
     $filtersbox.find('.filterfulltext button').on('click', applyFilters);

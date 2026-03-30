@@ -199,30 +199,64 @@ class get_courses extends external_api {
         }
         // End of read categories and source course.
 
-        // Read channels filter from block instance config (if provided).
+        // Read channels and tags filters from block instance config (if provided).
         if (!empty($params['instanceid'])) {
             if (!isset($block)) {
                 $block = block_instance_by_id($params['instanceid']);
             }
 
-            if ($block && !empty($block->config) && !empty($block->config->channels)) {
-                $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list((string)$block->config->channels);
+            if ($block && !empty($block->config)) {
+                // Channels: default channels filter when none was provided
+                // explicitly by the caller.
+                if (!empty($block->config->channels)) {
+                    $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list((string)$block->config->channels);
 
-                if (!empty($configuredchannels)) {
-                    // Only add a channels filter if one is not already present.
-                    $haschannelfilter = false;
-                    foreach ($params['filters'] as $filter) {
-                        if (!empty($filter['type']) && $filter['type'] === 'channels') {
-                            $haschannelfilter = true;
-                            break;
+                    if (!empty($configuredchannels)) {
+                        $haschannelfilter = false;
+                        foreach ($params['filters'] as $filter) {
+                            if (!empty($filter['type']) && $filter['type'] === 'channels') {
+                                $haschannelfilter = true;
+                                break;
+                            }
+                        }
+
+                        if (!$haschannelfilter) {
+                            $params['filters'][] = [
+                                'type' => 'channels',
+                                'values' => $configuredchannels,
+                            ];
                         }
                     }
+                }
 
-                    if (!$haschannelfilter) {
-                        $params['filters'][] = [
-                            'type' => 'channels',
-                            'values' => $configuredchannels,
-                        ];
+                // Tags: if the block instance has configured item tags and
+                // no explicit tags filter has been provided (e.g. from the
+                // catalog dropdown), apply those configured tags as a
+                // default filter.
+                if (!empty($block->config->tags)) {
+                    $configuredtags = is_array($block->config->tags)
+                        ? $block->config->tags
+                        : [$block->config->tags];
+
+                    $configuredtags = array_map('intval', $configuredtags);
+                    $configuredtags = array_filter($configuredtags);
+
+                    if (!empty($configuredtags)) {
+                        $hastagfilter = false;
+                        foreach ($params['filters'] as $filter) {
+                            if (!empty($filter['type']) && $filter['type'] === 'tags') {
+                                $hastagfilter = true;
+                                break;
+                            }
+                        }
+
+                        if (!$hastagfilter) {
+                            $tagvalues = array_map('strval', $configuredtags);
+                            $params['filters'][] = [
+                                'type' => 'tags',
+                                'values' => $tagvalues,
+                            ];
+                        }
                     }
                 }
             }

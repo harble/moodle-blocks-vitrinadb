@@ -953,6 +953,9 @@ class controller {
 
         // Normalise any channels filter provided (from block instance config or API caller).
         $channelsfilter = [];
+        // Normalise any tags filter provided (single-select) using
+        // Database (mod_data) record tags.
+        $tagsfilter = [];
         // Normalise any show_status filter provided (single value).
         $showstatusfilter = '';
         // Normalise any author filter provided (single user id).
@@ -967,6 +970,13 @@ class controller {
                     $parts = self::normalize_channels_list((string)$value);
                     foreach ($parts as $part) {
                         $channelsfilter[] = mb_strtolower($part);
+                    }
+                }
+            } else if (!empty($filter['type']) && $filter['type'] === 'tags' && !empty($filter['values'])) {
+                foreach ($filter['values'] as $value) {
+                    $value = (int)$value;
+                    if ($value > 0) {
+                        $tagsfilter[] = $value;
                     }
                 }
             } else if (!empty($filter['type']) && $filter['type'] === 'fulltext' && !empty($filter['values'])) {
@@ -1000,6 +1010,9 @@ class controller {
         }
         if (!empty($channelsfilter)) {
             $channelsfilter = array_values(array_unique($channelsfilter));
+        }
+        if (!empty($tagsfilter)) {
+            $tagsfilter = array_values(array_unique($tagsfilter));
         }
 
         // Normalise sort direction.
@@ -1115,6 +1128,38 @@ class controller {
                 'dataid' => $data->id,
                 'approved' => $approvedstate,
             ], $orderby);
+
+            // If a tags filter has been provided, restrict the records to
+            // those tagged with any of the selected tags in this Database
+            // activity.
+            if (!empty($records) && !empty($tagsfilter)) {
+                list($selectintags, $paramsintags) = $DB->get_in_or_equal($tagsfilter, SQL_PARAMS_NAMED, 'tagid');
+                $paramsintags['dataid'] = $data->id;
+
+                $sqltags = "SELECT DISTINCT r.id
+                               FROM {tag_instance} ti
+                               JOIN {data_records} r ON r.id = ti.itemid
+                              WHERE ti.component = 'mod_data'
+                                AND ti.itemtype = 'data_records'
+                                AND r.dataid = :dataid
+                                AND ti.tagid " . $selectintags;
+
+                $recordids = $DB->get_fieldset_sql($sqltags, $paramsintags);
+
+                if (empty($recordids)) {
+                    // No records in this database match the tags filter.
+                    continue;
+                }
+
+                $allowed = array_flip(array_map('intval', $recordids));
+                $records = array_filter($records, function($record) use ($allowed) {
+                    return isset($allowed[(int)$record->id]);
+                });
+
+                if (empty($records)) {
+                    continue;
+                }
+            }
 
             if (empty($records)) {
                 continue;

@@ -75,6 +75,9 @@ $string['feeinfoinlist'] = '{$a}';
 $string['filtercustomfields'] = '用于筛选的自定义字段';
 $string['filtercustomfields_help'] = '选择用于在目录中筛选课程的自定义字段。
 仅支持下拉选择和复选框类型的字段。';
+$string['resourcetagsfilter'] = '条目标签';
+$string['resourcetagsfilter_help'] = '选择一个或多个标签，使其可以在目录中作为筛选条件使用。在目录中选择某个标签时，只会显示拥有该标签的资源条目。';
+$string['selecttags'] = '选择条目标签';
 $string['fulltextsearch'] = '全文搜索';
 $string['gotocourse'] = '进入课程';
 $string['greats'] = '优评条目';
