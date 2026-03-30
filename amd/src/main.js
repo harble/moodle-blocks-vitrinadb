@@ -124,18 +124,6 @@ function loadCourses(uniqueid, $tabcontent) {
             }
         }
 
-        // Show status dropdown (single-select).
-        var $showstatuscontrol = $filtersbox.find('.filtershowstatus select[name="show_status"]');
-        if ($showstatuscontrol.length > 0) {
-            var showstatus = $showstatuscontrol.val();
-            if (showstatus) {
-                filters.push({
-                    'values': [showstatus],
-                    'type': 'show_status',
-                });
-            }
-        }
-
         // Author dropdown (single-select).
         var $authorcontrol = $filtersbox.find('.filterauthor select[name="author"]');
         if ($authorcontrol.length > 0) {
@@ -475,7 +463,6 @@ export const filters = (uniqueid, selectedfilters = []) => {
     $filtersbox.find('.filtercontrol .filteroptions input').on('change', applyFilters);
     $filtersbox.find('.filtersort select[name="sort"]').on('change', applyFilters);
     $filtersbox.find('.filtersortdirection select[name="sortdirection"]').on('change', applyFilters);
-    $filtersbox.find('.filtershowstatus select[name="show_status"]').on('change', applyFilters);
     $filtersbox.find('.filterauthor select[name="author"]').on('change', applyFilters);
     $filtersbox.find('.filtertags select[name="tagsfilter"]').on('change', applyFilters);
     $filtersbox.find('.filterpending input[name="pending"]').on('change', applyFilters);

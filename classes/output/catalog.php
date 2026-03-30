@@ -197,20 +197,6 @@ class catalog implements renderable, templatable {
             }
         }
 
-        // Filter by show_status (display status) using the configured
-        // Database activity "show_status" field. This is rendered as a
-        // dropdown above the categories list. Only site administrators can
-        // see and use this filter.
-        $showstatusfilter = null;
-        if ($isadmin) {
-            $showstatusoptions = \block_vitrinadb\local\controller::get_showstatus_filter_options((int)$this->instanceid);
-            if (!empty($showstatusoptions)) {
-                $showstatusfilter = (object) [
-                    'options' => $showstatusoptions,
-                ];
-            }
-        }
-
         // Filter by author (record creator) using the distinct users who
         // created entries in the configured Database activity. This is
         // rendered as a dropdown above the categories list (alongside
@@ -299,7 +285,6 @@ class catalog implements renderable, templatable {
             'showtext' => \block_vitrinadb\local\controller::show_tabtext(),
             'filtercontrols' => $filtercontrols,
             'filterproperties' => $filterproperties,
-            'showstatusfilter' => $showstatusfilter,
             'pendingfilter' => $pendingfilter,
             'authorfilter' => $authorfilter,
             'sortoptions' => $sortoptions,

@@ -386,10 +386,8 @@ class get_courses extends external_api {
             // Pending-approval state (true only when the catalog is
             // filtered by "Only pending approval records").
             $item->ispending = !empty($resource->ispending);
-            // Display/visibility status flags coming from show_status.
-            $item->showstatus = $resource->showstatus;
+            // Display/visibility status flags driven by tags.
             $item->isprime = !empty($resource->prime);
-            $item->ishidden = !empty($resource->hidden);
             // Only show the pinned badge in the "All courses" (default) view.
             $item->pinned = ($view === 'default') && !empty($resource->pinned);
 

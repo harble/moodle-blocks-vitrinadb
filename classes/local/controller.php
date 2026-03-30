@@ -956,8 +956,6 @@ class controller {
         // Normalise any tags filter provided (single-select) using
         // Database (mod_data) record tags.
         $tagsfilter = [];
-        // Normalise any show_status filter provided (single value).
-        $showstatusfilter = '';
         // Normalise any author filter provided (single user id).
         $authorfilter = 0;
         // Normalise any "only pending" filter (checkbox) for approval status.
@@ -983,13 +981,6 @@ class controller {
                 $text = trim(implode(' ', (array)$filter['values']));
                 if ($text !== '') {
                     $fulltext = mb_strtolower($text);
-                }
-            } else if (!empty($filter['type']) && $filter['type'] === 'show_status' && !empty($filter['values']) && $isadmin) {
-                // Single-select dropdown: first non-empty value wins. This
-                // filter is only available to site administrators.
-                $candidate = trim((string)reset($filter['values']));
-                if ($candidate !== '') {
-                    $showstatusfilter = mb_strtolower($candidate);
                 }
             } else if (!empty($filter['type']) && $filter['type'] === 'author' && !empty($filter['values'])) {
                 // Single-select dropdown: first non-empty value wins.
@@ -1084,7 +1075,6 @@ class controller {
             $channelsfieldid = null;
             $codefieldid = null;
             $sharefilefieldid = null;
-            $showstatusfieldid = null;
 
             foreach ($fields as $field) {
                 switch ($field->description) {
@@ -1105,9 +1095,6 @@ class controller {
                         break;
                     case 'share_file':  // optional file upload field with a resource file to share.
                         $sharefilefieldid = $field->id;
-                        break;
-                    case 'show_status':  // control the visibility of the resource card. options: show, hide， pin(置顶)
-                        $showstatusfieldid = $field->id;
                         break;
                 }
             }
@@ -1529,54 +1516,33 @@ class controller {
                     }
                 }
 
-                // Optional display status field (show_status, single select).
-                $showstatus = '';
-                if (!empty($showstatusfieldid)) {
-                    $statuscontent = $getcontent($showstatusfieldid);
+                // Load tags attached to this Database record so that
+                // pin/prime status can be driven by tags. Any tag whose
+                // display name contains "pin" or "prime"
+                // (case-insensitive) will mark the resource as
+                // pinned/prime respectively.
+                $recordtagnames = [];
+                $haspintag = false;
+                $hasprimetag = false;
+                $tags = \core_tag_tag::get_item_tags('mod_data', 'data_records', $record->id);
+                if (!empty($tags)) {
+                    foreach ($tags as $tag) {
+                        $name = format_string($tag->get_display_name(), true);
+                        $recordtagnames[] = $name;
 
-                    if ($statuscontent && $statuscontent->content !== null && $statuscontent->content !== '') {
-                        $showstatus = $statuscontent->content;
+                        $lowername = mb_strtolower($name);
+                        if (strpos($lowername, 'pin') !== false) {
+                            $haspintag = true;
+                        }
+                        if (strpos($lowername, 'prime') !== false) {
+                            $hasprimetag = true;
+                        }
                     }
                 }
 
-                // Interpret show_status value and apply visibility logic.
-                // 1) 无筛选(showstatusfilter为空)：
-                //    - 包含 "hide" 的记录被完全隐藏
-                //    - 包含 "pin" 的记录标记为置顶
-                // 2) 有筛选(showstatusfilter非空)：
-                //    - 不再自动隐藏 "hide"；
-                //    - 仅保留 show_status 与筛选值相同的记录（不区分大小写）；
-                //    - 仍然根据是否包含 "pin" 决定是否置顶。
-                $showstatusvalue = trim((string)$showstatus);
-                $lowerstatus = $showstatusvalue !== '' ? mb_strtolower($showstatusvalue) : '';
-                $ispinned = false;
-                $isprime = false;
-                $ishidden = false;
-
-                // 始终根据是否包含 pin / prime / hide 来标记状态。
-                if ($lowerstatus !== '' && strpos($lowerstatus, 'pin') !== false) {
-                    $ispinned = true;
-                }
-                if ($lowerstatus !== '' && strpos($lowerstatus, 'prime') !== false) {
-                    $isprime = true;
-                }
-                if ($lowerstatus !== '' && strpos($lowerstatus, 'hide') !== false) {
-                    $ishidden = true;
-                }
-
-                if ($showstatusfilter === '') {
-                    // 无筛选时，包含 hide 的记录永远不显示。
-                    if ($ishidden) {
-                        continue;
-                    }
-                    // 其它情况：正常可见（可能置顶或普通）。
-                } else {
-                    // 有筛选时：只保留 show_status 与筛选值一致的记录。
-                    // 为空的状态永远不会匹配任何筛选值。
-                    if ($lowerstatus === '' || $lowerstatus !== $showstatusfilter) {
-                        continue;
-                    }
-                }
+                // Determine pin/prime state based solely on tags.
+                $ispinned = $haspintag;
+                $isprime = $hasprimetag;
 
                 // Apply author filter (if any): keep only records created by
                 // the selected user id.
@@ -1628,8 +1594,8 @@ class controller {
                 }
 
                 // Build a localised title based on the record's channels and tags, if any.
-                // Channels: join multiple values for display. Tags: list all tag names
-                // attached to this Database record, appended on a new line.
+                // Channels: join multiple values for display. Tags: use the previously
+                // collected tag names and append them on a new line.
                 $sharefiletitle = '';
                 if (!empty($channels)) {
                     if (is_array($channels)) {
@@ -1652,16 +1618,8 @@ class controller {
                 }
 
                 // Append tags information on a new line when the record has tags.
-                $recordtags = [];
-                $tags = \core_tag_tag::get_item_tags('mod_data', 'data_records', $record->id);
-                if (!empty($tags)) {
-                    foreach ($tags as $tag) {
-                        $recordtags[] = format_string($tag->get_display_name(), true);
-                    }
-                }
-
-                if (!empty($recordtags)) {
-                    $tagsstr = implode(' | ', $recordtags);
+                if (!empty($recordtagnames)) {
+                    $tagsstr = implode(' | ', $recordtagnames);
                     $tagline = get_string('resource_tags_title', 'block_vitrinadb', $tagsstr);
 
                     if ($sharefiletitle !== '') {
@@ -1704,10 +1662,8 @@ class controller {
                 $resource->sharefiletype = $sharefiletype;
                 $resource->sharefiletypelabel = $sharefiletypelabel;
                 $resource->sharefileicon = $sharefileicon;
-                $resource->showstatus = $showstatus;
                 $resource->pinned = $ispinned;
                 $resource->prime = $isprime;
-                $resource->hidden = $ishidden;
                 $resource->dataid = $data->id;
                 $resource->recordid = $record->id;
                 $resource->timeadded = $record->timecreated;
@@ -1765,9 +1721,9 @@ class controller {
         //   by number of ratings and last modification date).
         // - "recents" (Next courses): all visible resources ordered by
         //   last modification date (newest first), ignoring PIN order.
-        // - "premium" (Premium courses): only resources whose show_status
-        //   contains "prime" (case-insensitive), also ordered by
-        //   last modification date and ignoring PIN order.
+        // - "premium" (Premium courses): only resources marked as
+        //   prime (for example via a "prime" tag), ordered by last
+        //   modification date and ignoring PIN order.
 
         if ($view === 'greats') {
             $allresources = array_merge($pinnedresources, $resources);
@@ -1826,8 +1782,8 @@ class controller {
 
             if ($view === 'premium') {
                 $allresources = array_values(array_filter($allresources, function($resource) {
-                    $status = strtolower((string)($resource->showstatus ?? ''));
-                    return $status !== '' && strpos($status, 'prime') !== false;
+                    // Only keep resources explicitly marked as prime.
+                    return !empty($resource->prime);
                 }));
             }
 

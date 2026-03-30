@@ -42,7 +42,7 @@
     top: 20%;
 }
 
-/* Pinned badge (show_status contains "pin") */
+/* Pinned badge (resource marked as pinned, e.g. via a "pin" tag) */
 .block_vitrina-courseslist .coursebox .vitrinadb-pin-badge {
     position: absolute;
     top: 0;
@@ -53,7 +53,8 @@
     text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
 }
 
-/* Prime badge (show_status contains "prime"). Styled as a golden badge. */
+/* Prime badge (resource marked as prime, e.g. via a "prime" tag).
+ * Styled as a golden badge. */
 .block_vitrina-courseslist .coursebox .vitrinadb-prime-badge {
     position: absolute;
     top: 0;
@@ -70,7 +71,7 @@
     right: -18px;
 }
 
-/* Hide badge (show_status contains "hide"). Styled in red. */
+/* Hide badge (no longer used). Styled in red. */
 .block_vitrina-courseslist .coursebox .vitrinadb-hide-badge {
     position: absolute;
     top: 0;
