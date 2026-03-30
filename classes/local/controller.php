@@ -1627,8 +1627,9 @@ class controller {
                     }
                 }
 
-                // Build a localised title based on the record's channels, if any.
-                // The channels field may contain multiple values; join them with separators.
+                // Build a localised title based on the record's channels and tags, if any.
+                // Channels: join multiple values for display. Tags: list all tag names
+                // attached to this Database record, appended on a new line.
                 $sharefiletitle = '';
                 if (!empty($channels)) {
                     if (is_array($channels)) {
@@ -1639,7 +1640,7 @@ class controller {
                     } else {
                         $channelsstr = trim((string)$channels);
                         // Some database multi-selects store values separated by "##".
-                        // Normalise these to "/" for display.
+                        // Normalise these for display.
                         if ($channelsstr !== '') {
                             $channelsstr = str_replace('##', ' | ', $channelsstr);
                         }
@@ -1647,6 +1648,26 @@ class controller {
 
                     if ($channelsstr !== '') {
                         $sharefiletitle = get_string('resource_channels_title', 'block_vitrinadb', $channelsstr);
+                    }
+                }
+
+                // Append tags information on a new line when the record has tags.
+                $recordtags = [];
+                $tags = \core_tag_tag::get_item_tags('mod_data', 'data_records', $record->id);
+                if (!empty($tags)) {
+                    foreach ($tags as $tag) {
+                        $recordtags[] = format_string($tag->get_display_name(), true);
+                    }
+                }
+
+                if (!empty($recordtags)) {
+                    $tagsstr = implode(' | ', $recordtags);
+                    $tagline = get_string('resource_tags_title', 'block_vitrinadb', $tagsstr);
+
+                    if ($sharefiletitle !== '') {
+                        $sharefiletitle .= "\n" . $tagline;
+                    } else {
+                        $sharefiletitle = $tagline;
                     }
                 }
 

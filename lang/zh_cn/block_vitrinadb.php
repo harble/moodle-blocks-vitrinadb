@@ -167,7 +167,7 @@ $string['sortbydefault_help'] = '选择在“所有条目”视图中资源的�
 $string['sortbycode'] = '按代码排序';
 $string['sortbyfinishdate'] = '按结束日期排序';
 $string['sortbystartdate'] = '按开始日期排序';
-$string['sortdefault'] = '资源排序';
+$string['sortdefault'] = '按资源ID排序';
 $string['sortdirection'] = '排序方向';
 $string['sortdirection_help'] = '选择资源的排序方向。';
 $string['sortdirection_asc'] = '升序';
@@ -207,8 +207,9 @@ $string['filetype_image'] = '图片';
 $string['filetype_other'] = '文件';
 $string['filetype_html'] = 'HTML';
 
-// Resource channels title for hover on filetype icon.
+// Resource channels and tags title for hover on filetype icon.
 $string['resource_channels_title'] = '类别：{$a}';
+$string['resource_tags_title'] = '标签：{$a}';
 
 // Pinned / prime / hidden resources.
 $string['pinnedlabel'] = '置顶';

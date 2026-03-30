@@ -199,8 +199,9 @@ $string['hidelabel'] = 'Oculto';
 // Etiqueta para el aviso de pendiente de aprobación.
 $string['pendinglabel'] = 'Pendiente de aprobación';
 
-// Título de canales en el icono de tipo de archivo.
+// Título de canales y etiquetas en el icono de tipo de archivo.
 $string['resource_channels_title'] = 'Categorías: {$a}';
+$string['resource_tags_title'] = 'Etiquetas: {$a}';
 
 // Filtro de estado de visualización.
 $string['showstatusfilter'] = 'Estado de visualización';
