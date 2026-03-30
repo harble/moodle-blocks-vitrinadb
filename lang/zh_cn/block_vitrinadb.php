@@ -21,16 +21,16 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['amountcourses'] = '课程数量';
-$string['amountcourses_help'] = '在主视图中要显示的课程数量。';
-$string['catalog'] = '课程目录';
+$string['amountcourses'] = '条目数量';
+$string['amountcourses_help'] = '在主视图中要显示的条目数量。';
+$string['catalog'] = '条目搜索';
 $string['categories'] = '课程类别';
 $string['categories_help'] = '选择要在主视图中显示课程的类别。';
 $string['catfilterview'] = '类别筛选视图';
 $string['catfilterview_default'] = '默认';
 $string['catfilterview_help'] = '选择用于显示课程类别筛选器的视图样式。';
 $string['catfilterview_tree'] = '树形';
-$string['channels'] = '频道筛选';
+$string['channels'] = '类别筛选';
 $string['channels_help'] = '可选的频道列表；用逗号或分号（半角或全角）分隔多个频道名称。';
 $string['comment_by'] = '作者：{$a}';
 $string['commentslabel'] = '{$a} 条评论';
@@ -77,7 +77,7 @@ $string['filtercustomfields_help'] = '选择用于在目录中筛选课程的自
 仅支持下拉选择和复选框类型的字段。';
 $string['fulltextsearch'] = '全文搜索';
 $string['gotocourse'] = '进入课程';
-$string['greats'] = '精选条目';
+$string['greats'] = '优评条目';
 $string['hascourseview'] = '您当前账号可以访问此课程！';
 $string['htmlfooter'] = '区块页脚内容';
 $string['htmlheader'] = '区块页眉内容';
@@ -90,7 +90,7 @@ $string['license-cc-by-nd'] = '知识共享 署名-禁止演绎 4.0 国际许可
 $string['license-cc-by-sa'] = '知识共享 署名-相同方式共享 4.0 国际许可协议';
 $string['licensefield'] = '许可证字段';
 $string['licensefield_help'] = '用于存储课程许可证信息的课程字段。';
-$string['loadmore'] = '加载更多资源';
+$string['loadmore'] = '加载更多...';
 $string['mediafield'] = '媒体字段';
 $string['mediafield_help'] = '用于存储课程视频 URL 的课程字段。';
 $string['newblocktitle'] = 'ShowcaseDb';
@@ -109,7 +109,7 @@ $string['paymentrequired'] = '本课程为收费课程';
 $string['paymenturlfield'] = '支付链接字段';
 $string['paymenturlfield_help'] = '';
 $string['pluginname'] = 'ShowcaseDb';
-$string['premium'] = '高级';
+$string['premium'] = '精选条目';
 $string['premiumcohort'] = '高级用户群组';
 $string['premiumcohort_help'] = '自助选课实例应关联到配置好的群组，以便高级用户可以注册。如果不希望在每个课程中单独配置群组，可以不在此选择群组，但应为自助选课设置密码，避免所有用户都能注册。';
 $string['premiumcoursefield'] = '高级课程字段';
@@ -127,10 +127,10 @@ $string['ratingmanager_help'] = '选择用于资源评分的插件。';
 $string['ratings'] = '评分';
 $string['ratingslabel'] = '{$a} 条评分';
 $string['rating_detail_title'] = '{$a->count} 条评分，平均 {$a->avg}';
-$string['recents'] = '最新条目';
-$string['relatedcourses'] = '相关课程';
-$string['relatedlimit'] = '相关课程数量上限';
-$string['relatedlimit_help'] = '在详情页面中要显示的相关课程数量。如果设置为 0，则不显示相关课程。';
+$string['recents'] = '近期条目';
+$string['relatedcourses'] = '相关条目';
+$string['relatedlimit'] = '相关条目数量上限';
+$string['relatedlimit_help'] = '在详情页面中要显示的相关条目数量。如果设置为 0，则不显示相关条目。';
 $string['requireauth'] = '您需要先<a href="{$a}">登录</a>，才能选修本课程';
 $string['returntocatalog'] = '返回目录';
 $string['selectcategories'] = '选择课程类别';
@@ -176,16 +176,16 @@ $string['summary'] = '摘要';
 $string['summary_help'] = '该内容显示在资源列表和详情页面的顶部。';
 $string['syncpremiumenrolmentstask'] = '同步高级用户注册任务';
 $string['tabtitle_default'] = '全部条目';
-$string['tabtitle_greats'] = '精选条目';
-$string['tabtitle_premium'] = '高级条目';
-$string['tabtitle_recents'] = '即将发布的条目';
+$string['tabtitle_greats'] = '优评条目';
+$string['tabtitle_premium'] = '精选条目';
+$string['tabtitle_recents'] = '近期发布';
 $string['tabview'] = '标签视图';
 $string['tabview_help'] = '当有多个视图可用时，选择标签布局。';
 $string['templatetype'] = '模板类型';
 $string['templatetype_help'] = '选择一个模板来改变区块页面的外观。';
 $string['textandicon'] = '文字和图标';
 $string['tokenenroll'] = '使用口令注册';
-$string['viewall'] = '查看全部';
+$string['viewall'] = '查看更多...';
 $string['viewsicons'] = '视图图标';
 $string['viewsicons_help'] = '为各视图选择要显示的图标，通常用于标签菜单。
 每行一个，格式：viewname=typo/icon，例如：greats=i/star。如果未指定，将使用默认图标。
@@ -209,7 +209,7 @@ $string['resource_channels_title'] = '类别：{$a}';
 
 // Pinned / prime / hidden resources.
 $string['pinnedlabel'] = '置顶';
-$string['primelabel'] = '推荐';
+$string['primelabel'] = '精选';
 $string['hidelabel'] = '隐藏';
 
 // Pending approval badge label.
