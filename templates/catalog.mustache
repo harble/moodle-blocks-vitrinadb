@@ -114,6 +114,18 @@
                     </div>
                 {{/authorfilter}}
 
+                {{#hastags}}
+                    <div class="filtertags" style="margin-bottom:12px;">
+                        <label for="vitrinadb-tags-{{uniqueid}}">{{#str}}resourcetagsfilter, block_vitrinadb{{/str}}</label>
+                        <select id="vitrinadb-tags-{{uniqueid}}" name="tagsfilter" class="form-control">
+                            <option value="">{{#str}}selecttags, block_vitrinadb{{/str}}</option>
+                            {{#tagsoptions}}
+                                <option value="{{value}}">{{label}}</option>
+                            {{/tagsoptions}}
+                        </select>
+                    </div>
+                {{/hastags}}
+
                 {{#pendingfilter}}
                     <div class="filterpending form-check">
                         <input type="checkbox" class="form-check-input" id="vitrina-pending-{{uniqueid}}" name="pending" value="1">

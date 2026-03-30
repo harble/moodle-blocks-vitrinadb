@@ -72,7 +72,7 @@ $string['filtercustomfields_help'] = 'Seleccione los campos personalizados que d
 Sólo se aceptan campos de lista desplegable y casillas de verificación.';
 $string['resourcetagsfilter'] = 'Etiquetas de elementos';
 $string['resourcetagsfilter_help'] = 'Seleccione una o más etiquetas para que estén disponibles como filtros en el catálogo. Al seleccionar una etiqueta en el catálogo, solo se mostrarán los recursos que tengan al menos esa etiqueta.';
-$string['selecttags'] = 'Elija etiquetas de elementos';
+$string['selecttags'] = 'Sin límite';
 $string['fulltextsearch'] = 'Búsqueda de texto';
 $string['gotocourse'] = 'Ir al curso';
 $string['greats'] = 'Destacados';
@@ -204,11 +204,11 @@ $string['resource_channels_title'] = 'Categorías: {$a}';
 
 // Filtro de estado de visualización.
 $string['showstatusfilter'] = 'Estado de visualización';
-$string['showstatus_all'] = 'Todos';
+$string['showstatus_all'] = 'Sin límite';
 
 // Filtro de autor.
 $string['authorfilter'] = 'Autor';
-$string['author_all'] = 'Todos';
+$string['author_all'] = 'Sin límite';
 
 // Filtro de registros pendientes de aprobación.
 $string['pendingfilter'] = 'Solo registros pendientes de aprobación';

@@ -69,7 +69,7 @@ class catalog implements renderable, templatable {
      * @return array Context variables for the template
      */
     public function export_for_template(renderer_base $output) {
-        global $CFG;
+        global $CFG, $DB;
 
         $isadmin = \is_siteadmin();
 
@@ -92,6 +92,87 @@ class catalog implements renderable, templatable {
 
         $staticfilters = get_config('block_vitrinadb', 'staticfilters');
         $staticfilters = explode(',', $staticfilters);
+
+        $filterproperties = new \stdClass();
+
+        // Tags filter: when the block instance has configured tags, show them
+        // as a checkbox list (like categories/channels) above the other
+        // filters. When there are no configured tags, expose a single-select
+        // dropdown with all relevant tags (standard tags + tags already used
+        // on Database records).
+        $tagscontrol = null;
+
+        $tagrecords = $DB->get_records_sql(
+            "SELECT DISTINCT t.id, t.name
+               FROM {tag} t
+          LEFT JOIN {tag_instance} ti ON ti.tagid = t.id
+                 AND ti.component = 'mod_data'
+                 AND ti.itemtype = 'data_records'
+              WHERE t.isstandard = 1 OR ti.id IS NOT NULL
+           ORDER BY t.name ASC"
+        );
+
+        $allowedtagids = [];
+        if ($this->instanceid) {
+            $block = block_instance_by_id($this->instanceid);
+            if ($block && !empty($block->config) && !empty($block->config->tags)) {
+                if (is_array($block->config->tags)) {
+                    $allowedtagids = $block->config->tags;
+                } else {
+                    $allowedtagids = [$block->config->tags];
+                }
+                $allowedtagids = array_map('intval', $allowedtagids);
+                $allowedtagids = array_filter($allowedtagids);
+            }
+        }
+
+        // If the block has configured tags, render them as a checkbox
+        // filter control; otherwise, expose a dropdown with all tags.
+        if (!empty($allowedtagids)) {
+            $tagsoptions = [];
+
+            foreach ($tagrecords as $tagrecord) {
+                if (!in_array((int)$tagrecord->id, $allowedtagids)) {
+                    continue;
+                }
+
+                $tagsoptions[] = [
+                    'value' => (string)$tagrecord->id,
+                    'label' => format_string($tagrecord->name, true),
+                    'selected' => false,
+                    'haschilds' => false,
+                    'childs' => [],
+                    'indent' => 0,
+                ];
+            }
+
+            if (!empty($tagsoptions)) {
+                $tagscontrol = new \stdClass();
+                $tagscontrol->title = get_string('resourcetagsfilter', 'block_vitrinadb');
+                $tagscontrol->key = 'tags';
+                $tagscontrol->options = $tagsoptions;
+            }
+        } else {
+            $tagsoptions = [];
+
+            foreach ($tagrecords as $tagrecord) {
+                $tagsoptions[] = [
+                    'value' => (string)$tagrecord->id,
+                    'label' => format_string($tagrecord->name, true),
+                ];
+            }
+
+            if (!empty($tagsoptions)) {
+                $filterproperties->hastags = true;
+                $filterproperties->tagsoptions = $tagsoptions;
+            }
+        }
+
+        // If we have a tags checkbox control (block-level configured tags),
+        // show it before the rest of the checkbox-based filters.
+        if ($tagscontrol !== null) {
+            $filtercontrols[] = $tagscontrol;
+        }
 
         // Filter by channels (displayed as categories) using the configured
         // Database activity "channels" field instead of Moodle course
@@ -159,8 +240,6 @@ class catalog implements renderable, templatable {
 
         // Add to filtercontrols the array returned by the method get_customfieldsfilters.
         $filtercontrols = array_merge($filtercontrols, \block_vitrinadb\local\controller::get_customfieldsfilters());
-
-        $filterproperties = new \stdClass();
 
         if (in_array('fulltext', $staticfilters)) {
             $filterproperties->fulltext = true;

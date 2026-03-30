@@ -136,9 +136,9 @@ if (count($categoriesids) > 0) {
     $filtersselected[] = (object) ['key' => 'categories', 'values' => $categoriesids];
 }
 
-// Preselect channels filter from block configuration (Channels filter setting)
-// when opening the catalog via "view all", so that the checkbox list on the
-// left matches the resources already being filtered by channels.
+// Preselect channels filter from block configuration (Channels filter
+// setting) when opening the catalog via "view all", so that the checkbox
+// list on the left matches the resources already being filtered by channels.
 if (!empty($instanceid)) {
     if (!isset($block)) {
         $block = block_instance_by_id($instanceid);
@@ -149,6 +149,44 @@ if (!empty($instanceid)) {
 
         if (!empty($configuredchannels)) {
             $filtersselected[] = (object) ['key' => 'channels', 'values' => $configuredchannels];
+        }
+    }
+}
+
+// Preselect tags filter from block configuration (Tags filter setting) when
+// opening the catalog via "view all", so that the tag checkbox list (when
+// present) matches the resources already being filtered by tags.
+if (!empty($instanceid)) {
+    if (!isset($block)) {
+        $block = block_instance_by_id($instanceid);
+    }
+
+    if ($block && !empty($block->config) && !empty($block->config->tags)) {
+        $configuredtags = [];
+
+        if (is_array($block->config->tags)) {
+            $configuredtags = $block->config->tags;
+        } else {
+            $configuredtags = [$block->config->tags];
+        }
+
+        $configuredtags = array_map('intval', $configuredtags);
+        $configuredtags = array_filter($configuredtags);
+
+        if (!empty($configuredtags)) {
+            $values = array_map('strval', $configuredtags);
+
+            $hastagfilter = false;
+            foreach ($filtersselected as $selected) {
+                if ($selected->key === 'tags') {
+                    $hastagfilter = true;
+                    break;
+                }
+            }
+
+            if (!$hastagfilter) {
+                $filtersselected[] = (object) ['key' => 'tags', 'values' => $values];
+            }
         }
     }
 }

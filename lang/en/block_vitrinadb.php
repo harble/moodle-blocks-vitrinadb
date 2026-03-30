@@ -78,7 +78,7 @@ $string['filtercustomfields_help'] = 'Select the custom fields to filter the cou
 Only select and check fields are available to filter.';
 $string['resourcetagsfilter'] = 'Item tags';
 $string['resourcetagsfilter_help'] = 'Select one or more tags to make them available as filters in the catalog. Only resources having at least one of these tags will be displayed when that tag is selected.';
-$string['selecttags'] = 'Choose item tags';
+$string['selecttags'] = 'No limit';
 $string['fulltextsearch'] = 'Full text search';
 $string['gotocourse'] = 'Go to course';
 $string['greats'] = 'Top rated';
@@ -221,11 +221,11 @@ $string['pendinglabel'] = 'Waiting for approval';
 
 // Show status filter.
 $string['showstatusfilter'] = 'Display status';
-$string['showstatus_all'] = 'All';
+$string['showstatus_all'] = 'No limit';
 
 // Author filter.
 $string['authorfilter'] = 'Author';
-$string['author_all'] = 'All';
+$string['author_all'] = 'No limit';
 
 // Pending approval filter.
 $string['pendingfilter'] = 'Only pending approval records';
