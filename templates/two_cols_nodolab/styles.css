@@ -31,7 +31,9 @@
 }
 
 .block_vitrina-courseslist .coursebox .panel-body a {
-    color: #fff;
+    color: #222;
+    font-size: medium;
+    font-weight: normal;
 }
 
 .block_vitrina-courseslist .coursebox .panel-body a:hover {
@@ -45,6 +47,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-top: -10px;
 }
 
 .block_vitrina-courseslist .coursebox .panel-body .coursesummary {
