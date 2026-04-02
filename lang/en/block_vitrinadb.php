@@ -211,6 +211,7 @@ $string['filetype_html'] = 'HTML';
 // Resource channels and tags title for hover on filetype icon.
 $string['resource_channels_title'] = 'Categories: {$a}';
 $string['resource_tags_title'] = 'Tags: {$a}';
+$string['resource_code_title'] = 'Code: {$a}';
 
 // Pinned / prime / hidden resources.
 $string['pinnedlabel'] = 'Pinned';

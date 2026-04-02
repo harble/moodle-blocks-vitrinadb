@@ -210,6 +210,7 @@ $string['filetype_html'] = 'HTML';
 // Resource channels and tags title for hover on filetype icon.
 $string['resource_channels_title'] = '类别：{$a}';
 $string['resource_tags_title'] = '标签：{$a}';
+$string['resource_code_title'] = '代码：{$a}';
 
 // Pinned / prime / hidden resources.
 $string['pinnedlabel'] = '置顶';

@@ -1560,9 +1560,10 @@ class controller {
                     }
                 }
 
-                // Build a localised title based on the record's channels and tags, if any.
+                // Build a localised title based on the record's channels, tags and code, if any.
                 // Channels: join multiple values for display. Tags: use the previously
-                // collected tag names and append them on a new line.
+                // collected tag names and append them on a new line. Code: append as an
+                // extra line when present.
                 $sharefiletitle = '';
                 if (!empty($channels)) {
                     if (is_array($channels)) {
@@ -1593,6 +1594,17 @@ class controller {
                         $sharefiletitle .= "\n" . $tagline;
                     } else {
                         $sharefiletitle = $tagline;
+                    }
+                }
+
+                // Append code information on a new line when a code value exists.
+                if ($code !== '') {
+                    $codeline = get_string('resource_code_title', 'block_vitrinadb', $code);
+
+                    if ($sharefiletitle !== '') {
+                        $sharefiletitle .= "\n" . $codeline;
+                    } else {
+                        $sharefiletitle = $codeline;
                     }
                 }
 

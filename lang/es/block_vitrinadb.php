@@ -202,6 +202,7 @@ $string['pendinglabel'] = 'Pendiente de aprobación';
 // Título de canales y etiquetas en el icono de tipo de archivo.
 $string['resource_channels_title'] = 'Categorías: {$a}';
 $string['resource_tags_title'] = 'Etiquetas: {$a}';
+$string['resource_code_title'] = 'Código: {$a}';
 
 // Filtro de estado de visualización.
 $string['showstatusfilter'] = 'Estado de visualización';
