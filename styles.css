@@ -909,6 +909,26 @@
 }
 /* End of catalog filter layout */
 
+/* Embedded/minimal catalog mode (index.php?embed=1): hide global
+ * chrome and filter column so that only the core results area is shown.
+ */
+.path-blocks-vitrinadb.vitrinadb-embed #page-header,
+.path-blocks-vitrinadb.vitrinadb-embed #page-footer,
+.path-blocks-vitrinadb.vitrinadb-embed #nav-drawer,
+.path-blocks-vitrinadb.vitrinadb-embed .navbar,
+.path-blocks-vitrinadb.vitrinadb-embed .secondary-navigation {
+    display: none;
+}
+
+.path-blocks-vitrinadb.vitrinadb-embed .vitrina-filter-responsivebutton,
+.path-blocks-vitrinadb.vitrinadb-embed #vitrina-filtercol {
+    display: none !important;
+}
+
+.path-blocks-vitrinadb.vitrinadb-embed #vitrina-resultscol {
+    padding-left: 0;
+}
+
 /* Filter controls */
 .path-blocks-vitrinadb .filterfulltext {
     width: 100%;

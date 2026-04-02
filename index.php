@@ -31,6 +31,7 @@ $filters = optional_param('filters', '', PARAM_TEXT);
 $q = optional_param('q', '', PARAM_TEXT);
 $authorid = optional_param('author', 0, PARAM_INT);
 $pendingflag = optional_param('pending', 0, PARAM_INT);
+$embed = optional_param('embed', 0, PARAM_INT);
 
 require_login(null, true);
 
@@ -38,7 +39,14 @@ $syscontext = context_system::instance();
 
 $PAGE->set_context($syscontext);
 $PAGE->set_url('/blocks/vitrinadb/index.php');
-$PAGE->set_pagelayout('incourse');
+$embed = (int)$embed;
+if ($embed === 1) {
+    // Embedded/minimal view: hide global navigation and footer where possible.
+    $PAGE->set_pagelayout('embedded');
+    $PAGE->add_body_class('vitrinadb-embed');
+} else {
+    $PAGE->set_pagelayout('incourse');
+}
 $PAGE->set_heading(get_string('catalog', 'block_vitrinadb'));
 $PAGE->set_title(get_string('catalog', 'block_vitrinadb'));
 
@@ -240,10 +248,10 @@ if (!$haschannelfilter && !empty($instanceid)) {
 
 // Build catalog header metadata: [category] / [database activity name], and
 // capture the related course so we can show its cover image on the catalog
-// page header.
+// page header. Skip this when in embedded mode to keep the layout minimal.
 $catalogmeta = '';
 $catalogcourseimage = '';
-if (!empty($instanceid)) {
+if ($embed !== 1 && !empty($instanceid)) {
     global $DB;
 
     // Determine categories to look in (same logic as the external service
@@ -353,23 +361,28 @@ echo $OUTPUT->header();
 
 $summary = get_config('block_vitrinadb', 'summary');
 
-if ($catalogmeta !== '') {
-    echo html_writer::tag('div', s($catalogmeta), ['class' => 'vitrinadb-catalog-meta']);
-}
+// In embedded mode, keep the page as clean as possible: skip catalog
+// header meta, cover image and summary so only the core course list
+// area is shown.
+if ($embed !== 1) {
+    if ($catalogmeta !== '') {
+        echo html_writer::tag('div', s($catalogmeta), ['class' => 'vitrinadb-catalog-meta']);
+    }
 
-// Show the course cover image (if any) for the course that owns the
-// configured Database activity. It is displayed below the page header
-// (and catalog meta) and above the summary HTML.
-if (!empty($catalogcourseimage)) {
-    $img = html_writer::empty_tag('img', [
-        'src' => $catalogcourseimage,
-        'alt' => '',
-        'class' => 'vitrinadb-catalog-courseimage-img',
-    ]);
-    echo html_writer::div($img, 'vitrinadb-catalog-courseimage');
-}
+    // Show the course cover image (if any) for the course that owns the
+    // configured Database activity. It is displayed below the page header
+    // (and catalog meta) and above the summary HTML.
+    if (!empty($catalogcourseimage)) {
+        $img = html_writer::empty_tag('img', [
+            'src' => $catalogcourseimage,
+            'alt' => '',
+            'class' => 'vitrinadb-catalog-courseimage-img',
+        ]);
+        echo html_writer::div($img, 'vitrinadb-catalog-courseimage');
+    }
 
-echo format_text($summary, FORMAT_HTML, ['trusted' => true, 'noclean' => true]);
+    echo format_text($summary, FORMAT_HTML, ['trusted' => true, 'noclean' => true]);
+}
 
 $renderable = new \block_vitrinadb\output\catalog($uniqueid, $view, $instanceid);
 $renderer = $PAGE->get_renderer('block_vitrinadb');
