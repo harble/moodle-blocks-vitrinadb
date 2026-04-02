@@ -127,12 +127,19 @@ $categoriesids = [];
 if (!empty($instanceid)) {
     $block = block_instance_by_id($instanceid);
 
-    if ($block->config && count($block->config->categories) > 0) {
-        $categoriesids = $block->config->categories;
+    if ($block && !empty($block->config) && !empty($block->config->categories)) {
+        // Categories in block config may be stored as an array or as a
+        // comma-separated string. Normalise to an int array to avoid
+        // passing null or scalars to count().
+        if (is_array($block->config->categories)) {
+            $categoriesids = $block->config->categories;
+        } else {
+            $categoriesids = array_filter(array_map('intval', explode(',', (string)$block->config->categories)));
+        }
     }
 }
 
-if (count($categoriesids) > 0) {
+if (!empty($categoriesids)) {
     $filtersselected[] = (object) ['key' => 'categories', 'values' => $categoriesids];
 }
 
@@ -239,12 +246,27 @@ $catalogcourseimage = '';
 if (!empty($instanceid)) {
     global $DB;
 
-    // Determine categories to look in (same logic as the external service).
+    // Determine categories to look in (same logic as the external service
+    // and controller helpers): prefer explicit categories from filters or
+    // block instance config; if none are defined, fall back to the global
+    // block_vitrinadb categories configuration so that new instances still
+    // resolve a Database activity.
     $metaCategories = [];
     if (!empty($categoriesids)) {
         $metaCategories = $categoriesids;
     } else if (!empty($block) && $block->config && !empty($block->config->categories)) {
-        $metaCategories = $block->config->categories;
+        $metaCategories = is_array($block->config->categories)
+            ? $block->config->categories
+            : array_filter(array_map('intval', explode(',', (string)$block->config->categories)));
+    } else {
+        $globalcats = get_config('block_vitrinadb', 'categories');
+        if (!empty($globalcats)) {
+            foreach (explode(',', (string)$globalcats) as $catid) {
+                if (is_numeric($catid)) {
+                    $metaCategories[] = (int)trim($catid);
+                }
+            }
+        }
     }
 
     $metaCategories = array_map('intval', $metaCategories);

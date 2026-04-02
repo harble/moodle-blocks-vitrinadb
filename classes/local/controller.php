@@ -907,24 +907,19 @@ class controller {
     /**
      * Get resources stored in database activities for a given course.
      *
-     * This helper searches all Database (mod_data) activities in the course which
-     * contain the expected fields used for the VitrinaDb block:
-     *   - subject (text)
-     *   - cover_page (image)
-     *   - description (HTML)
+     * New implementation: build a single aggregated SQL per Database (mod_data)
+     * activity using dynamic WHERE / ORDER BY / LIMIT clauses based on the
+     * provided parameters. The SQL pre-joins custom fields, tags and ratings so
+     * that most filters, ordering and pagination are handled at the DB layer.
      *
-     * It returns a flat list of resource objects with preprocessed fields so
-     * they can be rendered using the existing course templates where
-     *   fullname  => subject
-     *   imagepath => cover_page
-     *   summary  => description
+     * The legacy implementation is preserved in get_course_resources_backup().
      *
      * @param \stdClass $course Course record.
      * @param int|null $dataid Optional specific Database (mod_data) instance id to restrict to.
-     * @param string $view View key (kept for future use: default, recents, greats, premium).
-    * @param array $filters Filters list (reserved for future resource-level filtering).
-    * @param string $sort Sort key for records (supported: default, alphabetically, code).
-    * @param string $sortdirection Sort direction (asc or desc).
+     * @param string $view View key (default, recents, greats, premium).
+     * @param array $filters Filters list (channels, tags, fulltext, author, pending).
+     * @param string $sort Sort key for records (default, alphabetically, code).
+     * @param string $sortdirection Sort direction (asc or desc).
      * @param int $amount Max number of records to return (0 = no limit).
      * @param int $initial Offset from which to start (0-based).
      * @return array List of resource objects.
@@ -943,7 +938,6 @@ class controller {
 
         require_once($CFG->libdir . '/filelib.php');
 
-        $pinnedresources = [];
         $resources = [];
         $now = time();
 
@@ -1008,7 +1002,6 @@ class controller {
 
         // Normalise sort direction.
         $sortdirection = strtoupper($sortdirection) === 'ASC' ? 'ASC' : 'DESC';
-        $sortasc = $sortdirection === 'ASC';
 
         // Normalise sort key for resources.
         $sort = trim(strtolower($sort));
@@ -1018,10 +1011,6 @@ class controller {
             // Any unsupported key falls back to default.
             $sort = 'default';
         }
-
-        // DB-level ordering is always by creation time; additional sorting
-        // (alphabetically/code) is applied in PHP after building resources.
-        $orderby = 'timecreated ' . $sortdirection;
 
         $initial = max(0, (int)$initial);
         $amount = (int)$amount;
@@ -1062,199 +1051,256 @@ class controller {
 
             $context = \context_module::instance($cm->id);
 
-            // Read all fields for this database.
-            $fields = $DB->get_records('data_fields', ['dataid' => $data->id]);
-
-            if (empty($fields)) {
-                continue;
-            }
-
-            $subjectfieldid = null;
-            $coverfieldid = null;
-            $descriptionfieldid = null;
-            $channelsfieldid = null;
-            $codefieldid = null;
-            $sharefilefieldid = null;
-
-            foreach ($fields as $field) {
-                switch ($field->description) {
-                    case 'subject':
-                        $subjectfieldid = $field->id;
-                        break;
-                    case 'cover_page':  // file upload field with cover image.
-                        $coverfieldid = $field->id;
-                        break;
-                    case 'description':  // HTML content field with the resource description.
-                        $descriptionfieldid = $field->id;
-                        break;
-                    case 'channels':  // 类别， 比如 传灯频道、慈善频道...
-                        $channelsfieldid = $field->id;
-                        break;
-                    case 'code':  // Optional code field used for custom ordering.
-                        $codefieldid = $field->id;
-                        break;
-                    case 'share_file':  // optional file upload field with a resource file to share.
-                        $sharefilefieldid = $field->id;
-                        break;
-                }
-            }
-
-            // Require at least a subject to create a resource card.
-            if (empty($subjectfieldid)) {
-                continue;
-            }
-
-            // Get all records in this database matching the approval state.
-            // By default only approved records are shown; when the
-            // "only pending" filter is active, only unapproved records
-            // are retrieved. Pagination and alternative sorting
-            // (alphabetically/code) are applied after building the full
-            // resources list.
+            // Approval state: by default only approved records; when the
+            // "only pending" filter is active, only unapproved records.
             $approvedstate = $onlypending ? 0 : 1;
-            $records = $DB->get_records('data_records', [
+
+            // Base parameters and WHERE conditions. Note that the same
+            // dataid value is used in multiple subqueries, so each one gets
+            // its own named placeholder to keep Moodle DML parameter counts
+            // consistent.
+            $params = [
                 'dataid' => $data->id,
+                'dcdataid' => $data->id,
+                'ttdataid' => $data->id,
+                'rtdataid' => $data->id,
                 'approved' => $approvedstate,
-            ], $orderby);
+            ];
 
-            // If a tags filter has been provided, restrict the records to
-            // those tagged with any of the selected tags in this Database
-            // activity.
-            if (!empty($records) && !empty($tagsfilter)) {
-                list($selectintags, $paramsintags) = $DB->get_in_or_equal($tagsfilter, SQL_PARAMS_NAMED, 'tagid');
-                $paramsintags['dataid'] = $data->id;
+            $where = [
+                'r.dataid = :dataid',
+                'r.approved = :approved',
+            ];
 
-                $sqltags = "SELECT DISTINCT r.id
-                               FROM {tag_instance} ti
-                               JOIN {data_records} r ON r.id = ti.itemid
-                              WHERE ti.component = 'mod_data'
-                                AND ti.itemtype = 'data_records'
-                                AND r.dataid = :dataid
-                                AND ti.tagid " . $selectintags;
+            // Author filter at SQL level when available.
+            if ($authorfilter > 0) {
+                $where[] = 'r.userid = :authorfilter';
+                $params['authorfilter'] = $authorfilter;
+            }
 
-                $recordids = $DB->get_fieldset_sql($sqltags, $paramsintags);
+            // Tags filter: restrict to records tagged with any of the
+            // selected tags in this Database activity.
+            if (!empty($tagsfilter)) {
+                list($intagsql, $tagparams) = $DB->get_in_or_equal($tagsfilter, SQL_PARAMS_NAMED, 'tagid');
+                $where[] = "EXISTS (SELECT 1
+                                       FROM {tag_instance} ti2
+                                      WHERE ti2.component = 'mod_data'
+                                        AND ti2.itemtype = 'data_records'
+                                        AND ti2.itemid = r.id
+                                        AND ti2.tagid $intagsql)";
+                $params += $tagparams;
+            }
 
-                if (empty($recordids)) {
-                    // No records in this database match the tags filter.
-                    continue;
+            // Aggregated custom fields for this Database: subject, cover_page,
+            // description, channels, code and share_file. We also expose the
+            // data_content ids for description/cover/share so that pluginfile
+            // URLs and file_storage lookups can still be built.
+            $dcsql = "SELECT
+                          c.recordid,
+                          MAX(CASE WHEN f.description = 'subject' THEN NULLIF(c.content, '') END)      AS fc_subject,
+                          MAX(CASE WHEN f.description = 'cover_page' THEN c.content END)               AS fc_cover_page,
+                          MAX(CASE WHEN f.description = 'cover_page' THEN c.id END)                    AS fc_cover_page_itemid,
+                          MAX(CASE WHEN f.description = 'description' THEN c.content END)              AS fc_description,
+                          MAX(CASE WHEN f.description = 'description' THEN c.content1 END)             AS fc_description_format,
+                          MAX(CASE WHEN f.description = 'description' THEN c.id END)                   AS fc_description_itemid,
+                          MAX(CASE WHEN f.description = 'channels' THEN CONCAT('##', c.content, '##') END) AS fc_channels,
+                          MAX(CASE WHEN f.description = 'code' THEN c.content END)                     AS fc_code,
+                          MAX(CASE WHEN f.description = 'share_file' THEN c.content END)               AS fc_share_file,
+                          MAX(CASE WHEN f.description = 'share_file' THEN c.id END)                    AS fc_share_file_itemid
+                      FROM {data_content} c
+                      JOIN {data_fields} f ON f.id = c.fieldid
+                      JOIN {data_records} r2 ON r2.id = c.recordid
+                            WHERE r2.dataid = :dcdataid
+                  GROUP BY c.recordid";
+
+            // Tags aggregated per record (names + ispinned/isprime flags).
+            $ttsql = "SELECT
+                          r.id AS recordid,
+                          CONCAT('|', GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR '|'), '|') AS fc_tags,
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%pin%'   THEN 1 ELSE 0 END)        AS ispinned,
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%prime%' THEN 1 ELSE 0 END)        AS isprime
+                      FROM {tag_instance} ti
+                      JOIN {tag} t ON t.id = ti.tagid
+                      JOIN {data_records} r ON r.id = ti.itemid
+                                         WHERE ti.component = 'mod_data'
+                                             AND ti.itemtype  = 'data_records'
+                                             AND r.dataid     = :ttdataid
+                  GROUP BY r.id";
+
+              // Ratings aggregated per record using core rating table
+              // (mod_data entry ratings, aggregated as AVG), restricted to
+              // entries belonging to the current Database (dataid).
+              $rtsql = "SELECT rt.itemid,
+                            AVG(rt.rating) AS ratingtotal,
+                            COUNT(1)       AS ratingcount
+                        FROM {rating} rt
+                        JOIN {data_records} r2 ON r2.id = rt.itemid
+                       WHERE rt.component  = 'mod_data'
+                        AND rt.ratingarea = 'entry'
+                        AND r2.dataid     = :rtdataid
+                    GROUP BY rt.itemid";
+
+            // Only keep records that have a non-empty subject.
+            $where[] = 'dc.fc_subject IS NOT NULL';
+
+            // Channels filter: restrict to records whose channels field contains
+            // at least one of the selected channel values (case-insensitive).
+            if (!empty($channelsfilter)) {
+                $channelsconditions = [];
+                foreach ($channelsfilter as $idx => $chvalue) {
+                    $paramname = 'chan' . $idx;
+                    $channelsconditions[] = "LOWER(dc.fc_channels) LIKE :$paramname";
+                    $params[$paramname] = '%##' . $DB->sql_like_escape($chvalue) . '##%';
+                }
+                if (!empty($channelsconditions)) {
+                    $where[] = '(' . implode(' OR ', $channelsconditions) . ')';
+                }
+            }
+
+            // Fulltext filter: search in subject, description, channels and
+            // code columns using a simple case-insensitive LIKE.
+            if ($fulltext !== '') {
+                $fulltextparam = '%' . $DB->sql_like_escape($fulltext) . '%';
+                $where[] = '('
+                    . 'LOWER(dc.fc_subject) LIKE :fulltext1 OR '
+                    . 'LOWER(dc.fc_description) LIKE :fulltext2 OR '
+                    . 'LOWER(dc.fc_channels) LIKE :fulltext3 OR '
+                    . 'LOWER(dc.fc_code) LIKE :fulltext4'
+                    . ')';
+                $params['fulltext1'] = $fulltextparam;
+                $params['fulltext2'] = $fulltextparam;
+                $params['fulltext3'] = $fulltextparam;
+                $params['fulltext4'] = $fulltextparam;
+            }
+
+            // View-specific filters and ordering.
+            $orderby = '';
+
+            if ($view === 'greats') {
+                // Only resources that have a rating higher than 3.
+                $where[] = 'rt.ratingtotal > 3';
+                $orderby = 'rt.ratingtotal DESC, rt.ratingcount DESC, COALESCE(r.timemodified, r.timecreated) DESC';
+            } else if ($view === 'recents') {
+                // All visible resources ordered by last modification date (newest first),
+                // ignoring PIN order.
+                $orderby = 'COALESCE(r.timemodified, r.timecreated) DESC';
+            } else if ($view === 'premium') {
+                // Only resources explicitly marked as prime, ordered by last
+                // modification date (newest first), ignoring PIN order.
+                $where[] = 'tt.isprime = 1';
+                $orderby = 'COALESCE(r.timemodified, r.timecreated) DESC';
+            } else {
+                // Default view: keep PIN order and user-selected sort.
+                $pinexpr = 'CASE WHEN tt.ispinned = 1 THEN 0 ELSE 1 END';
+
+                switch ($sort) {
+                    case 'alphabetically':
+                        $keyexpr = 'LOWER(dc.fc_subject)';
+                        break;
+                    case 'code':
+                        $keyexpr = 'LOWER(dc.fc_code)';
+                        break;
+                    case 'default':
+                    default:
+                        $keyexpr = 'r.timecreated';
+                        break;
                 }
 
-                $allowed = array_flip(array_map('intval', $recordids));
-                $records = array_filter($records, function($record) use ($allowed) {
-                    return isset($allowed[(int)$record->id]);
-                });
+                $dir = $sortdirection === 'ASC' ? 'ASC' : 'DESC';
+                $orderby = "$pinexpr ASC, $keyexpr $dir, r.timecreated DESC";
+            }
 
-                if (empty($records)) {
-                    continue;
-                }
+            $sql = "SELECT
+                        r.*,
+                        dc.fc_subject,
+                        dc.fc_cover_page,
+                        dc.fc_cover_page_itemid,
+                        dc.fc_description,
+                        dc.fc_description_format,
+                        dc.fc_description_itemid,
+                        dc.fc_channels,
+                        dc.fc_code,
+                        dc.fc_share_file,
+                        dc.fc_share_file_itemid,
+                        tt.fc_tags,
+                        tt.ispinned,
+                        tt.isprime,
+                        rt.ratingtotal,
+                        rt.ratingcount
+                    FROM {data_records} r
+                    JOIN ($dcsql) dc ON dc.recordid = r.id
+               LEFT JOIN ($ttsql) tt ON tt.recordid = r.id
+               LEFT JOIN ($rtsql) rt ON rt.itemid = r.id
+                   WHERE " . implode(' AND ', $where);
+
+            if ($orderby !== '') {
+                $sql .= " ORDER BY " . $orderby;
+            }
+
+            if ($amount > 0 || $initial > 0) {
+                $records = $DB->get_records_sql($sql, $params, $initial, $amount > 0 ? $amount : 0);
+            } else {
+                $records = $DB->get_records_sql($sql, $params);
             }
 
             if (empty($records)) {
                 continue;
             }
 
-            // Prefetch user ratings aggregated per record using core rating
-            // table (mod_data entry ratings, aggregated as AVG).
-            $ratingsbyrecord = [];
-            $recordids = array_keys($records);
-            if (!empty($recordids)) {
-                list($insql, $inparams) = $DB->get_in_or_equal($recordids, SQL_PARAMS_NAMED, 'rec');
-                $ratingparams = ['contextid' => $context->id] + $inparams;
-                $ratingsql = "SELECT itemid, AVG(rating) AS avgrating, COUNT(1) AS numratings
-                                FROM {rating}
-                               WHERE contextid = :contextid
-                                 AND component = 'mod_data'
-                                 AND ratingarea = 'entry'
-                                 AND itemid $insql
-                            GROUP BY itemid";
-
-                $aggregates = $DB->get_records_sql($ratingsql, $ratingparams);
-                if (!empty($aggregates)) {
-                    foreach ($aggregates as $agg) {
-                        $ratingsbyrecord[$agg->itemid] = $agg;
-                    }
-                }
-            }
-
             foreach ($records as $record) {
-                // Prefetch all contents for this record to reduce DB calls.
-                $contents = $DB->get_records('data_content', ['recordid' => $record->id]);
-                $contentsbyfield = [];
-                foreach ($contents as $content) {
-                    $contentsbyfield[$content->fieldid] = $content;
-                }
-
-                // Helper to get content by field id.
-                $getcontent = function (?int $fieldid) use ($contentsbyfield) {
-                    if (empty($fieldid)) {
-                        return null;
-                    }
-                    return $contentsbyfield[$fieldid] ?? null;
-                };
-
                 // Subject (plain text).
-                $subjectcontent = $getcontent($subjectfieldid);
-
-                if (!$subjectcontent || $subjectcontent->content === null || $subjectcontent->content === '') {
+                $subject = \content_to_text((string)$record->fc_subject, FORMAT_PLAIN);
+                if ($subject === '') {
                     continue;
                 }
 
-                $subject = \content_to_text($subjectcontent->content, FORMAT_PLAIN);
-
                 // Description (HTML).
                 $summary = '';
-                if (!empty($descriptionfieldid)) {
-                    $desccontent = $getcontent($descriptionfieldid);
+                if (!empty($record->fc_description)) {
+                    $options = new \stdClass();
+                    $options->para = false;
 
-                    if ($desccontent && $desccontent->content !== null && $desccontent->content !== '') {
-                        $options = new \stdClass();
-                        $options->para = false;
+                    $text = \file_rewrite_pluginfile_urls(
+                        $record->fc_description,
+                        'pluginfile.php',
+                        $context->id,
+                        'mod_data',
+                        'content',
+                        (int)$record->fc_description_itemid
+                    );
 
-                        $text = \file_rewrite_pluginfile_urls(
-                            $desccontent->content,
-                            'pluginfile.php',
-                            $context->id,
-                            'mod_data',
-                            'content',
-                            $desccontent->id
-                        );
-
-                        $summary = format_text($text, $desccontent->content1, $options);
-                    }
+                    $summary = format_text($text, (int)$record->fc_description_format, $options);
                 }
 
                 // Cover image.
                 $imagepath = '';
-                if (!empty($coverfieldid)) {
-                    $covercontent = $getcontent($coverfieldid);
+                if (!empty($record->fc_cover_page) && !empty($record->fc_cover_page_itemid)) {
+                    // Always inline the cover image as a data URI so that the
+                    // browser never has to call pluginfile.php for card images.
+                    $fs = get_file_storage();
+                    $file = $fs->get_file(
+                        $context->id,
+                        'mod_data',
+                        'content',
+                        (int)$record->fc_cover_page_itemid,
+                        '/',
+                        $record->fc_cover_page
+                    );
 
-                    if ($covercontent && !empty($covercontent->content)) {
-                        // Always inline the cover image as a data URI so that the
-                        // browser never has to call pluginfile.php for card images.
-                        $fs = get_file_storage();
-                        $file = $fs->get_file(
+                    if ($file) {
+                        $imagepath = self::stored_file_to_cached_url($file, 800);
+                    } else {
+                        // Fallback to the standard URL if file record is not found.
+                        $imgurl = \moodle_url::make_pluginfile_url(
                             $context->id,
                             'mod_data',
                             'content',
-                            $covercontent->id,
+                            (int)$record->fc_cover_page_itemid,
                             '/',
-                            $covercontent->content
+                            $record->fc_cover_page
                         );
 
-                        if ($file) {
-                            $imagepath = self::stored_file_to_cached_url($file, 800);
-                        } else {
-                            // Fallback to the standard URL if file record is not found.
-                            $imgurl = \moodle_url::make_pluginfile_url(
-                                $context->id,
-                                'mod_data',
-                                'content',
-                                $covercontent->id,
-                                '/',
-                                $covercontent->content
-                            );
-
-                            $imagepath = $imgurl->out(false);
-                        }
+                        $imagepath = $imgurl->out(false);
                     }
                 }
 
@@ -1273,9 +1319,6 @@ class controller {
                                 $relative = preg_replace('#^/pluginfile\.php/#', '', $path);
                                 $parts = $relative !== '' ? explode('/', $relative) : [];
 
-                                // 重要：pluginfile.php 路径中的文件名和子目录可能包含
-                                // URL 转义（例如中文、空格：%E8%83%8C%E6%99%AF%20...），
-                                // 需要先对每一段执行 urldecode 才能被 file_storage 找到。
                                 if (!empty($parts)) {
                                     foreach ($parts as &$segment) {
                                         $segment = urldecode($segment);
@@ -1315,122 +1358,69 @@ class controller {
                     $imagepath = self::get_courseimage($course);
                 }
 
-                // Channels (optional, now used for filtering when a channels filter is configured).
-                $channels = '';
-                if (!empty($channelsfieldid)) {
-                    $channelscontent = $getcontent($channelsfieldid);
-
-                    if ($channelscontent && $channelscontent->content !== null && $channelscontent->content !== '') {
-                        $channels = $channelscontent->content;
-                    }
-                }
-
-                // Apply channels filter (if any): skip resources whose channels do not match.
-                if (!empty($channelsfilter)) {
-                    $resourcechannels = self::normalize_channels_list($channels);
-
-                    if (empty($resourcechannels)) {
-                        continue;
-                    }
-
-                    $matched = false;
-                    foreach ($resourcechannels as $rch) {
-                        if (in_array(mb_strtolower($rch), $channelsfilter, true)) {
-                            $matched = true;
-                            break;
-                        }
-                    }
-
-                    if (!$matched) {
-                        continue;
-                    }
-                }
+                // Channels (optional, used for display and SQL-level filtering).
+                $channels = (string)($record->fc_channels ?? '');
 
                 // Optional code field for custom ordering.
                 $code = '';
-                if (!empty($codefieldid)) {
-                    $codecontent = $getcontent($codefieldid);
-
-                    if ($codecontent && $codecontent->content !== null && $codecontent->content !== '') {
-                        $code = \content_to_text($codecontent->content, FORMAT_PLAIN);
-                    }
+                if (!empty($record->fc_code)) {
+                    $code = \content_to_text((string)$record->fc_code, FORMAT_PLAIN);
                 }
 
-                // Rating based on Moodle's rating subsystem for mod_data entries.
+                // Rating based on Moodle's rating subsystem for mod_data entries
+                // using the aggregated values returned by the main SQL.
                 $ratingtotal = 0.0;
                 $ratingcount = 0;
-                if (isset($ratingsbyrecord[$record->id])) {
-                    $agg = $ratingsbyrecord[$record->id];
-                    if ($agg && $agg->avgrating !== null) {
-                        $ratingvalue = (float)$agg->avgrating;
-                        // Clamp to 0-5 range to keep consistent with block_vitrina.
-                        if ($ratingvalue < 0) {
-                            $ratingvalue = 0.0;
-                        } else if ($ratingvalue > 5) {
-                            $ratingvalue = 5.0;
-                        }
+                if (isset($record->ratingtotal) && $record->ratingtotal !== null) {
+                    $ratingvalue = (float)$record->ratingtotal;
+                    // Clamp to 0-5 range to keep consistent with block_vitrina.
+                    if ($ratingvalue < 0) {
+                        $ratingvalue = 0.0;
+                    } else if ($ratingvalue > 5) {
+                        $ratingvalue = 5.0;
+                    }
 
-                        if ($ratingvalue > 0) {
-                            $ratingtotal = $ratingvalue;
-                            $ratingcount = (int)$agg->numratings;
-                        }
+                    if ($ratingvalue > 0) {
+                        $ratingtotal = $ratingvalue;
+                        $ratingcount = isset($record->ratingcount) ? (int)$record->ratingcount : 0;
                     }
                 }
 
-                // Apply fulltext search (if any) against subject, summary,
-                // channels, code and rating. All comparisons are case-insensitive.
-                if ($fulltext !== '') {
-                    $haystack = mb_strtolower(
-                        $subject . ' ' .
-                        strip_tags((string)$summary) . ' ' .
-                        (string)$channels . ' ' .
-                        (string)$code . ' ' .
-                        ($ratingtotal > 0 ? (string)$ratingtotal : '')
-                    );
-
-                    if (mb_strpos($haystack, $fulltext) === false) {
-                        continue;
-                    }
-                }
 
                 // Optional uploaded file field (share_file).
                 $sharefileurl = '';
                 $sharefilename = '';
                 $sharefiletype = '';
-                if (!empty($sharefilefieldid)) {
-                    $sharefilecontent = $getcontent($sharefilefieldid);
+                if (!empty($record->fc_share_file) && !empty($record->fc_share_file_itemid)) {
+                    $fileurl = \moodle_url::make_pluginfile_url(
+                        $context->id,
+                        'mod_data',
+                        'content',
+                        (int)$record->fc_share_file_itemid,
+                        '/',
+                        $record->fc_share_file
+                    );
 
-                    if ($sharefilecontent && !empty($sharefilecontent->content)) {
-                        $fileurl = \moodle_url::make_pluginfile_url(
-                            $context->id,
-                            'mod_data',
-                            'content',
-                            $sharefilecontent->id,
-                            '/',
-                            $sharefilecontent->content
-                        );
+                    $sharefileurl = $fileurl->out(false);
+                    $sharefilename = (string)$record->fc_share_file;
 
-                        $sharefileurl = $fileurl->out(false);
-                        $sharefilename = $sharefilecontent->content;
+                    // Detect a simple document/media type based on file extension.
+                    $ext = strtolower(pathinfo($sharefilename, PATHINFO_EXTENSION));
 
-                        // Detect a simple document/media type based on file extension.
-                        $ext = strtolower(pathinfo($sharefilename, PATHINFO_EXTENSION));
-
-                        if (in_array($ext, ['mp3', 'wav', 'ogg', 'flac', 'aac'])) {
-                            $sharefiletype = 'audio';
-                        } else if (in_array($ext, ['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'])) {
-                            $sharefiletype = 'video';
-                        } else if (in_array($ext, ['ppt', 'pptx', 'key'])) {
-                            $sharefiletype = 'presentation';
-                        } else if (in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'odt', 'ods', 'rtf'])) {
-                            $sharefiletype = 'office';
-                        } else if (in_array($ext, ['pdf'])) {
-                            $sharefiletype = 'pdf';
-                        } else if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'])) {
-                            $sharefiletype = 'image';
-                        } else if (!empty($ext)) {
-                            $sharefiletype = 'other';
-                        }
+                    if (in_array($ext, ['mp3', 'wav', 'ogg', 'flac', 'aac'])) {
+                        $sharefiletype = 'audio';
+                    } else if (in_array($ext, ['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'])) {
+                        $sharefiletype = 'video';
+                    } else if (in_array($ext, ['ppt', 'pptx', 'key'])) {
+                        $sharefiletype = 'presentation';
+                    } else if (in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'odt', 'ods', 'rtf'])) {
+                        $sharefiletype = 'office';
+                    } else if (in_array($ext, ['pdf'])) {
+                        $sharefiletype = 'pdf';
+                    } else if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'])) {
+                        $sharefiletype = 'image';
+                    } else if (!empty($ext)) {
+                        $sharefiletype = 'other';
                     }
                 }
 
@@ -1516,41 +1506,18 @@ class controller {
                     }
                 }
 
-                // Load tags attached to this Database record so that
-                // pin/prime status can be driven by tags. Any tag whose
-                // display name contains "pin" or "prime"
-                // (case-insensitive) will mark the resource as
-                // pinned/prime respectively.
+                // Tags for display (already aggregated as a pipe-delimited string).
                 $recordtagnames = [];
-                $haspintag = false;
-                $hasprimetag = false;
-                $tags = \core_tag_tag::get_item_tags('mod_data', 'data_records', $record->id);
-                if (!empty($tags)) {
-                    foreach ($tags as $tag) {
-                        $name = format_string($tag->get_display_name(), true);
-                        $recordtagnames[] = $name;
-
-                        $lowername = mb_strtolower($name);
-                        if (strpos($lowername, 'pin') !== false) {
-                            $haspintag = true;
-                        }
-                        if (strpos($lowername, 'prime') !== false) {
-                            $hasprimetag = true;
-                        }
+                if (!empty($record->fc_tags)) {
+                    $trimmed = trim((string)$record->fc_tags, '|');
+                    if ($trimmed !== '') {
+                        $recordtagnames = explode('|', $trimmed);
                     }
                 }
 
-                // Determine pin/prime state based solely on tags.
-                $ispinned = $haspintag;
-                $isprime = $hasprimetag;
-
-                // Apply author filter (if any): keep only records created by
-                // the selected user id.
-                if ($authorfilter > 0) {
-                    if ((int)$record->userid !== $authorfilter) {
-                        continue;
-                    }
-                }
+                // Determine pin/prime state based on aggregated flags.
+                $ispinned = !empty($record->ispinned);
+                $isprime = !empty($record->isprime);
 
                 // Map share file type to label and icon class for templates.
                 $sharefiletypelabel = '';
@@ -1604,7 +1571,7 @@ class controller {
                         });
                         $channelsstr = implode('/', $channelslist);
                     } else {
-                        $channelsstr = trim((string)$channels);
+                        $channelsstr = trim((string)$channels, '#');
                         // Some database multi-selects store values separated by "##".
                         // Normalise these for display.
                         if ($channelsstr !== '') {
@@ -1707,167 +1674,11 @@ class controller {
                 // placeholder on the card.
                 $resource->ispending = $onlypending;
 
-                if ($ispinned) {
-                    $pinnedresources[] = $resource;
-                } else {
-                    $resources[] = $resource;
-                }
+                $resources[] = $resource;
             }
         }
 
-        // For special views we override the generic sort behaviour:
-        // - "greats" (Outstanding courses): only resources with an
-        //   average rating greater than 3, ordered by rating (and then
-        //   by number of ratings and last modification date).
-        // - "recents" (Next courses): all visible resources ordered by
-        //   last modification date (newest first), ignoring PIN order.
-        // - "premium" (Premium courses): only resources marked as
-        //   prime (for example via a "prime" tag), ordered by last
-        //   modification date and ignoring PIN order.
-
-        if ($view === 'greats') {
-            $allresources = array_merge($pinnedresources, $resources);
-
-            // Keep only resources that have a rating higher than 3.
-            $allresources = array_values(array_filter($allresources, function($resource) {
-                if (empty($resource->hasrating) || empty($resource->rating)) {
-                    return false;
-                }
-
-                $total = (float)($resource->rating->total ?? 0);
-
-                return $total > 3.0;
-            }));
-
-            // Order by rating DESC, then by number of ratings DESC, and finally
-            // by last modification date DESC so that the most relevant
-            // resources appear first.
-            usort($allresources, function($a, $b) {
-                $ra = isset($a->rating->total) ? (float)$a->rating->total : 0.0;
-                $rb = isset($b->rating->total) ? (float)$b->rating->total : 0.0;
-
-                if ($ra == $rb) {
-                    $ca = isset($a->rating->count) ? (int)$a->rating->count : 0;
-                    $cb = isset($b->rating->count) ? (int)$b->rating->count : 0;
-
-                    if ($ca == $cb) {
-                        $ta = $a->timemodified ?? $a->timeadded ?? 0;
-                        $tb = $b->timemodified ?? $b->timeadded ?? 0;
-
-                        if ($ta == $tb) {
-                            return 0;
-                        }
-
-                        // Descending: newest first.
-                        return ($ta > $tb) ? -1 : 1;
-                    }
-
-                    // Descending: more ratings first.
-                    return ($ca > $cb) ? -1 : 1;
-                }
-
-                // Descending: higher rating first.
-                return ($ra > $rb) ? -1 : 1;
-            });
-
-            if ($amount > 0 || $initial > 0) {
-                $allresources = array_slice($allresources, $initial, $amount);
-            }
-
-            return $allresources;
-        }
-
-        if ($view === 'recents' || $view === 'premium') {
-            $allresources = array_merge($pinnedresources, $resources);
-
-            if ($view === 'premium') {
-                $allresources = array_values(array_filter($allresources, function($resource) {
-                    // Only keep resources explicitly marked as prime.
-                    return !empty($resource->prime);
-                }));
-            }
-
-            usort($allresources, function($a, $b) {
-                $ta = $a->timemodified ?? $a->timeadded ?? 0;
-                $tb = $b->timemodified ?? $b->timeadded ?? 0;
-
-                if ($ta == $tb) {
-                    return 0;
-                }
-
-                // Descending: newest first.
-                return ($ta > $tb) ? -1 : 1;
-            });
-
-            if ($amount > 0 || $initial > 0) {
-                $allresources = array_slice($allresources, $initial, $amount);
-            }
-
-            return $allresources;
-        }
-
-        // Sort resources according to the selected mode while preserving
-        // the principle that pinned items always appear first.
-
-        $sortkey = function($resource) use ($sort) {
-            switch ($sort) {
-                case 'alphabetically':
-                    $value = $resource->subject ?? '';
-                    break;
-                case 'code':
-                    $value = $resource->code ?? '';
-                    break;
-                case 'default':
-                default:
-                    // For default we keep DB order, so rely on a monotonically
-                    // increasing index to make this comparator a no-op later.
-                    static $i = 0;
-                    $value = $i++;
-                    break;
-            }
-
-            if (is_string($value)) {
-                $value = \core_text::strtolower($value);
-            }
-
-            return $value;
-        };
-
-        $sortresources = function(array &$list) use ($sort, $sortasc, $sortkey) {
-            if ($sort === 'default') {
-                // Preserve DB order as returned above.
-                return;
-            }
-
-            usort($list, function($a, $b) use ($sortasc, $sortkey) {
-                $ka = $sortkey($a);
-                $kb = $sortkey($b);
-
-                if ($ka == $kb) {
-                    return 0;
-                }
-
-                if ($sortasc) {
-                    return ($ka < $kb) ? -1 : 1;
-                }
-
-                return ($ka > $kb) ? -1 : 1;
-            });
-        };
-
-        // Apply sorting inside each group so that pinned resources always
-        // stay on top for any sort mode.
-        $sortresources($pinnedresources);
-        $sortresources($resources);
-
-        $allresources = array_merge($pinnedresources, $resources);
-
-        // Apply pagination after sorting to support infinite scroll.
-        if ($amount > 0 || $initial > 0) {
-            $allresources = array_slice($allresources, $initial, $amount);
-        }
-
-        return $allresources;
+        return $resources;
     }
 
     /**
@@ -2101,12 +1912,37 @@ class controller {
             return null;
         }
 
+        $categoriesids = [];
+
         $block = block_instance_by_id($instanceid);
-        if (!$block || empty($block->config) || empty($block->config->categories) || !is_array($block->config->categories)) {
-            return null;
+        if ($block && !empty($block->config) && !empty($block->config->categories)) {
+            // Categories in block config may be stored as an array or as a
+            // comma-separated string depending on how the configuration was
+            // saved. Normalise to an int array so downstream logic can rely on
+            // a consistent structure.
+            if (is_array($block->config->categories)) {
+                $categoriesids = array_map('intval', $block->config->categories);
+            } else {
+                $categoriesids = array_filter(array_map('intval', explode(',', (string)$block->config->categories)));
+            }
         }
 
-        $categoriesids = array_map('intval', $block->config->categories);
+        // If the block instance has no explicit categories, fall back to the
+        // global block configuration so that new instances can still resolve
+        // the Database activity used for filters.
+        if (empty($categoriesids)) {
+            $globalcats = get_config('block_vitrinadb', 'categories');
+            if (!empty($globalcats)) {
+                $tmp = [];
+                foreach (explode(',', (string)$globalcats) as $catid) {
+                    if (is_numeric($catid)) {
+                        $tmp[] = (int)trim($catid);
+                    }
+                }
+                $categoriesids = $tmp;
+            }
+        }
+
         $categoriesids = array_filter($categoriesids);
 
         if (empty($categoriesids)) {
@@ -2465,12 +2301,36 @@ class controller {
             return $options;
         }
 
+        $categoriesids = [];
+
         $block = block_instance_by_id($instanceid);
-        if (!$block || empty($block->config) || empty($block->config->categories) || !is_array($block->config->categories)) {
-            return $options;
+        if ($block && !empty($block->config) && !empty($block->config->categories)) {
+            // Categories in block config may be stored as an array or as a
+            // comma-separated string. Normalise to an int array so that the
+            // authors dropdown is populated consistently.
+            if (is_array($block->config->categories)) {
+                $categoriesids = array_map('intval', $block->config->categories);
+            } else {
+                $categoriesids = array_filter(array_map('intval', explode(',', (string)$block->config->categories)));
+            }
         }
 
-        $categoriesids = array_map('intval', $block->config->categories);
+        // If the block instance has no explicit categories, fall back to the
+        // global block configuration so that new instances can still resolve
+        // the Database activity used to derive authors.
+        if (empty($categoriesids)) {
+            $globalcats = get_config('block_vitrinadb', 'categories');
+            if (!empty($globalcats)) {
+                $tmp = [];
+                foreach (explode(',', (string)$globalcats) as $catid) {
+                    if (is_numeric($catid)) {
+                        $tmp[] = (int)trim($catid);
+                    }
+                }
+                $categoriesids = $tmp;
+            }
+        }
+
         $categoriesids = array_filter($categoriesids);
 
         if (empty($categoriesids)) {
