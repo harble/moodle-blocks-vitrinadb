@@ -819,7 +819,7 @@
 /* Tabs control */
 .block_vitrina-tabs {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap !important;
     border-bottom: 1px solid #ddd;
 }
 
@@ -868,6 +868,8 @@
     background-color: transparent;
     color: #8d7e78;
     border-color: #8d7e78;
+    padding: 5px;
+    font-size: medium;
 }
 
 .block_vitrina-tabcontent .loadmore:hover {
