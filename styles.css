@@ -1140,7 +1140,7 @@
 
     .block_vitrina-content.opened-popup #vitrina-filtercol {
         position: fixed;
-        top: 50px;
+        top: 65px;
         right: 0;
         bottom: 0;
         left: 0;
@@ -1148,6 +1148,7 @@
         background-color: #3338;
         padding: 30px 20px 20px;
         display: block;
+        width: 60%;
     }
 
     .block_vitrina-tabs {
