@@ -193,6 +193,9 @@ class catalog implements renderable, templatable {
                 $control->title = get_string('category');
                 $control->key = 'channels';
                 $control->options = $channelsoptions;
+                // Flag used in the Mustache template to render a
+                // "select all" checkbox only for the channels filter.
+                $control->is_channels = true;
                 $filtercontrols[] = $control;
             }
         }

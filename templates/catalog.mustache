@@ -123,7 +123,14 @@
 
                 {{#filtercontrols}}
                     <div class="filtercontrol" data-key="{{key}}">
-                        <h5>{{title}}</h5>
+                        {{#is_channels}}
+                            <div class="filter-selectall" style="position:absolute;margin-top:8px">
+                                <input type="checkbox"
+                                       id="vitrinadb-channels-selectall-{{uniqueid}}"
+                                       class="vitrinadb-channels-selectall">
+                            </div>
+                        {{/is_channels}}
+                        <h5 style="text-align: center;">{{title}}</h5>                        
                         <ul class="filteroptions">
                             {{#options}}
                                 {{>block_vitrinadb/filterchild}}

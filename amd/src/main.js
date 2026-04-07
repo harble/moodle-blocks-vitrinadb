@@ -500,6 +500,25 @@ export const filters = (uniqueid, selectedfilters = []) => {
     var $channelsControl = $filtersbox.find('.filtercontrol[data-key="channels"]');
     if ($channelsControl.length) {
 
+        // Keep the state of the optional "select all" checkbox in sync
+        // with the individual channel checkboxes.
+        var $selectAllChannels = $channelsControl.find('.vitrinadb-channels-selectall');
+
+        var syncSelectAllChannels = function() {
+            if (!$selectAllChannels.length) {
+                return;
+            }
+
+            var $allChannelCheckboxes = $channelsControl.find('input.filteroption');
+            if ($allChannelCheckboxes.length === 0) {
+                $selectAllChannels.prop('checked', false);
+                return;
+            }
+
+            var allChecked = $allChannelCheckboxes.filter(':checked').length === $allChannelCheckboxes.length;
+            $selectAllChannels.prop('checked', allChecked);
+        };
+
         var updateTreeExpansion = function() {
             $channelsControl.find('.filter-optiongroup.haschilds').each(function() {
                 var $group = $(this);
@@ -521,6 +540,27 @@ export const filters = (uniqueid, selectedfilters = []) => {
         // Initial expansion based on any preselected channels.
         updateTreeExpansion();
 
+        // Initial sync for the select-all checkbox.
+        syncSelectAllChannels();
+
+        // Toggle all channels when the "select all" checkbox changes.
+        if ($selectAllChannels.length) {
+            $selectAllChannels.on('change', function() {
+                var checked = $(this).is(':checked');
+
+                // Select/unselect all channel checkboxes (including children).
+                $channelsControl.find('input.filteroption').prop('checked', checked);
+
+                // Update tree UI and re-sync the select-all state.
+                updateTreeExpansion();
+                syncSelectAllChannels();
+
+                // Apply filters so the catalog reloads according to the
+                // new channels selection.
+                applyFilters();
+            });
+        }
+
         // Toggle expand/collapse when clicking on the parent icon.
         $channelsControl.on('click', '.tree-toggle', function(e) {
             e.preventDefault();
@@ -540,6 +580,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
         // Keep expansion state in sync with checkbox changes.
         $channelsControl.on('change', 'input.filteroption', function() {
             updateTreeExpansion();
+            syncSelectAllChannels();
         });
     }
 
