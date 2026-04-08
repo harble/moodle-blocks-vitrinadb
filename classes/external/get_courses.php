@@ -361,6 +361,13 @@ class get_courses extends external_api {
             $item->hassummary = !empty($item->summary);
             $item->imagepath = $resource->imagepath;
 
+            // Human-readable channels string (if present), used by
+            // templates such as the "forum" layout to display the
+            // resource's categories.
+            if (!empty($resource->channelsstr)) {
+                $item->channelsstr = $resource->channelsstr;
+            }
+
             // Resource specific metadata used by templates.
             $item->sharefiletype = $resource->sharefiletype;
             $item->sharefiletypelabel = $resource->sharefiletypelabel;

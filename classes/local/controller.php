@@ -1585,6 +1585,7 @@ class controller {
                 // collected tag names and append them on a new line. Code: append as an
                 // extra line when present.
                 $sharefiletitle = '';
+                $channelsstr = '';
                 if (!empty($channels)) {
                     if (is_array($channels)) {
                         $channelslist = array_filter(array_map('trim', $channels), function($v) {
@@ -1636,6 +1637,7 @@ class controller {
                 $resource->summary = $summary;
                 $resource->imagepath = $imagepath;
                 $resource->channels = $channels;
+                $resource->channelsstr = $channelsstr;
                 $resource->code = $code;
                 $resource->sharefiletitle = $sharefiletitle;
                 // Rating info mapped similarly to course ratings in block_vitrina.

@@ -1,0 +1,228 @@
+.block_vitrina-courseslist .coursebox.forum-coursebox {
+    background-color: #fff;
+    width: 100%;
+    max-width: 100%;
+    border: none;
+    box-shadow: 0 0 10px #ddd;
+    border-radius: 8px;
+    margin: 16px 0;
+    position: relative;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid #e7e7e7;
+    font-size: 0.9rem;
+    background-color: #fff;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 82%;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-header-left .resource-filetype {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-header-left .resource-filetype-text {
+    display: flex;
+    align-items: center;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-status {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    border: 1px solid #f0ad4e;
+    color: #f0ad4e;
+    white-space: nowrap;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-category {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .resource-filetype-icon {
+    color: #999;
+    font-size: 1.3rem;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .resource-filetype-icon .icon {
+    margin-right: 0;
+}
+
+.block_vitrina-courseslist .coursebox .vitrinadb-badge {
+    position: absolute;
+    right: 0;
+    padding: 4px 8px;
+    z-index: 3;
+    color: #555;
+    text-shadow: 0 0 3px rgb(0 0 0 / .6);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.block_vitrina-courseslist .coursebox .vitrinadb-badge .vitrinadb-badge-label {
+    font-size: 0.85rem;
+    text-shadow: 0 0 BLACK;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-category-name {
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-shareinfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 3px;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-shareinfo .resource-share-avatar {
+    line-height: 36px;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-shareinfo .resource-share-avatar img {
+    height: 2em;
+    width: 2em;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-shareinfo .resource-share-text {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-shareinfo .resource-share-name a {
+    font-size: 0.85rem;
+    color: #666
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-shareinfo .resource-share-days {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-content {
+    display: grid;
+    grid-template-columns: 50fr 1fr;
+    grid-template-rows: auto auto;
+    grid-template-areas:
+        "title image"
+        "summary image";
+    gap: 12px 16px;
+    padding: 12px 16px 16px;
+    align-items: flex-start;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-title {
+    grid-area: title;
+    margin: 0;
+    font-size: 1.1rem;
+    align-self: center;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-title a {
+    color: #222;
+    text-decoration: none;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-title a:hover {
+    text-decoration: underline;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-image-link {
+    grid-area: image;
+    display: block;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-image-link .courseimage {
+    width: 260px;
+    max-width: 100%;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-summarytitle {
+    grid-area: summary;
+    font-size: 0.9rem;
+    color: #555;
+    line-height: 1.4;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .waiting-label {
+    position: absolute;
+    right: 16px;
+    bottom: 8px;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-summarytitle a,
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-summarytitle a:link,
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-summarytitle a:visited,
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-summarytitle a:active,
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-summarytitle a:focus {
+    color: #555;
+    text-decoration: none;
+    background: transparent;
+    box-shadow: none;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media (max-width: 767.98px) {
+    .block_vitrina-courseslist .coursebox.forum-coursebox .forum-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+ 
+    .block_vitrina-courseslist .coursebox.forum-coursebox .forum-header-left {
+        width: 100%;
+    }
+
+    .block_vitrina-courseslist .coursebox.forum-coursebox .forum-header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .block_vitrina-courseslist .coursebox.forum-coursebox .forum-content {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "title"
+            "image"
+            "summary";
+    }
+
+    .block_vitrina-courseslist .coursebox.forum-coursebox .forum-image-link .courseimage {
+        width: 100%;
+        height: 180px;
+    }
+}

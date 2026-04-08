@@ -1,0 +1,124 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template block_vitrinadb/forum/course
+
+    Forum-style full-width resource card.
+    One card uses the whole row; cards are stacked vertically.
+
+    Context is the same as other vitrinadb course templates.
+}}
+
+<div class="panel panel-default coursebox forum-coursebox coursecategory-{{category}} state-{{#active}}active{{/active}}{{^active}}waiting{{/active}} {{#premium}}type-premium{{/premium}}{{#completed}} coursecompleted{{/completed}}">
+    <div class="forum-header clearfix">
+        <div class="forum-header-left">
+            <div class="forum-category">
+                {{#sharefiletypelabel}}
+                    <div class="resource-filetype">
+                        <div class="resource-filetype-icon" {{#sharefiletitle}}title="{{sharefiletitle}}"{{/sharefiletitle}}>
+                            <i class="icon fa {{sharefileicon}} fa-fw" aria-hidden="true"></i>
+                        </div>                       
+                    </div>
+                {{/sharefiletypelabel}}
+                <span class="forum-category-name" title="{{#channelsstr}}{{channelsstr}}{{/channelsstr}}">
+                    {{#channelsstr}}{{channelsstr}}{{/channelsstr}}{{^channelsstr}}{{category}}{{/channelsstr}}
+                </span>
+            </div>
+
+            {{#sharedbyname}}
+                <div class="forum-shareinfo">
+                    {{#sharedbyavatar}}
+                    <div class="resource-share-avatar">
+                        <a href="{{baseurl}}/user/profile.php?id={{sharedbyid}}" target="_blank" rel="noopener noreferrer">
+                            <img src="{{sharedbyavatar}}" alt="{{sharedbyname}}">
+                        </a>
+                    </div>
+                    {{/sharedbyavatar}}
+                    <div class="resource-share-text">
+                        <div class="resource-share-name">
+                            <a href="{{baseurl}}/blocks/vitrinadb/?view={{view}}&id={{instanceid}}&author={{sharedbyid}}" target="_blank" rel="noopener noreferrer">{{sharedbyname}}</a>
+                        </div>
+                        <div class="resource-share-divider"></div>
+                        <div class="resource-share-days">{{shareddayslabel}}</div>
+                    </div>
+                </div>
+            {{/sharedbyname}}
+        </div>
+
+        <div class="forum-header-right">
+            <div class="resource-filetype-text">
+                {{#hasrating}}
+                    {{#rating}}
+                    <div class="resource-filetype-rating">
+                        <div class="vitrina-ranking-stars" title="{{title}}">
+                            <div class="vitrina-ranking-stars-bar" style="width: {{percent}}%;"></div>
+                        </div>
+                    </div>
+                    {{/rating}}
+                {{/hasrating}}
+            </div>
+
+            {{#pinned}}
+            <div class="vitrinadb-badge" title="{{#str}}pinnedlabel, block_vitrinadb{{/str}}" aria-label="{{#str}}pinnedlabel, block_vitrinadb{{/str}}">
+                <span class="vitrinadb-badge-label">{{#str}}pinnedlabel, block_vitrinadb{{/str}}</span>
+                <i class="icon fa fa-thumbtack fa-fw" aria-hidden="true"></i>
+            </div>
+            {{/pinned}}
+            {{#isprime}}
+            <div class="vitrinadb-badge" title="{{#str}}primelabel, block_vitrinadb{{/str}}" aria-label="{{#str}}primelabel, block_vitrinadb{{/str}}">
+                <span class="vitrinadb-badge-label">{{#str}}primelabel, block_vitrinadb{{/str}}</span>
+                <i class="icon fa fa-certificate fa-fw" aria-hidden="true"></i>
+            </div>
+            {{/isprime}}
+            {{#ishidden}}
+            <div class="vitrinadb-badge" title="{{#str}}hidelabel, block_vitrinadb{{/str}}" aria-label="{{#str}}hidelabel, block_vitrinadb{{/str}}">
+                <span class="vitrinadb-badge-label">{{#str}}hidelabel, block_vitrinadb{{/str}}</span>
+                <i class="icon fa fa-eye-slash fa-fw" aria-hidden="true"></i>
+            </div>
+            {{/ishidden}}
+            {{#ispending}}
+                <div class="forum-status forum-status-pending">
+                    {{#str}}pendinglabel, block_vitrinadb{{/str}}
+                </div>
+            {{/ispending}}
+        </div>
+    </div>
+
+    <div class="forum-content">
+        <h3 class="forum-title" title="{{{fullname}}}">
+            <a href="{{{recordurl}}}" target="{{opendetailstarget}}">
+                {{{fullname}}}
+            </a>
+        </h3>
+
+        <a class="forum-image-link" title="{{summarytitle}}" href="{{{recordurl}}}" target="{{opendetailstarget}}">
+            <div class="courseimage" {{#imagepath}}style="background-image: url({{imagepath}});"{{/imagepath}}></div>
+        </a>
+
+        {{#summarytitle}}
+        <div class="forum-summarytitle">
+            <a href="{{{recordurl}}}" target="{{opendetailstarget}}" title="{{summarytitle}}">
+                {{summarytitle}}
+            </a>
+        </div>
+        {{/summarytitle}}
+    </div>
+
+    {{^active}}
+        <div class="waiting-label">{{#str}}waiting, block_vitrinadb{{/str}}</div>
+    {{/active}}
+</div>
