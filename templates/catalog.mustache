@@ -116,8 +116,8 @@
 
                 {{#pendingfilter}}
                     <div class="filterpending form-check">
-                        <input type="checkbox" class="form-check-input" id="vitrina-pending-{{uniqueid}}" name="pending" value="1">
-                        <label class="form-check-label" for="vitrina-pending-{{uniqueid}}">{{#str}}pendingfilter, block_vitrinadb{{/str}}</label>
+                        <input type="checkbox" class="form-check-input" id="vitrina-pending-{{uniqueid}}" name="pending" value="1"{{#pendingfiltertitle}} title="{{pendingfiltertitle}}"{{/pendingfiltertitle}}>
+                        <label class="form-check-label" for="vitrina-pending-{{uniqueid}}"{{#pendingfiltertitle}} title="{{pendingfiltertitle}}"{{/pendingfiltertitle}}>{{#str}}pendingfilter, block_vitrinadb{{/str}}</label>
                     </div>
                 {{/pendingfilter}}
 

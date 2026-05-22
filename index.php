@@ -251,6 +251,7 @@ if (!$haschannelfilter && !empty($instanceid)) {
 // page header. Skip this when in embedded mode to keep the layout minimal.
 $catalogmeta = '';
 $catalogcourseimage = '';
+$currentdatabasename = '';
 if ($embed !== 1 && !empty($instanceid)) {
     global $DB;
 
@@ -312,6 +313,7 @@ if ($embed !== 1 && !empty($instanceid)) {
                 $catname = format_string($firstcm->categoryname, true);
                 $coursename = format_string($firstcm->coursename, true);
                 $dataname = format_string($firstcm->dataname, true);
+                $currentdatabasename = (string)$firstcm->dataname;
                 $catalogmeta = $catname . ' / ' . $coursename . ' / ' . $dataname;
 
                 // Load the full course record to obtain its *explicit* cover image
@@ -384,7 +386,7 @@ if ($embed !== 1) {
     echo format_text($summary, FORMAT_HTML, ['trusted' => true, 'noclean' => true]);
 }
 
-$renderable = new \block_vitrinadb\output\catalog($uniqueid, $view, $instanceid);
+$renderable = new \block_vitrinadb\output\catalog($uniqueid, $view, $instanceid, $currentdatabasename);
 $renderer = $PAGE->get_renderer('block_vitrinadb');
 
 echo $renderer->render($renderable);

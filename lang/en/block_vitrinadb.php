@@ -230,4 +230,4 @@ $string['authorfilter'] = 'Author';
 $string['author_all'] = 'No limit';
 
 // Pending approval filter.
-$string['pendingfilter'] = 'Only pending approval records';
+$string['pendingfilter'] = 'Only records pending my approval';

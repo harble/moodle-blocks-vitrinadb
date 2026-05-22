@@ -229,4 +229,4 @@ $string['authorfilter'] = '作者';
 $string['author_all'] = '不限';
 
 // Pending approval filter.
-$string['pendingfilter'] = '仅显示待审批记录';
+$string['pendingfilter'] = '仅显示待我审批的记录';

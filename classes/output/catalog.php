@@ -50,16 +50,24 @@ class catalog implements renderable, templatable {
     private $instanceid;
 
     /**
+     * @var string The current database name.
+     */
+    private $databasename;
+
+    /**
      * Constructor.
      *
      * @param string $uniqueid The uniqueid of the block instance.
      * @param string $view The view type.
+     * @param int $instanceid The block instance id.
+     * @param string $databasename The current database name.
      */
-    public function __construct($uniqueid, $view = 'default', int $instanceid = 0) {
+    public function __construct($uniqueid, $view = 'default', int $instanceid = 0, string $databasename = '') {
 
         $this->uniqueid = $uniqueid;
         $this->view = $view;
         $this->instanceid = $instanceid;
+        $this->databasename = $databasename;
     }
 
     /**
@@ -237,6 +245,7 @@ class catalog implements renderable, templatable {
         // Only administrators can see and use the "Only pending approval
         // records" checkbox.
         $pendingfilter = $isadmin;
+        $pendingfiltertitle = \block_vitrinadb\local\controller::get_pendingfilter_title($this->databasename);
         // End of filter controls.
 
         $sortvalue = main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'sortbydefault');
@@ -289,6 +298,7 @@ class catalog implements renderable, templatable {
             'filtercontrols' => $filtercontrols,
             'filterproperties' => $filterproperties,
             'pendingfilter' => $pendingfilter,
+            'pendingfiltertitle' => $pendingfiltertitle,
             'authorfilter' => $authorfilter,
             'sortoptions' => $sortoptions,
             'sortdirectionoptions' => $sortdirectionoptions,

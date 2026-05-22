@@ -213,4 +213,4 @@ $string['authorfilter'] = 'Autor';
 $string['author_all'] = 'Sin límite';
 
 // Filtro de registros pendientes de aprobación.
-$string['pendingfilter'] = 'Solo registros pendientes de aprobación';
+$string['pendingfilter'] = 'Solo registros pendientes de mi aprobación';

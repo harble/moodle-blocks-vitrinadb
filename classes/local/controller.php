@@ -2551,6 +2551,84 @@ class controller {
     }
 
     /**
+     * Get a value from the current user's additional profile fields.
+     *
+     * @param string $shortname The profile field shortname.
+     * @return string|null The field value, or null if not found.
+     */
+    public static function get_current_user_profile_field_value(string $shortname): ?string {
+        global $DB, $USER;
+
+        if (empty($USER->id)) {
+            return null;
+        }
+
+        static $cache = [];
+        $cachekey = $USER->id . ':' . $shortname;
+
+        if (array_key_exists($cachekey, $cache)) {
+            return $cache[$cachekey];
+        }
+
+        $sql = "SELECT d.data
+                  FROM {user_info_data} d
+                  JOIN {user_info_field} f ON f.id = d.fieldid
+                 WHERE d.userid = :userid
+                   AND f.shortname = :shortname";
+
+        $value = $DB->get_field_sql($sql, [
+            'userid' => $USER->id,
+            'shortname' => $shortname,
+        ]);
+
+        $cache[$cachekey] = $value !== false ? (string)$value : null;
+
+        return $cache[$cachekey];
+    }
+
+    /**
+     * Build the tooltip title for the pending approval checkbox.
+     *
+     * When the current database is "频道数据库", the title is assembled
+     * from the current user's userConfig profile field and the permissions
+     * list stored in the JSON path 权限 -> 频道数据库.
+     *
+     * @param string $databaseName The current database name.
+     * @return string The title text, or an empty string when unavailable.
+     */
+    public static function get_pendingfilter_title(string $databaseName = ''): string {
+        $databaseName = trim($databaseName);
+
+        if ($databaseName !== '频道数据库') {
+            return '';
+        }
+
+        $userconfig = self::get_current_user_profile_field_value('userConfig');
+        if (empty($userconfig)) {
+            return '';
+        }
+
+        $userconfig = html_entity_decode(strip_tags($userconfig), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $userconfig = str_replace("\xc2\xa0", ' ', $userconfig); // Replace non-breaking spaces (U+00A0) with regular spaces.
+        $userconfig = trim($userconfig);
+
+        $decoded = json_decode($userconfig, true);
+        if (empty($decoded['权限']) || empty($decoded['权限'][$databaseName]) || !is_array($decoded['权限'][$databaseName])) {
+            return '';
+        }
+
+        $permissions = [];
+        foreach ($decoded['权限'][$databaseName] as $permission) {
+            $permission = trim((string)$permission);
+            if ($permission !== '') {
+                $permissions[] = $permission;
+            }
+        }
+
+        return implode("\n", $permissions);
+    }
+
+    /**
      * Set the available enrol info in a course.
      *
      * @param object $course The course object.
