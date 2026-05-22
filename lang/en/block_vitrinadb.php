@@ -231,3 +231,4 @@ $string['author_all'] = 'No limit';
 
 // Pending approval filter.
 $string['pendingfilter'] = 'Only records pending my approval';
+$string['pendingpermissionnotset'] = 'Your account has not been assigned approval category permissions yet. Please contact an administrator to enable this.';

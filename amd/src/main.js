@@ -51,6 +51,7 @@ var strings = [
     {key: 'courselinkcopiedtoclipboard', component: 'block_vitrinadb'},
     {key: 'nocoursesview', component: 'block_vitrinadb'},
     {key: 'nomorecourses', component: 'block_vitrinadb'},
+    {key: 'pendingpermissionnotset', component: 'block_vitrinadb'},
 ];
 var s = [];
 
@@ -420,6 +421,120 @@ export const catalog = (uniqueid, view, currentinstanceid = 0, currentbypage = 2
 export const filters = (uniqueid, selectedfilters = []) => {
 
     $filtersbox = $('#' + uniqueid);
+    var $channelsControl = $filtersbox.find('.filtercontrol[data-key="channels"]');
+    var $selectAllChannels = $channelsControl.find('.vitrinadb-channels-selectall');
+    var $pendingcontrol = $filtersbox.find('.filterpending input[name="pending"]');
+    var arrPrechecked = [];
+    var hasArrPrechecked = false;
+
+    var syncSelectAllChannels = function() {
+        return;
+    };
+
+    var updateTreeExpansion = function() {
+        return;
+    };
+
+    var normalizeChannelPath = function(value) {
+        return String(value || '').replace(/\u00a0/g, ' ').trim();
+    };
+
+    var getChannelPathValue = function($checkbox) {
+        var value = normalizeChannelPath($checkbox.val());
+        if (value !== '') {
+            return value;
+        }
+
+        var $label = $checkbox.closest('.filter-option').find('> label');
+        var title = normalizeChannelPath($label.attr('title'));
+        if (title !== '') {
+            return title;
+        }
+
+        return normalizeChannelPath($label.text());
+    };
+
+    var setSelectAllDisabled = function(disabled) {
+        if ($selectAllChannels.length) {
+            $selectAllChannels.prop('disabled', disabled);
+        }
+    };
+
+    var applyPendingChannelPermissions = function() {
+        if (!$pendingcontrol.length || !$channelsControl.length) {
+            return true;
+        }
+
+        var $allChannelCheckboxes = $channelsControl.find('input.filteroption');
+
+        if (!$pendingcontrol.is(':checked')) {
+            if (hasArrPrechecked) {
+                $allChannelCheckboxes.each(function(index) {
+                    $(this).prop('checked', !!arrPrechecked[index]);
+                });
+                hasArrPrechecked = false;
+                arrPrechecked = [];
+            }
+
+            $allChannelCheckboxes.prop('disabled', false);
+            setSelectAllDisabled(false);
+            updateTreeExpansion();
+            syncSelectAllChannels();
+            return true;
+        }
+
+        var permissionTitle = normalizeChannelPath($pendingcontrol.attr('title'));
+        if (permissionTitle === '') {
+            window.alert(s.pendingpermissionnotset);
+            $pendingcontrol.prop('checked', false);
+            return false;
+        }
+
+        if (!hasArrPrechecked) {
+            arrPrechecked = [];
+            $allChannelCheckboxes.each(function() {
+                arrPrechecked.push($(this).is(':checked'));
+            });
+            hasArrPrechecked = true;
+        }
+
+        if (permissionTitle === '*') {
+            $allChannelCheckboxes.prop('disabled', false);
+            setSelectAllDisabled(false);
+            $allChannelCheckboxes.prop('checked', true);
+            updateTreeExpansion();
+            syncSelectAllChannels();
+            return true;
+        }
+
+        var allowedPaths = {};
+        permissionTitle.split(/\r?\n/).forEach(path => {
+            var normalized = normalizeChannelPath(path);
+            if (normalized !== '') {
+                allowedPaths[normalized] = true;
+            }
+        });
+
+        if (Object.keys(allowedPaths).length === 0) {
+            window.alert(s.pendingpermissionnotset);
+            $pendingcontrol.prop('checked', false);
+            return false;
+        }
+
+        $allChannelCheckboxes.each(function() {
+            var $checkbox = $(this);
+            var channelpath = getChannelPathValue($checkbox);
+            var isallowed = !!allowedPaths[channelpath];
+
+            $checkbox.prop('checked', isallowed);
+            $checkbox.prop('disabled', !isallowed);
+        });
+
+        setSelectAllDisabled(true);
+        updateTreeExpansion();
+        syncSelectAllChannels();
+        return true;
+    };
 
     var applyFilters = function() {
 
@@ -450,13 +565,6 @@ export const filters = (uniqueid, selectedfilters = []) => {
                 if (pendingValue !== '' && pendingValue !== '0') {
                     // Check the "Only pending approval records" checkbox.
                     $filtersbox.find('.filterpending input[name="pending"]').prop('checked', true);
-
-                    // When starting in pending mode, also select all
-                    // channels so that pending records are fetched from all
-                    // available categories, not just a subset.
-                    $filtersbox
-                        .find('.filtercontrol[data-key="channels"] .filteroptions input[type="checkbox"]')
-                        .prop('checked', true);
                 }
             }
             return;
@@ -476,7 +584,6 @@ export const filters = (uniqueid, selectedfilters = []) => {
     $filtersbox.find('.filtersortdirection select[name="sortdirection"]').on('change', applyFilters);
     $filtersbox.find('.filterauthor select[name="author"]').on('change', applyFilters);
     $filtersbox.find('.filtertags select[name="tagsfilter"]').on('change', applyFilters);
-    $filtersbox.find('.filterpending input[name="pending"]').on('change', applyFilters);
 
     $filtersbox.find('.filterfulltext button').on('click', applyFilters);
     $filtersbox.find('.filterfulltext input').on('keypress', function(e) {
@@ -497,14 +604,11 @@ export const filters = (uniqueid, selectedfilters = []) => {
     // parent channels with children. A channel value whose label starts
     // with "--" is treated as a child of the previous non-prefixed
     // channel in the list (built server-side).
-    var $channelsControl = $filtersbox.find('.filtercontrol[data-key="channels"]');
     if ($channelsControl.length) {
 
         // Keep the state of the optional "select all" checkbox in sync
         // with the individual channel checkboxes.
-        var $selectAllChannels = $channelsControl.find('.vitrinadb-channels-selectall');
-
-        var syncSelectAllChannels = function() {
+        syncSelectAllChannels = function() {
             if (!$selectAllChannels.length) {
                 return;
             }
@@ -519,7 +623,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
             $selectAllChannels.prop('checked', allChecked);
         };
 
-        var updateTreeExpansion = function() {
+        updateTreeExpansion = function() {
             $channelsControl.find('.filter-optiongroup.haschilds').each(function() {
                 var $group = $(this);
 
@@ -582,6 +686,19 @@ export const filters = (uniqueid, selectedfilters = []) => {
             updateTreeExpansion();
             syncSelectAllChannels();
         });
+    }
+
+    if ($pendingcontrol.length) {
+        $pendingcontrol.on('change', function() {
+            if (!applyPendingChannelPermissions()) {
+                return;
+            }
+            applyFilters();
+        });
+
+        if ($pendingcontrol.is(':checked')) {
+            applyPendingChannelPermissions();
+        }
     }
 
 };

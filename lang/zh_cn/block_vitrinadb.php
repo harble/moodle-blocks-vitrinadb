@@ -230,3 +230,4 @@ $string['author_all'] = '不限';
 
 // Pending approval filter.
 $string['pendingfilter'] = '仅显示待我审批的记录';
+$string['pendingpermissionnotset'] = '尚未为您的账户设置审批指定类别的权限，如需开通请联系管理人员';

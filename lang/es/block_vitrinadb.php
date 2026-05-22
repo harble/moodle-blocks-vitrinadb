@@ -214,3 +214,4 @@ $string['author_all'] = 'Sin límite';
 
 // Filtro de registros pendientes de aprobación.
 $string['pendingfilter'] = 'Solo registros pendientes de mi aprobación';
+$string['pendingpermissionnotset'] = 'Aún no se han configurado permisos de categorías de aprobación para su cuenta. Si necesita habilitarlos, contacte al administrador.';
