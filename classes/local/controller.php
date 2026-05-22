@@ -2587,11 +2587,48 @@ class controller {
     }
 
     /**
+     * Get a value from the current user's additional profile fields by field name.
+     *
+     * @param string $name The profile field display name.
+     * @return string|null The field value, or null if not found.
+     */
+    public static function get_current_user_profile_field_value_by_name(string $name): ?string {
+        global $DB, $USER;
+
+        if (empty($USER->id)) {
+            return null;
+        }
+
+        static $cache = [];
+        $cachekey = $USER->id . ':name:' . $name;
+
+        if (array_key_exists($cachekey, $cache)) {
+            return $cache[$cachekey];
+        }
+
+        $sql = "SELECT d.data
+                  FROM {user_info_data} d
+                  JOIN {user_info_field} f ON f.id = d.fieldid
+                 WHERE d.userid = :userid
+                   AND f.name = :name";
+
+        $value = $DB->get_field_sql($sql, [
+            'userid' => $USER->id,
+            'name' => $name,
+        ]);
+
+        $cache[$cachekey] = $value !== false ? (string)$value : null;
+
+        return $cache[$cachekey];
+    }
+
+    /**
      * Build the tooltip title for the pending approval checkbox.
      *
-     * When the current database is "频道数据库", the title is assembled
-     * from the current user's userConfig profile field and the permissions
-     * list stored in the JSON path 权限 -> 频道数据库.
+     * The title is read from the current user's additional profile field
+     * whose name is "[当前database名称]审批". The field value is treated as
+     * multi-line plain text (or HTML-formatted text), where each trimmed
+     * non-empty line becomes one permission path in the tooltip.
      *
      * @param string $databaseName The current database name.
      * @return string The title text, or an empty string when unavailable.
@@ -2599,26 +2636,25 @@ class controller {
     public static function get_pendingfilter_title(string $databaseName = ''): string {
         $databaseName = trim($databaseName);
 
-        if ($databaseName !== '频道数据库') {
+        if ($databaseName === '') {
             return '';
         }
 
-        $userconfig = self::get_current_user_profile_field_value('userConfig');
-        if (empty($userconfig)) {
+        $fieldname = $databaseName . '审批';
+        $fieldvalue = self::get_current_user_profile_field_value_by_name($fieldname);
+        if (empty($fieldvalue)) {
             return '';
         }
 
-        $userconfig = html_entity_decode(strip_tags($userconfig), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $userconfig = str_replace("\xc2\xa0", ' ', $userconfig); // Replace non-breaking spaces (U+00A0) with regular spaces.
-        $userconfig = trim($userconfig);
-
-        $decoded = json_decode($userconfig, true);
-        if (empty($decoded['权限']) || empty($decoded['权限'][$databaseName]) || !is_array($decoded['权限'][$databaseName])) {
-            return '';
-        }
+        $fieldvalue = preg_replace('/<br\s*\/?>/i', "\n", $fieldvalue);
+        $fieldvalue = preg_replace('/<\/p>\s*<p>/i', "\n", $fieldvalue);
+        $fieldvalue = preg_replace('/<\/div>\s*<div>/i', "\n", $fieldvalue);
+        $fieldvalue = html_entity_decode(strip_tags($fieldvalue), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $fieldvalue = str_replace("\xc2\xa0", ' ', $fieldvalue); // Replace non-breaking spaces (U+00A0) with regular spaces.
+        $fieldvalue = str_replace(["\r\n", "\r"], "\n", $fieldvalue);
 
         $permissions = [];
-        foreach ($decoded['权限'][$databaseName] as $permission) {
+        foreach (explode("\n", $fieldvalue) as $permission) {
             $permission = trim((string)$permission);
             if ($permission !== '') {
                 $permissions[] = $permission;
