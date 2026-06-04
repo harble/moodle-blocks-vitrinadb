@@ -255,90 +255,72 @@ $currentdatabasename = '';
 if ($embed !== 1 && !empty($instanceid)) {
     global $DB;
 
-    // Determine categories to look in (same logic as the external service
-    // and controller helpers): prefer explicit categories from filters or
-    // block instance config; if none are defined, fall back to the global
-    // block_vitrinadb categories configuration so that new instances still
-    // resolve a Database activity.
-    $metaCategories = [];
-    if (!empty($categoriesids)) {
-        $metaCategories = $categoriesids;
-    } else if (!empty($block) && $block->config && !empty($block->config->categories)) {
-        $metaCategories = is_array($block->config->categories)
-            ? $block->config->categories
-            : array_filter(array_map('intval', explode(',', (string)$block->config->categories)));
-    } else {
-        $globalcats = get_config('block_vitrinadb', 'categories');
-        if (!empty($globalcats)) {
-            foreach (explode(',', (string)$globalcats) as $catid) {
-                if (is_numeric($catid)) {
-                    $metaCategories[] = (int)trim($catid);
-                }
-            }
+    // Use the block's controller helper to resolve the correct Database activity
+    // for this instance. This respects sourcecourse first, then instance categories,
+    // then global categories (for backward compatibility).
+    $dataid = \block_vitrinadb\local\controller::resolve_data_id_for_instance($instanceid);
+
+    if ($dataid > 0) {
+        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+
+        if (!$datamoduleid) {
+            $dataid = 0;
         }
     }
 
-    $metaCategories = array_map('intval', $metaCategories);
-    $metaCategories = array_filter($metaCategories);
+    if ($dataid > 0) {
+        $sql = "SELECT cm.id, cm.course, cm.instance,
+                       c.category AS categoryid,
+                       c.fullname AS coursename,
+                       cc.name AS categoryname,
+                       d.name AS dataname
+                  FROM {course_modules} cm
+                  JOIN {course} c ON c.id = cm.course
+                  JOIN {course_categories} cc ON cc.id = c.category
+                  JOIN {data} d ON d.id = cm.instance
+                 WHERE d.id = :dataid
+                   AND c.visible = 1
+                   AND c.id <> :siteid
+                   AND (c.enddate > :now OR c.enddate = 0)
+                                     AND cm.module = :datamoduleid
+                   AND cm.deletioninprogress = 0";
 
-    if (!empty($metaCategories)) {
-        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+        $paramsdb = [
+            'dataid' => $dataid,
+            'siteid' => SITEID,
+            'now' => time(),
+                        'datamoduleid' => $datamoduleid,
+        ];
 
-        if ($datamoduleid) {
-            list($catinsql, $catparams) = $DB->get_in_or_equal($metaCategories, SQL_PARAMS_NAMED, 'cat');
+        if ($firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE)) {
+            $catname = format_string($firstcm->categoryname, true);
+            $coursename = format_string($firstcm->coursename, true);
+            $dataname = format_string($firstcm->dataname, true);
+            $currentdatabasename = (string)$firstcm->dataname;
+            $catalogmeta = $catname . ' / ' . $coursename . ' / ' . $dataname;
 
-            $paramsdb = $catparams;
-            $paramsdb['siteid'] = SITEID;
-            $paramsdb['now'] = time();
-            $paramsdb['datamoduleid'] = $datamoduleid;
+            // Load the full course record to obtain its *explicit* cover image
+            // (course overview image). Do not use generated or default images
+            // here so that the catalog header image only appears when the
+            // course has a real cover selected by the user.
+            $course = get_course($firstcm->course);
+            if ($course) {
+                global $CFG;
 
-            $sql = "SELECT cm.id, cm.course, cm.instance,
-                           c.category AS categoryid,
-                           c.fullname AS coursename,
-                           cc.name AS categoryname,
-                           d.name AS dataname
-                      FROM {course_modules} cm
-                      JOIN {course} c ON c.id = cm.course
-                      JOIN {course_categories} cc ON cc.id = c.category
-                      JOIN {data} d ON d.id = cm.instance
-                     WHERE c.category $catinsql
-                       AND c.visible = 1
-                       AND c.id <> :siteid
-                       AND (c.enddate > :now OR c.enddate = 0)
-                       AND cm.module = :datamoduleid
-                       AND cm.deletioninprogress = 0
-                  ORDER BY cm.id ASC";
+                $coursefull = new \core_course_list_element($course);
+                foreach ($coursefull->get_course_overviewfiles() as $file) {
+                    if ($file->is_valid_image()) {
+                        $urlpath = '/' . $file->get_contextid() . '/' . $file->get_component() . '/';
+                        $urlpath .= $file->get_filearea() . $file->get_filepath() . $file->get_filename();
 
-            if ($firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE)) {
-                $catname = format_string($firstcm->categoryname, true);
-                $coursename = format_string($firstcm->coursename, true);
-                $dataname = format_string($firstcm->dataname, true);
-                $currentdatabasename = (string)$firstcm->dataname;
-                $catalogmeta = $catname . ' / ' . $coursename . ' / ' . $dataname;
+                        $url = \moodle_url::make_file_url(
+                            "$CFG->wwwroot/pluginfile.php",
+                            $urlpath,
+                            false
+                        );
 
-                // Load the full course record to obtain its *explicit* cover image
-                // (course overview image). Do not use generated or default images
-                // here so that the catalog header image only appears when the
-                // course has a real cover selected by the user.
-                $course = get_course($firstcm->course);
-                if ($course) {
-                    global $CFG;
-
-                    $coursefull = new \core_course_list_element($course);
-                    foreach ($coursefull->get_course_overviewfiles() as $file) {
-                        if ($file->is_valid_image()) {
-                            $urlpath = '/' . $file->get_contextid() . '/' . $file->get_component() . '/';
-                            $urlpath .= $file->get_filearea() . $file->get_filepath() . $file->get_filename();
-
-                            $url = \moodle_url::make_file_url(
-                                "$CFG->wwwroot/pluginfile.php",
-                                $urlpath,
-                                false
-                            );
-
-                            $catalogcourseimage = (string)$url;
-                            break;
-                        }
+                        $catalogcourseimage = (string)$url;
+                        break;
                     }
                 }
             }

@@ -1930,30 +1930,62 @@ class controller {
     }
 
     /**
-     * Resolve a single Database (mod_data) field used by this block instance.
+     * Resolve the Database (mod_data) instance from a block instance configuration.
      *
-     * Shared helper for filters that need to read options from a specific
-     * data_fields.description (for example, "channels" or "show_status").
+     * Prefers explicit sourcecourse if available, else falls back to categories-based resolution.
+     * Returns the data.id when found, or 0 when not.
      *
      * @param int $instanceid The block instance id.
-     * @param string $fielddescription The data_fields.description to look for.
-     * @return ?\stdClass The matching data_fields record or null if not found.
+     * @return int The resolved data.id or 0 when none can be resolved.
      */
-    protected static function get_data_field_for_instance(int $instanceid, string $fielddescription): ?\stdClass {
+    public static function resolve_data_id_for_instance(int $instanceid): int {
         global $DB;
 
         if (empty($instanceid)) {
-            return null;
+            return 0;
         }
 
+        $block = block_instance_by_id($instanceid);
+        if (!$block || empty($block->config)) {
+            return 0;
+        }
+
+        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+        if (!$datamoduleid) {
+            return 0;
+        }
+
+        // Preferred: explicit sourcecourse configured on the block instance.
+        if (!empty($block->config->sourcecourse)) {
+            $sourcecourseid = (int)$block->config->sourcecourse;
+
+            $sql = "SELECT cm.id, cm.instance
+                      FROM {course_modules} cm
+                      JOIN {course} c ON c.id = cm.course
+                     WHERE c.id = :courseid
+                       AND c.visible = 1
+                       AND c.id <> :siteid
+                       AND (c.enddate > :now OR c.enddate = 0)
+                       AND cm.module = :datamoduleid
+                       AND cm.deletioninprogress = 0
+                  ORDER BY cm.id ASC";
+
+            $cm = $DB->get_record_sql($sql, [
+                'courseid' => $sourcecourseid,
+                'siteid' => SITEID,
+                'now' => time(),
+                'datamoduleid' => $datamoduleid,
+            ], IGNORE_MULTIPLE);
+
+            if ($cm && !empty($cm->instance)) {
+                return (int)$cm->instance;
+            }
+        }
+
+        // Fallback: categories-based resolution (instance config or global).
         $categoriesids = [];
 
-        $block = block_instance_by_id($instanceid);
-        if ($block && !empty($block->config) && !empty($block->config->categories)) {
-            // Categories in block config may be stored as an array or as a
-            // comma-separated string depending on how the configuration was
-            // saved. Normalise to an int array so downstream logic can rely on
-            // a consistent structure.
+        if (!empty($block->config->categories)) {
             if (is_array($block->config->categories)) {
                 $categoriesids = array_map('intval', $block->config->categories);
             } else {
@@ -1961,9 +1993,6 @@ class controller {
             }
         }
 
-        // If the block instance has no explicit categories, fall back to the
-        // global block configuration so that new instances can still resolve
-        // the Database activity used for filters.
         if (empty($categoriesids)) {
             $globalcats = get_config('block_vitrinadb', 'categories');
             if (!empty($globalcats)) {
@@ -1980,13 +2009,7 @@ class controller {
         $categoriesids = array_filter($categoriesids);
 
         if (empty($categoriesids)) {
-            return null;
-        }
-
-        // Locate the "data" module id.
-        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
-        if (!$datamoduleid) {
-            return null;
+            return 0;
         }
 
         [$catinsql, $catparams] = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
@@ -1996,7 +2019,7 @@ class controller {
         $paramsdb['now'] = time();
         $paramsdb['datamoduleid'] = $datamoduleid;
 
-        $sql = "SELECT cm.id, cm.course, cm.instance
+        $sql = "SELECT cm.id, cm.instance
                   FROM {course_modules} cm
                   JOIN {course} c ON c.id = cm.course
                  WHERE c.category $catinsql
@@ -2007,19 +2030,34 @@ class controller {
                    AND cm.deletioninprogress = 0
               ORDER BY cm.id ASC";
 
-        // Use the same Database activity that the catalog listing uses
-        // (first match across the configured categories).
-        $firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE);
-        if (!$firstcm) {
+        $cm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE);
+
+        return ($cm && !empty($cm->instance)) ? (int)$cm->instance : 0;
+    }
+
+    /**
+     * Resolve a single Database (mod_data) field used by this block instance.
+     *
+     * Shared helper for filters that need to read options from a specific
+     * data_fields.description (for example, "channels" or "show_status").
+     *
+     * @param int $instanceid The block instance id.
+     * @param string $fielddescription The data_fields.description to look for.
+     * @return ?\stdClass The matching data_fields record or null if not found.
+     */
+    protected static function get_data_field_for_instance(int $instanceid, string $fielddescription): ?\stdClass {
+        global $DB;
+
+        if (empty($instanceid)) {
             return null;
         }
 
-        $data = $DB->get_record('data', ['id' => $firstcm->instance]);
-        if (!$data) {
+        $dataid = self::resolve_data_id_for_instance($instanceid);
+        if ($dataid <= 0) {
             return null;
         }
 
-        $fields = $DB->get_records('data_fields', ['dataid' => $data->id]);
+        $fields = $DB->get_records('data_fields', ['dataid' => $dataid]);
         if (empty($fields)) {
             return null;
         }
