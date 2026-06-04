@@ -1,12 +1,23 @@
-.block_vitrina-courseslist .coursebox.forum-coursebox {
+.block_vitrina-content .block_vitrina-courseslist .coursebox.forum-coursebox {
     background-color: #fff;
     width: 100%;
     max-width: 100%;
     border: none;
     box-shadow: 0 0 10px #ddd;
     border-radius: 8px;
-    margin: 16px 0;
+    margin: -6px 0;
     position: relative;
+}
+
+
+
+/* Catalog page spacing: a bit larger than block instance spacing. */
+#page-blocks-vitrinadb-index .block_vitrina-content .block_vitrina-courseslist .coursebox.forum-coursebox {
+    margin: 10px 0;
+}
+
+.block_vitrina-content .block_vitrina-tabcontent .courses-list:has(.forum-coursebox) + .nocourses + .loadmore {
+    margin-top: 18px;
 }
 
 .block_vitrina-courseslist .coursebox.forum-coursebox .forum-header {
