@@ -420,6 +420,10 @@ export const catalog = (uniqueid, view, currentinstanceid = 0, currentbypage = 2
  */
 export const filters = (uniqueid, selectedfilters = []) => {
 
+    // Ensure localised strings are initialised before any preselected
+    // pending filter permission checks run (e.g. URL pending=1).
+    loadStrings();
+
     $filtersbox = $('#' + uniqueid);
     var $channelsControl = $filtersbox.find('.filtercontrol[data-key="channels"]');
     var $selectAllChannels = $channelsControl.find('.vitrinadb-channels-selectall');
@@ -437,6 +441,14 @@ export const filters = (uniqueid, selectedfilters = []) => {
 
     var normalizeChannelPath = function(value) {
         return String(value || '').replace(/\u00a0/g, ' ').trim();
+    };
+
+    var getPendingPermissionMessage = function() {
+        var raw = String(s.pendingpermissionnotset || '').trim();
+        if (raw === '' || raw === 'pendingpermissionnotset') {
+            return '尚未为您的账户设置审批指定类别的权限，如需开通请联系管理人员';
+        }
+        return raw;
     };
 
     var getChannelPathValue = function($checkbox) {
@@ -485,7 +497,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
 
         var permissionTitle = normalizeChannelPath($pendingcontrol.attr('title'));
         if (permissionTitle === '') {
-            window.alert(s.pendingpermissionnotset);
+            window.alert(getPendingPermissionMessage());
             $pendingcontrol.prop('checked', false);
             return false;
         }
@@ -516,7 +528,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
         });
 
         if (Object.keys(allowedPaths).length === 0) {
-            window.alert(s.pendingpermissionnotset);
+            window.alert(getPendingPermissionMessage());
             $pendingcontrol.prop('checked', false);
             return false;
         }
