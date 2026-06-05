@@ -566,7 +566,13 @@ export const filters = (uniqueid, selectedfilters = []) => {
         if (filter.key === 'author') {
             if (filter.values && filter.values.length > 0) {
                 var authorValue = String(filter.values[0]);
-                $filtersbox.find('.filterauthor select[name="author"]').val(authorValue);
+                var $authorselect = $filtersbox.find('.filterauthor select[name="author"]');
+                if ($authorselect.length > 0) {
+                    if ($authorselect.find('option[value="' + authorValue + '"]').length === 0) {
+                        window.alert('没有查到指定作者的记录！本次查询将尝试不限作者查询。');
+                    }
+                    $authorselect.val(authorValue);
+                }
             }
             return;
         }
