@@ -80,6 +80,9 @@ class catalog implements renderable, templatable {
         global $CFG, $DB;
 
         $isadmin = \is_siteadmin();
+        
+        // Check if user is course creator (has moodle/course:create capability)
+        $iscoursecreator = has_capability('moodle/course:create', \context_system::instance());
 
         $availableviews = \block_vitrinadb\local\controller::get_courses_views();
 
@@ -242,9 +245,9 @@ class catalog implements renderable, templatable {
             $filterproperties->fulltext = true;
         }
 
-        // Only administrators can see and use the "Only pending approval
+        // Only administrators and course creators can see and use the "Only pending approval
         // records" checkbox.
-        $pendingfilter = $isadmin;
+        $pendingfilter = $isadmin || $iscoursecreator;
         $pendingfiltertitle = \block_vitrinadb\local\controller::get_pendingfilter_title($this->databasename);
         // End of filter controls.
 
