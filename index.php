@@ -117,7 +117,8 @@ if (!empty($authorid)) {
 // Preselect pending approval filter from URL parameter when provided for
 // site administrators and course creators. This allows links like .../index.php?pending=1 to
 // open the catalog already restricted to only pending approval records.
-if (!empty($pendingflag) && (int)$pendingflag === 1 && (is_siteadmin() || has_capability('moodle/course:create', \context_system::instance()))) {
+// When DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS is true, allow all users.
+if (!empty($pendingflag) && (int)$pendingflag === 1 && (\block_vitrinadb\local\controller::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS || is_siteadmin() || has_capability('moodle/course:create', \context_system::instance()))) {
     $haspendingfilter = false;
     foreach ($filtersselected as $selected) {
         if ($selected->key === 'pending') {

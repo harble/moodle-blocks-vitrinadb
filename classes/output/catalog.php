@@ -82,7 +82,10 @@ class catalog implements renderable, templatable {
         $isadmin = \is_siteadmin();
         
         // Check if user is course creator (has moodle/course:create capability)
-        $iscoursecreator = has_capability('moodle/course:create', \context_system::instance());
+        // When DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS is true, show checkbox for all users.
+        $iscoursecreator = \block_vitrinadb\local\controller::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS
+            ? true
+            : has_capability('moodle/course:create', \context_system::instance());
 
         $availableviews = \block_vitrinadb\local\controller::get_courses_views();
 
@@ -246,8 +249,10 @@ class catalog implements renderable, templatable {
         }
 
         // Only administrators and course creators can see and use the "Only pending approval
-        // records" checkbox.
-        $pendingfilter = $isadmin || $iscoursecreator;
+        // records" checkbox. When DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS is true, show for all.
+        $pendingfilter = \block_vitrinadb\local\controller::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS
+            ? true
+            : ($isadmin || $iscoursecreator);
         $pendingfiltertitle = \block_vitrinadb\local\controller::get_pendingfilter_title($this->databasename);
         // End of filter controls.
 

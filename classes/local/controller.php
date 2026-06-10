@@ -35,6 +35,12 @@ require_once($CFG->dirroot . '/cohort/lib.php');
  */
 class controller {
     /**
+     * Debug flag: when true, show the "pending approval filter" checkbox for all users
+     * regardless of their role/capabilities. Set to false in production.
+     */
+    const DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS = true;
+
+    /**
      * @var int Cached payment field id.
      */
     protected static $cachedpayfield = null;
@@ -976,6 +982,11 @@ class controller {
         $onlypending = false;
 
         $isadmin = \is_siteadmin();
+        $iscoursecreator = has_capability('moodle/course:create', \context_system::instance());
+        // When DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS is true, allow all users to use pending filter.
+        $canusependingfilter = self::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS
+            ? true
+            : ($isadmin || $iscoursecreator);
         foreach ($filters as $filter) {
             if (!empty($filter['type']) && $filter['type'] === 'channels' && !empty($filter['values'])) {
                 foreach ($filter['values'] as $value) {
@@ -1002,9 +1013,9 @@ class controller {
                 if ($candidate > 0) {
                     $authorfilter = $candidate;
                 }
-            } else if (!empty($filter['type']) && $filter['type'] === 'pending' && $isadmin) {
+            } else if (!empty($filter['type']) && $filter['type'] === 'pending' && $canusependingfilter) {
                 // Checkbox filter: any truthy value turns it on. This filter
-                // is only available to site administrators.
+                // is only available to site administrators and course creators.
                 if (!empty($filter['values'])) {
                     $candidate = reset($filter['values']);
                     if ($candidate !== '' && $candidate !== '0' && $candidate !== 0) {
