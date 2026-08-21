@@ -127,13 +127,14 @@ class block_vitrinadb_edit_form extends block_edit_form {
         // already used on Database (mod_data) records.
         $tagoptions = [];
         $tagrecords = $DB->get_records_sql(
-            "SELECT DISTINCT t.id, t.name
+            "SELECT t.id, t.name
                FROM {tag} t
           LEFT JOIN {tag_instance} ti ON ti.tagid = t.id
                  AND ti.component = 'mod_data'
                  AND ti.itemtype = 'data_records'
-              WHERE t.isstandard = 1 OR ti.id IS NOT NULL
-           ORDER BY t.name ASC"
+           GROUP BY t.id, t.name, t.isstandard
+             HAVING t.isstandard = 1 OR COUNT(ti.id) > 2
+           ORDER BY t.isstandard DESC, t.name ASC"
         );
 
         foreach ($tagrecords as $tagrecord) {
