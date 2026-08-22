@@ -1722,11 +1722,13 @@ class controller {
                 $resource->shareddays = $days;
                 $resource->shareddayslabel = get_string('daysago', 'block_vitrinadb', $days);
 
-                // Mark whether this resource list comes from the
-                // "Only pending approval records" filter. When true,
-                // catalog templates can show a dedicated pending
-                // placeholder on the card.
-                $resource->ispending = $onlypending;
+                // Pending-approval state flags with nuanced handling.
+                $resource->isresourceowner = ($record->userid == $USER->id);
+                $resource->isdraft = !empty($record->isdraft);
+                // Red "等待审批" badge: others' records pending my approval.
+                $resource->ispending = $onlypending && !$resource->isresourceowner;
+                // Orange "等待审批" badge: own records pending approval (not draft).
+                $resource->ispendingapproval = $onlypending && $resource->isresourceowner && !$resource->isdraft;
 
                 $resources[] = $resource;
             }

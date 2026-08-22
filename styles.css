@@ -112,6 +112,22 @@
 	background-color: white;
 }
 
+/* Draft badge (dark gray) for own draft records in pending filter. */
+.block_vitrina-courseslist .coursebox .vitrinadb-status-draft .vitrinadb-pending-approval-icon {
+    color: #666;
+}
+.block_vitrina-courseslist .coursebox .vitrinadb-status-draft .vitrinadb-pending-approval-text {
+    color: #555;
+}
+
+/* Orange pending-approval badge for own non-draft records in pending filter. */
+.block_vitrina-courseslist .coursebox .vitrinadb-status-pending-approval .vitrinadb-pending-approval-icon {
+    color: #e67e22;
+}
+.block_vitrina-courseslist .coursebox .vitrinadb-status-pending-approval .vitrinadb-pending-approval-text {
+    color: #e67e22;
+}
+
 .block_vitrina-courseslist .coursebox.type-premium:after {
     content: "";
     position: absolute;

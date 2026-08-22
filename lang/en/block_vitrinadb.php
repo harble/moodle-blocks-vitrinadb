@@ -221,6 +221,9 @@ $string['hidelabel'] = 'Hidden';
 // Pending approval badge label.
 $string['pendinglabel'] = 'Waiting for approval';
 
+// Draft badge label.
+$string['draftlabel'] = 'Draft';
+
 // Show status filter.
 $string['showstatusfilter'] = 'Display status';
 $string['showstatus_all'] = 'No limit';

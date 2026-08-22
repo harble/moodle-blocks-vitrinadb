@@ -57,6 +57,21 @@
     white-space: nowrap;
 }
 
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-status-pending {
+    border-color: red;
+    color: red;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-status-draft {
+    border-color: #999;
+    color: #666;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .forum-status-pending-approval {
+    border-color: #e67e22;
+    color: #e67e22;
+}
+
 .block_vitrina-courseslist .coursebox.forum-coursebox .forum-header-right {
     display: flex;
     align-items: center;

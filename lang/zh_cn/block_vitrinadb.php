@@ -220,6 +220,9 @@ $string['hidelabel'] = '隐藏';
 // Pending approval badge label.
 $string['pendinglabel'] = '等待审批';
 
+// Draft badge label.
+$string['draftlabel'] = '草稿';
+
 // Show status filter.
 $string['showstatusfilter'] = '显示状态';
 $string['showstatus_all'] = '不限';

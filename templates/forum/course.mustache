@@ -95,6 +95,16 @@
                     {{#str}}pendinglabel, block_vitrinadb{{/str}}
                 </div>
             {{/ispending}}
+            {{#isdraft}}
+                <div class="forum-status forum-status-draft">
+                    {{#str}}draftlabel, block_vitrinadb{{/str}}
+                </div>
+            {{/isdraft}}
+            {{#ispendingapproval}}
+                <div class="forum-status forum-status-pending-approval">
+                    {{#str}}pendinglabel, block_vitrinadb{{/str}}
+                </div>
+            {{/ispendingapproval}}
         </div>
     </div>
 

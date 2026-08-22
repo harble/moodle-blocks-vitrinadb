@@ -391,8 +391,12 @@ class get_courses extends external_api {
             ]);
             $item->recordurl = $recordurl->out(false);
             // Pending-approval state (true only when the catalog is
-            // filtered by "Only pending approval records").
+            // filtered by "Only pending approval records" for others' records).
             $item->ispending = !empty($resource->ispending);
+            // Own draft records shown in pending filter.
+            $item->isdraft = !empty($resource->isdraft);
+            // Own non-draft pending-approval records shown in pending filter.
+            $item->ispendingapproval = !empty($resource->ispendingapproval);
             // Display/visibility status flags driven by tags.
             $item->isprime = !empty($resource->prime);
             // Only show the pinned badge in the "All courses" (default) view.

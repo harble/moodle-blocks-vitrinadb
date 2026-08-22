@@ -199,6 +199,9 @@ $string['hidelabel'] = 'Oculto';
 // Etiqueta para el aviso de pendiente de aprobación.
 $string['pendinglabel'] = 'Pendiente de aprobación';
 
+// Etiqueta para el aviso de borrador.
+$string['draftlabel'] = 'Borrador';
+
 // Título de canales y etiquetas en el icono de tipo de archivo.
 $string['resource_channels_title'] = 'Categorías: {$a}';
 $string['resource_tags_title'] = 'Etiquetas: {$a}';

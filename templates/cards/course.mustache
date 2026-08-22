@@ -82,6 +82,26 @@
                 </div>
             </div>
         {{/ispending}}
+        {{#isdraft}}
+            <div class="vitrinadb-pending-approval vitrinadb-status-draft">
+                <div class="vitrinadb-pending-approval-icon" title="{{#str}}draftlabel, block_vitrinadb{{/str}}" aria-label="{{#str}}draftlabel, block_vitrinadb{{/str}}">
+                    <i class="icon fa fa-file-o fa-fw" aria-hidden="true"></i>
+                </div>
+                <div class="vitrinadb-pending-approval-text">
+                    {{#str}}draftlabel, block_vitrinadb{{/str}}
+                </div>
+            </div>
+        {{/isdraft}}
+        {{#ispendingapproval}}
+            <div class="vitrinadb-pending-approval vitrinadb-status-pending-approval">
+                <div class="vitrinadb-pending-approval-icon" title="{{#str}}pendinglabel, block_vitrinadb{{/str}}" aria-label="{{#str}}pendinglabel, block_vitrinadb{{/str}}">
+                    <i class="icon fa fa-clock-o fa-fw" aria-hidden="true"></i>
+                </div>
+                <div class="vitrinadb-pending-approval-text">
+                    {{#str}}pendinglabel, block_vitrinadb{{/str}}
+                </div>
+            </div>
+        {{/ispendingapproval}}
 
         {{#fee}}
             <div class="coursefee">
