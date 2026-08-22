@@ -82,50 +82,57 @@
     text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
 }
 
-/* Pending approval placeholder shown when the catalog is filtered
- * by "Only pending approval records". The icon is centered with a
- * fixed 50px width and the label is displayed underneath.
+/* Status badge shown on catalog cards when filtered by
+ * "Only pending approval records". Positioned as a compact
+ * corner tag with solid color background for clear visibility.
  */
 .block_vitrina-courseslist .coursebox .vitrinadb-pending-approval {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    background-color: #dc3545;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
     z-index: 4;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     pointer-events: none;
 }
 
 .block_vitrina-courseslist .coursebox .vitrinadb-pending-approval-icon {
-    display: inline-block;
-    width: 166px;
-    height: 50px;
-    color: red;
-    font-size: 50px;
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    font-size: 0.9rem;
+    width: auto;
+    height: auto;
 }
 
 .block_vitrina-courseslist .coursebox .vitrinadb-pending-approval-text {
-    margin-top: 4px;
-    font-size: 1rem;
-    color: red;
-	border-radius: 15px;
-	background-color: white;
+    margin: 0 4px 0 0;
+    color: #fff;
+    font-size: 0.9rem;
+    background: transparent;
+    border-radius: 0;
+    letter-spacing: 0.5px;
 }
 
-/* Draft badge (dark gray) for own draft records in pending filter. */
-.block_vitrina-courseslist .coursebox .vitrinadb-status-draft .vitrinadb-pending-approval-icon {
-    color: #666;
-}
-.block_vitrina-courseslist .coursebox .vitrinadb-status-draft .vitrinadb-pending-approval-text {
-    color: #555;
+/* Draft badge — gray for own draft records. */
+.block_vitrina-courseslist .coursebox .vitrinadb-status-draft {
+    background-color: #6c757d;
 }
 
-/* Orange pending-approval badge for own non-draft records in pending filter. */
-.block_vitrina-courseslist .coursebox .vitrinadb-status-pending-approval .vitrinadb-pending-approval-icon {
-    color: #e67e22;
-}
-.block_vitrina-courseslist .coursebox .vitrinadb-status-pending-approval .vitrinadb-pending-approval-text {
-    color: #e67e22;
+/* Orange pending-approval badge for own non-draft records. */
+.block_vitrina-courseslist .coursebox .vitrinadb-status-pending-approval {
+    background-color: #e67e22;
 }
 
 .block_vitrina-courseslist .coursebox.type-premium:after {

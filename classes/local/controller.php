@@ -1725,10 +1725,11 @@ class controller {
                 // Pending-approval state flags with nuanced handling.
                 $resource->isresourceowner = ($record->userid == $USER->id);
                 $resource->isdraft = !empty($record->isdraft);
-                // Red "等待审批" badge: others' records pending my approval.
+                // Red "等待审批" badge: others' records pending my approval (only in pending filter).
                 $resource->ispending = $onlypending && !$resource->isresourceowner;
-                // Orange "等待审批" badge: own records pending approval (not draft).
-                $resource->ispendingapproval = $onlypending && $resource->isresourceowner && !$resource->isdraft;
+                // Orange "等待审批" badge: own records pending approval,
+                // shown in both normal and pending-filter views.
+                $resource->ispendingapproval = $resource->isresourceowner && !$resource->isdraft && empty($record->approved);
 
                 $resources[] = $resource;
             }
