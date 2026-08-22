@@ -960,7 +960,7 @@ class controller {
         int $amount = 0,
         int $initial = 0
     ): array {
-        global $DB, $CFG, $PAGE;
+        global $DB, $CFG, $PAGE, $USER;
 
         require_once($CFG->libdir . '/filelib.php');
 
@@ -1096,12 +1096,19 @@ class controller {
                 'ttdataid' => $data->id,
                 'rtdataid' => $data->id,
                 'approved' => $approvedstate,
+                'currentuserid' => $USER->id,
             ];
 
             $where = [
                 'r.dataid = :dataid',
-                'r.approved = :approved',
             ];
+
+            if ($onlypending) {
+                $where[] = 'COALESCE(tt.isdraft, 0) = 0';
+                $where[] = '(r.userid = :currentuserid OR r.approved = :approved)';
+            } else {
+                $where[] = '(r.userid = :currentuserid OR (r.approved = :approved AND COALESCE(tt.isdraft, 0) = 0))';
+            }
 
             // Author filter at SQL level when available.
             if ($authorfilter > 0) {
@@ -1144,12 +1151,13 @@ class controller {
                             WHERE r2.dataid = :dcdataid
                   GROUP BY c.recordid";
 
-            // Tags aggregated per record (names + ispinned/isprime flags).
+            // Tags aggregated per record (names + ispinned/isprime/isdraft flags).
             $ttsql = "SELECT
                           r.id AS recordid,
                           CONCAT('|', GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR '|'), '|') AS fc_tags,
                           MAX(CASE WHEN LOWER(t.name) LIKE '%pin%'   THEN 1 ELSE 0 END)        AS ispinned,
-                          MAX(CASE WHEN LOWER(t.name) LIKE '%prime%' THEN 1 ELSE 0 END)        AS isprime
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%prime%' THEN 1 ELSE 0 END)        AS isprime,
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%draft%' THEN 1 ELSE 0 END)       AS isdraft
                       FROM {tag_instance} ti
                       JOIN {tag} t ON t.id = ti.tagid
                       JOIN {data_records} r ON r.id = ti.itemid
@@ -1256,6 +1264,7 @@ class controller {
                         tt.fc_tags,
                         tt.ispinned,
                         tt.isprime,
+                        tt.isdraft,
                         rt.ratingtotal,
                         rt.ratingcount
                     FROM {data_records} r
