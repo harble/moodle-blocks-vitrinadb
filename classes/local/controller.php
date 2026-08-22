@@ -1107,7 +1107,7 @@ class controller {
                 $where[] = 'COALESCE(tt.isdraft, 0) = 0';
                 $where[] = '(r.userid = :currentuserid OR r.approved = :approved)';
             } else {
-                $where[] = '(r.userid = :currentuserid OR (r.approved = :approved AND COALESCE(tt.isdraft, 0) = 0))';
+                $where[] = '(r.userid = :currentuserid OR r.approved = 1 OR (r.approved = :approved AND COALESCE(tt.isdraft, 0) = 0))';
             }
 
             // Author filter at SQL level when available.
@@ -1724,7 +1724,7 @@ class controller {
 
                 // Pending-approval state flags with nuanced handling.
                 $resource->isresourceowner = ($record->userid == $USER->id);
-                $resource->isdraft = !empty($record->isdraft);
+                $resource->isdraft = !empty($record->isdraft) && empty($record->approved);
                 // Red "等待审批" badge: others' records pending my approval (only in pending filter).
                 $resource->ispending = $onlypending && !$resource->isresourceowner;
                 // Orange "等待审批" badge: own records pending approval,
