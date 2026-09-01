@@ -184,6 +184,29 @@ class block_vitrinadb extends block_base {
         \block_vitrinadb\local\controller::include_templatecss($this->instance->id);
         $this->page->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $tabs[0], $this->instance->id, $amount]);
 
+        // Decorate the block title with a link to the catalog and a search icon.
+        $catalogurl = new \moodle_url('/blocks/vitrinadb/index.php', ['id' => $this->instance->id]);
+        $this->page->requires->js_amd_inline(<<<JS
+            require(['jquery'], function($) {
+                var header = document.getElementById('instance-{$this->instance->id}-header');
+                if (header) {
+                    var title = header.textContent.trim();
+                    var a = document.createElement('a');
+                    a.href = '{$catalogurl->out(false)}';
+                    a.className = 'block_vitrina-title-link';
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.textContent = title;
+                    var icon = document.createElement('i');
+                    icon.className = 'icon fa fa-search fa-fw block_vitrina-title-search';
+                    icon.setAttribute('aria-hidden', 'true');
+                    a.appendChild(icon);
+                    header.textContent = '';
+                    header.appendChild(a);
+                }
+            });
+        JS);
+
         return $this->content;
     }
 
