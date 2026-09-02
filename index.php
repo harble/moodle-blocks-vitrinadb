@@ -352,6 +352,33 @@ if ($embed !== 1 && !empty($instanceid)) {
 
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'filters', [$uniqueid, $filtersselected]);
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $view, $instanceid, $bypage]);
+$PAGE->requires->js_init_code("require(['jquery'], function($) {
+    if (window.vitrinadbKeepTreeExpandedBound) {
+        return;
+    }
+    window.vitrinadbKeepTreeExpandedBound = true;
+
+    var selector = '.path-blocks-vitrinadb .filtercontrol[data-key=\"channels\"] input.filteroption';
+
+    $(document).on('mousedown.vitrinadbkeeptree', selector, function() {
+        $(this).parents('.filter-optiongroup.haschilds').each(function() {
+            var $group = $(this);
+            $group.data('vitrinadb-expanded-before', $group.hasClass('expanded') ? 1 : 0);
+        });
+    });
+
+    $(document).on('change.vitrinadbkeeptree', selector, function() {
+        $(this).parents('.filter-optiongroup.haschilds').each(function() {
+            var $group = $(this);
+            if ($group.data('vitrinadb-expanded-before')) {
+                $group.addClass('expanded');
+                $group.find('> .filter-option .tree-toggle')
+                    .removeClass('fa-plus-circle')
+                    .addClass('fa-minus-circle');
+            }
+        });
+    });
+});");
 
 echo $OUTPUT->header();
 
