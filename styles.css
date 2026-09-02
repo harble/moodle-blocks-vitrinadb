@@ -334,6 +334,7 @@
     height: 160px;
     overflow: hidden;
     margin: 10px 0;
+    position: relative;
 }
 
 .vitrinadb-catalog-courseimage-img {
@@ -1205,5 +1206,68 @@
 
     .block_vitrina-tabcontent .courses-list {
         justify-content: center;
+    }
+}
+
+/* Floating "New Entry" button on catalog page - positioned at top right */
+.vitrinadb-newentry-button-container {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1000;
+}
+
+.vitrinadb-newentry-button-container.vitrinadb-newentry-solo {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 16px;
+    transform: none;
+    top: auto;
+    right: auto;
+}
+
+.vitrinadb-newentry-button {
+    display: inline-block;
+    padding: 12px 16px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: medium !important;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    word-break: break-word;
+    max-width: 100px;
+    text-align: center;
+    line-height: 1.4;
+    font-size: 14px;
+}
+
+.vitrinadb-newentry-button:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    color: white;
+}
+
+/* Responsive adjustment for smaller screens */
+@media (max-width: 768px) {
+    .vitrinadb-newentry-button-container {
+        position: static;
+        transform: none;
+        margin-bottom: 16px;
+    }
+
+    .vitrinadb-newentry-button-container.vitrinadb-newentry-solo {
+        display: block;
+        width: 100%;
+    }
+
+    .vitrinadb-newentry-button {
+        display: block;
+        width: 100%;
+        max-width: 100%;
     }
 }

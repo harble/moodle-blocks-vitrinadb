@@ -262,6 +262,7 @@ if (!$haschannelfilter && !empty($instanceid)) {
 $catalogmeta = '';
 $catalogcourseimage = '';
 $currentdatabasename = '';
+$databasecmid = 0;
 if ($embed !== 1 && !empty($instanceid)) {
     global $DB;
 
@@ -307,6 +308,7 @@ if ($embed !== 1 && !empty($instanceid)) {
             $coursename = format_string($firstcm->coursename, true);
             $dataname = format_string($firstcm->dataname, true);
             $currentdatabasename = (string)$firstcm->dataname;
+            $databasecmid = (int)$firstcm->id;
             $catalogmeta = $catname . ' / ' . $coursename . ' / ' . $dataname;
 
             // Load the full course record to obtain its *explicit* cover image
@@ -355,6 +357,16 @@ echo $OUTPUT->header();
 
 $summary = get_config('block_vitrinadb', 'summary');
 
+// Render floating "New Entry" button on the left side of the catalog header
+// when newentrytext is configured and a database activity is available.
+$newentrytext = '';
+if (!empty($instanceid) && $databasecmid > 0) {
+    $block = block_instance_by_id($instanceid);
+    if ($block && !empty($block->config) && !empty($block->config->newentrytext)) {
+        $newentrytext = (string)$block->config->newentrytext;
+    }
+}
+
 // In embedded mode, keep the page as clean as possible: skip catalog
 // header meta, cover image and summary so only the core course list
 // area is shown.
@@ -372,7 +384,34 @@ if ($embed !== 1) {
             'alt' => '',
             'class' => 'vitrinadb-catalog-courseimage-img',
         ]);
-        echo html_writer::div($img, 'vitrinadb-catalog-courseimage');
+        $coverimgdiv = html_writer::div($img, 'vitrinadb-catalog-courseimage');
+        
+        // Add new entry button (positioned absolutely over the cover image)
+        if (!empty($newentrytext) && $databasecmid > 0) {
+            $editurl = new moodle_url('/mod/data/edit.php', ['id' => $databasecmid]);
+            $buttonhtml = html_writer::link($editurl, s($newentrytext), [
+                'class' => 'vitrinadb-newentry-button',
+                'target' => '_blank',
+                'rel' => 'noopener noreferrer',
+                'title' => s($newentrytext),
+            ]);
+            $coverimgdiv = html_writer::div(
+                $img . html_writer::div($buttonhtml, 'vitrinadb-newentry-button-container'),
+                'vitrinadb-catalog-courseimage'
+            );
+        }
+        
+        echo $coverimgdiv;
+    } else if (!empty($newentrytext) && $databasecmid > 0) {
+        // If no cover image, still show the button in a separate container for visual consistency
+        $editurl = new moodle_url('/mod/data/edit.php', ['id' => $databasecmid]);
+        $buttonhtml = html_writer::link($editurl, s($newentrytext), [
+            'class' => 'vitrinadb-newentry-button',
+            'target' => '_blank',
+            'rel' => 'noopener noreferrer',
+            'title' => s($newentrytext),
+        ]);
+        echo html_writer::div($buttonhtml, 'vitrinadb-newentry-button-container vitrinadb-newentry-solo');
     }
 
     echo format_text($summary, FORMAT_HTML, ['trusted' => true, 'noclean' => true]);

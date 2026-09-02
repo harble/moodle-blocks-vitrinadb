@@ -221,6 +221,11 @@ class block_vitrinadb_edit_form extends block_edit_form {
         $mform->addElement('editor', 'config_htmlfooter', get_string('htmlfooter', 'block_vitrinadb'), null, $editoroptions);
         $mform->setType('config_htmlfooter', PARAM_RAW); // XSS is prevented when printing the block contents and serving files.
 
+        // New entry button text - displayed as floating button on catalog page.
+        $mform->addElement('text', 'config_newentrytext', get_string('newentrytext', 'block_vitrinadb'), ['size' => 50]);
+        $mform->setType('config_newentrytext', PARAM_TEXT);
+        $mform->addHelpButton('config_newentrytext', 'newentrytext', 'block_vitrinadb');
+
         // Dynamically update channels options when source course changes.
         $PAGE->requires->js_call_amd('block_vitrinadb/edit_form', 'init', [
             get_string('loading', 'moodle'),
