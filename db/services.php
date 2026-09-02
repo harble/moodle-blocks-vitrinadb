@@ -32,4 +32,11 @@ $functions = [
         'ajax' => true,
         'loginrequired' => false,
     ],
+    'block_vitrinadb_get_field_options' => [
+        'classname' => '\block_vitrinadb\external\get_field_options',
+        'description' => 'Get field options from a Database activity for a given course',
+        'type' => 'read',
+        'ajax' => true,
+        'loginrequired' => true,
+    ],
 ];

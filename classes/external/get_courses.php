@@ -209,7 +209,16 @@ class get_courses extends external_api {
                 // Channels: default channels filter when none was provided
                 // explicitly by the caller.
                 if (!empty($block->config->channels)) {
-                    $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list((string)$block->config->channels);
+                    if (is_array($block->config->channels)) {
+                        $configuredchannels = $block->config->channels;
+                    } else {
+                        $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list((string)$block->config->channels);
+                    }
+
+                    $configuredchannels = array_filter(array_map('trim', $configuredchannels), function($value) {
+                        return $value !== '';
+                    });
+                    $configuredchannels = array_values(array_unique($configuredchannels));
 
                     if (!empty($configuredchannels)) {
                         $haschannelfilter = false;

@@ -37,7 +37,7 @@ class block_vitrinadb_edit_form extends block_edit_form {
      * @return void
      */
     protected function specific_definition($mform) {
-        global $CFG, $DB;
+        global $CFG, $DB, $PAGE;
 
         // Fields for editing HTML block title and contents.
         $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
@@ -117,9 +117,18 @@ class block_vitrinadb_edit_form extends block_edit_form {
         $mform->addElement('select', 'config_sourcecourse', get_string('sourcecourse', 'block_vitrinadb'), $sourcecourseoptions);
         $mform->addHelpButton('config_sourcecourse', 'sourcecourse', 'block_vitrinadb');
 
-        // Channels filter (optional, free-text, comma/semicolon separated).
-        $mform->addElement('text', 'config_channels', get_string('channels', 'block_vitrinadb'));
-        $mform->setType('config_channels', PARAM_TEXT);
+        // Channels multi-select. Options are loaded from the selected source course.
+        $channelsselectattributes = [
+            'multiple' => 'multiple',
+            'size' => 8,
+        ];
+        $initialchannelsoptions = [];
+        $savedsourcecourse = $this->block->config->sourcecourse ?? 0;
+        if (!empty($savedsourcecourse)) {
+            $initialchannelsoptions = $this->load_channels_options((int)$savedsourcecourse);
+        }
+
+        $mform->addElement('select', 'config_channels', get_string('channels', 'block_vitrinadb'), $initialchannelsoptions, $channelsselectattributes);
         $mform->addHelpButton('config_channels', 'channels', 'block_vitrinadb');
 
         // Tags filter configuration: choose which item tags are available
@@ -211,6 +220,98 @@ class block_vitrinadb_edit_form extends block_edit_form {
         // Footer HTML editor.
         $mform->addElement('editor', 'config_htmlfooter', get_string('htmlfooter', 'block_vitrinadb'), null, $editoroptions);
         $mform->setType('config_htmlfooter', PARAM_RAW); // XSS is prevented when printing the block contents and serving files.
+
+        // Dynamically update channels options when source course changes.
+        $PAGE->requires->js_call_amd('block_vitrinadb/edit_form', 'init', [
+            get_string('loading', 'moodle'),
+        ]);
+    }
+
+    /**
+     * Load channels options from the first Database activity in the given course.
+     *
+     * @param int $courseid Course ID
+     * @return array Channels options map value => label
+     */
+    private function load_channels_options(int $courseid): array {
+        global $DB;
+
+        if ($courseid <= 0) {
+            return [];
+        }
+
+        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
+        if (!$datamoduleid) {
+            return [];
+        }
+
+        $cm = $DB->get_record_sql(
+            "SELECT cm.id, cm.instance
+               FROM {course_modules} cm
+               JOIN {course} c ON c.id = cm.course
+              WHERE c.id = :courseid
+                AND c.visible = 1
+                AND c.id <> :siteid
+                AND (c.enddate > :now OR c.enddate = 0)
+                AND cm.module = :datamoduleid
+                AND cm.deletioninprogress = 0
+           ORDER BY cm.id ASC",
+            [
+                'courseid' => $courseid,
+                'siteid' => SITEID,
+                'now' => time(),
+                'datamoduleid' => $datamoduleid,
+            ],
+            IGNORE_MULTIPLE
+        );
+
+        if (!$cm || empty($cm->instance)) {
+            return [];
+        }
+
+        $fields = $DB->get_records('data_fields', ['dataid' => (int)$cm->instance]);
+        $targetfield = null;
+        foreach ($fields as $field) {
+            if (trim((string)$field->description) === 'channels') {
+                $targetfield = $field;
+                break;
+            }
+        }
+
+        if (!$targetfield) {
+            return [];
+        }
+
+        $options = [];
+
+        if (!empty($targetfield->param1)) {
+            $lines = preg_split('/[\r\n]+/', (string)$targetfield->param1);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '') {
+                    continue;
+                }
+                $options[$line] = $line;
+            }
+        }
+
+        if (empty($options)) {
+            $contents = $DB->get_records('data_content', ['fieldid' => $targetfield->id], '', 'id, content');
+            $seen = [];
+            foreach ($contents as $content) {
+                $parts = \block_vitrinadb\local\controller::normalize_channels_list((string)$content->content);
+                foreach ($parts as $part) {
+                    $part = trim($part);
+                    if ($part === '' || isset($seen[$part])) {
+                        continue;
+                    }
+                    $seen[$part] = true;
+                    $options[$part] = $part;
+                }
+            }
+        }
+
+        return $options;
     }
 
     /**
@@ -220,6 +321,9 @@ class block_vitrinadb_edit_form extends block_edit_form {
      * @return void
      */
     public function set_data($defaults) {
+        if (!empty($defaults->config_channels) && !is_array($defaults->config_channels)) {
+            $defaults->config_channels = \block_vitrinadb\local\controller::normalize_channels_list((string)$defaults->config_channels);
+        }
 
         // Set data for header.
         if (!empty($this->block->config) && !empty($this->block->config->htmlheader)) {

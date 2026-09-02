@@ -17,24 +17,24 @@
 /**
  * This file keeps track of upgrades to the block.
  *
- * @package block_vitrina
+ * @package block_vitrinadb
  * @copyright 2023 David Herney @ BambuCo
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
- * Upgrade code for the vitrina block.
+ * Upgrade code for the vitrinadb block.
  *
  * @param int $oldversion
  */
-function xmldb_block_vitrina_upgrade($oldversion) {
+function xmldb_block_vitrinadb_upgrade($oldversion) {
     global $DB;
 
     if ($oldversion < 2023042602) {
         $customfields = $DB->get_records('customfield_field');
 
         foreach ($customfields as $field) {
-            $select = "plugin = 'block_vitrina' AND value = :value AND " .
+            $select = "plugin = 'block_vitrinadb' AND value = :value AND " .
                         " name IN ('thematic', 'units', 'requirements', 'license', 'media', 'duration', 'experts', " .
                                     " 'expertsshort', 'paymenturl')";
 
@@ -43,7 +43,7 @@ function xmldb_block_vitrina_upgrade($oldversion) {
             $DB->set_field_select('config_plugins', 'value', $field->id, $select, $params);
         }
 
-        $fieldname = get_config('block_vitrina', 'premiumfield');
+        $fieldname = get_config('block_vitrinadb', 'premiumfield');
 
         if (!empty($fieldname)) {
             $premiumfield = $DB->get_record('user_info_field', ['shortname' => $fieldname]);
@@ -53,25 +53,29 @@ function xmldb_block_vitrina_upgrade($oldversion) {
                     'config_plugins',
                     'value',
                     $premiumfield->id,
-                    "plugin = 'block_vitrina' AND name = 'premiumfield'"
+                    "plugin = 'block_vitrinadb' AND name = 'premiumfield'"
                 );
             }
         }
 
         // Savepoint reached.
-        upgrade_block_savepoint(true, 2023042602, 'vitrina');
+        upgrade_block_savepoint(true, 2023042602, 'vitrinadb');
     }
 
     if ($oldversion < 2023042604) {
-        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrina', 'name' => 'thematic']);
-        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrina', 'name' => 'units']);
-        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrina', 'name' => 'requirements']);
-        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrina', 'name' => 'duration']);
-        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrina', 'name' => 'experts']);
-        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrina', 'name' => 'expertsshort']);
+        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrinadb', 'name' => 'thematic']);
+        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrinadb', 'name' => 'units']);
+        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrinadb', 'name' => 'requirements']);
+        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrinadb', 'name' => 'duration']);
+        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrinadb', 'name' => 'experts']);
+        $DB->delete_records('config_plugins', ['plugin' => 'block_vitrinadb', 'name' => 'expertsshort']);
 
         // Savepoint reached.
-        upgrade_block_savepoint(true, 2023042604, 'vitrina');
+        upgrade_block_savepoint(true, 2023042604, 'vitrinadb');
+    }
+
+    if ($oldversion < 2026090201) {
+        upgrade_block_savepoint(true, 2026090201, 'vitrinadb');
     }
 
     return true;

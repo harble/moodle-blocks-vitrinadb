@@ -183,6 +183,9 @@ class block_vitrinadb extends block_base {
 
         \block_vitrinadb\local\controller::include_templatecss($this->instance->id);
         $this->page->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $tabs[0], $this->instance->id, $amount]);
+        $this->page->requires->js_call_amd('block_vitrinadb/edit_form', 'init', [
+            get_string('loading', 'moodle'),
+        ]);
 
         // Decorate the block title with a link to the catalog and a search icon.
         $catalogurl = new \moodle_url('/blocks/vitrinadb/index.php', ['id' => $this->instance->id]);

@@ -161,7 +161,16 @@ if (!empty($instanceid)) {
     }
 
     if ($block && !empty($block->config) && !empty($block->config->channels)) {
-        $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list((string)$block->config->channels);
+        if (is_array($block->config->channels)) {
+            $configuredchannels = $block->config->channels;
+        } else {
+            $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list((string)$block->config->channels);
+        }
+
+        $configuredchannels = array_filter(array_map('trim', $configuredchannels), function($value) {
+            return $value !== '';
+        });
+        $configuredchannels = array_values(array_unique($configuredchannels));
 
         if (!empty($configuredchannels)) {
             $filtersselected[] = (object) ['key' => 'channels', 'values' => $configuredchannels];
