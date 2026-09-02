@@ -1,4 +1,4 @@
-define(['jquery', 'core/ajax'], function($, ajax) {
+define(['jquery', 'core/ajax', 'core/form-autocomplete'], function($, ajax, AutoComplete) {
     var initialized = false;
 
     var getSourceSelect = function() {
@@ -12,10 +12,21 @@ define(['jquery', 'core/ajax'], function($, ajax) {
             document.querySelector("select[name='config_channels']");
     };
 
+    var ensureChannelsAutocomplete = function(noSelectionText) {
+        var channelsSelect = getChannelsSelect();
+        if (!channelsSelect) {
+            return;
+        }
+
+        var selectNode = $(channelsSelect);
+        if (selectNode.data('enhanced') !== 'enhanced') {
+            AutoComplete.enhance('#id_config_channels', false, '', '', false, true, noSelectionText || '', false);
+        }
+    };
+
     var setChannelsOptions = function(options, disabled) {
         var channelsSelect = getChannelsSelect();
         if (!channelsSelect) {
-            console.debug('[block_vitrinadb] channels select not found');
             return;
         }
 
@@ -42,15 +53,13 @@ define(['jquery', 'core/ajax'], function($, ajax) {
         selectNode.prop('disabled', !!disabled);
     };
 
-    var onSourceCourseChange = function(sourceSelect, loadingText) {
+    var onSourceCourseChange = function(sourceSelect, loadingText, noSelectionText) {
         var channelsSelect = getChannelsSelect();
         if (!channelsSelect) {
-            console.debug('[block_vitrinadb] source changed but channels select missing');
             return;
         }
 
         var courseId = parseInt(sourceSelect.value, 10);
-        console.debug('[block_vitrinadb] source course changed', {value: sourceSelect.value, parsed: courseId});
 
         if (!courseId) {
             setChannelsOptions([], true);
@@ -60,8 +69,6 @@ define(['jquery', 'core/ajax'], function($, ajax) {
         setChannelsOptions([
             {value: '', label: loadingText + '...'}
         ], true);
-
-        console.debug('[block_vitrinadb] sending ajax', {method: 'block_vitrinadb_get_field_options', courseid: courseId});
 
         var requests = ajax.call([{
             methodname: 'block_vitrinadb_get_field_options',
@@ -73,23 +80,20 @@ define(['jquery', 'core/ajax'], function($, ajax) {
 
         requests[0].done(function(response) {
             var options = response || [];
-            console.debug('[block_vitrinadb] ajax done', {count: options.length});
             setChannelsOptions(options, false);
-        }).fail(function(error) {
-            console.debug('[block_vitrinadb] ajax failed', error);
+        }).fail(function() {
             setChannelsOptions([], false);
         });
     };
 
     return {
-        init: function(loadingText) {
+        init: function(loadingText, noSelectionText) {
             if (initialized) {
-                console.debug('[block_vitrinadb] edit_form already initialized');
                 return;
             }
             initialized = true;
 
-            console.debug('[block_vitrinadb] edit_form init');
+            ensureChannelsAutocomplete(noSelectionText || '');
 
             document.addEventListener('change', function(e) {
                 if (!e.target) {
@@ -97,13 +101,13 @@ define(['jquery', 'core/ajax'], function($, ajax) {
                 }
 
                 if (e.target.id === 'id_config_sourcecourse' || e.target.name === 'config_sourcecourse') {
-                    onSourceCourseChange(e.target, loadingText || 'Loading');
+                    onSourceCourseChange(e.target, loadingText || 'Loading', noSelectionText || '');
                 }
             });
 
             var sourceSelect = getSourceSelect();
             if (!sourceSelect) {
-                console.debug('[block_vitrinadb] source select not found on init');
+                return;
             }
         }
     };

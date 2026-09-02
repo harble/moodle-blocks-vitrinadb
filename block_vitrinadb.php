@@ -185,6 +185,7 @@ class block_vitrinadb extends block_base {
         $this->page->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $tabs[0], $this->instance->id, $amount]);
         $this->page->requires->js_call_amd('block_vitrinadb/edit_form', 'init', [
             get_string('loading', 'moodle'),
+            get_string('selectchannels', 'block_vitrinadb'),
         ]);
 
         // Decorate the block title with a link to the catalog and a search icon.

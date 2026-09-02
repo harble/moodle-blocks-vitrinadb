@@ -118,9 +118,9 @@ class block_vitrinadb_edit_form extends block_edit_form {
         $mform->addHelpButton('config_sourcecourse', 'sourcecourse', 'block_vitrinadb');
 
         // Channels multi-select. Options are loaded from the selected source course.
-        $channelsselectattributes = [
-            'multiple' => 'multiple',
-            'size' => 8,
+        $channelsselectoptions = [
+            'multiple' => true,
+            'noselectionstring' => get_string('selectchannels', 'block_vitrinadb'),
         ];
         $initialchannelsoptions = [];
         $savedsourcecourse = $this->block->config->sourcecourse ?? 0;
@@ -128,7 +128,7 @@ class block_vitrinadb_edit_form extends block_edit_form {
             $initialchannelsoptions = $this->load_channels_options((int)$savedsourcecourse);
         }
 
-        $mform->addElement('select', 'config_channels', get_string('channels', 'block_vitrinadb'), $initialchannelsoptions, $channelsselectattributes);
+        $mform->addElement('autocomplete', 'config_channels', get_string('channels', 'block_vitrinadb'), $initialchannelsoptions, $channelsselectoptions);
         $mform->addHelpButton('config_channels', 'channels', 'block_vitrinadb');
 
         // Tags filter configuration: choose which item tags are available
@@ -224,6 +224,7 @@ class block_vitrinadb_edit_form extends block_edit_form {
         // Dynamically update channels options when source course changes.
         $PAGE->requires->js_call_amd('block_vitrinadb/edit_form', 'init', [
             get_string('loading', 'moodle'),
+            get_string('selectchannels', 'block_vitrinadb'),
         ]);
     }
 
