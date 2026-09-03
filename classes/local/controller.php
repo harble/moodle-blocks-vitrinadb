@@ -1469,36 +1469,82 @@ class controller {
                 // audio/video > pdf > office > presentation > image.
                 if (empty($sharefileurl) && !empty($summary)) {
                     $candidates = [];
+                    $videohosts = [
+                        'youtube.com', 'www.youtube.com', 'youtu.be',
+                        'vimeo.com', 'player.vimeo.com',
+                        'wistia.com', 'fast.wistia.com', 'fast.wistia.net',
+                        'cdn.jwplayer.com', 'jwplayer.com',
+                        'players.brightcove.net',
+                        'play.vidyard.com', 'share.vidyard.com',
+                        'loom.com',
+                        'iframe.videodelivery.net', 'watch.videodelivery.net',
+                        'stream.mux.com',
+                        'player.mediadelivery.net', 'iframe.mediadelivery.net',
+                        'dailymotion.com',
+                        'player.twitch.tv', 'twitch.tv',
+                        'cdnapisec.kaltura.com', 'kmc.kaltura.com',
+                        'panopto.com', 'eu.panopto.com',
+                        'streamable.com',
+                    ];
 
                     if (preg_match_all('/(?:href|src)\s*=\s*"([^"]+)"/i', $summary, $matches)) {
                         foreach ($matches[1] as $index => $url) {
                             $path = parse_url($url, PHP_URL_PATH) ?? $url;
                             $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                            $host = strtolower((string)(parse_url($url, PHP_URL_HOST) ?? ''));
+                            $basename = strtolower((string)basename((string)$path));
+                            $isvideohost = false;
 
-                            if (empty($ext)) {
-                                continue;
+                            if ($host !== '') {
+                                foreach ($videohosts as $videohost) {
+                                    if ($host === $videohost) {
+                                        $isvideohost = true;
+                                        break;
+                                    }
+
+                                    $suffix = '.' . $videohost;
+                                    if (strlen($host) > strlen($videohost) && substr($host, -strlen($suffix)) === $suffix) {
+                                        $isvideohost = true;
+                                        break;
+                                    }
+                                }
                             }
 
                             $type = '';
                             $priority = 100;
 
+                            // Special URL rules before extension-based fallback:
+                            // 1) video host whitelist => video (priority 1)
+                            // 2) pdfviewer.php script => pdf (priority 2)
+                            if ($isvideohost) {
+                                $type = 'video';
+                                $priority = 1;
+                            } else if ($basename === 'pdfviewer.php') {
+                                $type = 'pdf';
+                                $priority = 2;
+                            }
+
+                            if ($priority === 100 && empty($ext)) {
+                                continue;
+                            }
+
                             // Priority 1: audio/video.
-                            if (in_array($ext, ['mp3', 'wav', 'ogg', 'flac', 'aac', 'mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'])) {
+                            if ($priority === 100 && in_array($ext, ['mp3', 'wav', 'ogg', 'flac', 'aac', 'mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv'])) {
                                 $type = in_array($ext, ['mp3', 'wav', 'ogg', 'flac', 'aac']) ? 'audio' : 'video';
                                 $priority = 1;
-                            } else if (in_array($ext, ['pdf'])) {
+                            } else if ($priority === 100 && in_array($ext, ['pdf'])) {
                                 // Priority 2: pdf.
                                 $type = 'pdf';
                                 $priority = 2;
-                            } else if (in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'odt', 'ods', 'rtf'])) {
+                            } else if ($priority === 100 && in_array($ext, ['doc', 'docx', 'xls', 'xlsx', 'odt', 'ods', 'rtf'])) {
                                 // Priority 3: office.
                                 $type = 'office';
                                 $priority = 3;
-                            } else if (in_array($ext, ['ppt', 'pptx', 'key'])) {
+                            } else if ($priority === 100 && in_array($ext, ['ppt', 'pptx', 'key'])) {
                                 // Priority 4: presentation.
                                 $type = 'presentation';
                                 $priority = 4;
-                            } else if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'])) {
+                            } else if ($priority === 100 && in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'])) {
                                 // Priority 5: image.
                                 $type = 'image';
                                 $priority = 5;
