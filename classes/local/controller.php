@@ -2210,13 +2210,10 @@ class controller {
             return $options;
         }
 
-        // Sort alphabetically for a stable, user-friendly list.
+        // Keep insertion order from source values:
+        // - when param1 is configured, this preserves the configured channel order;
+        // - in fallback mode, this preserves first-seen order in data_content.
         $labels = array_values($unique);
-        usort($labels, function(string $a, string $b) {
-            $la = \core_text::strtolower($a);
-            $lb = \core_text::strtolower($b);
-            return $la <=> $lb;
-        });
 
         // Flat mode: just return a plain list of options, one per channel
         // value, without any hierarchy. This is used when the "Category
