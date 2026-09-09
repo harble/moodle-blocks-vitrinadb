@@ -449,6 +449,12 @@ export const detail = () => {
  */
 export const catalog = (uniqueid, view, currentinstanceid = 0, currentbypage = 20) => {
 
+    var meta = $('.vitrinadb-catalog-meta').first();
+    var title = $('#page-header h1').first();
+    if (meta.length && title.length) {
+        meta.insertAfter(title);
+    }
+
     instanceid[uniqueid] = currentinstanceid;
     bypage[uniqueid] = parseInt(currentbypage);
     var $tabcontent = $('#' + uniqueid + ' .tabs-content .tab-' + view);

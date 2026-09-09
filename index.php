@@ -338,20 +338,11 @@ if ($embed !== 1 && !empty($instanceid)) {
             }
         }
     }
-
-    if ($catalogmeta !== '') {
-        $PAGE->requires->js_init_code("require(['jquery'], function(\$) {
-            var meta = $('.vitrinadb-catalog-meta').first();
-            var title = $('#page-header h1').first();
-            if (meta.length && title.length) {
-                meta.insertAfter(title);
-            }
-        });");
-    }
 }
 
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'filters', [$uniqueid, $filtersselected]);
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $view, $instanceid, $bypage]);
+
 $PAGE->requires->js_init_code("require(['jquery'], function($) {
     if (window.vitrinadbKeepTreeExpandedBound) {
         return;
