@@ -2439,75 +2439,11 @@ class controller {
             return $options;
         }
 
-        $categoriesids = [];
-
-        $block = block_instance_by_id($instanceid);
-        if ($block && !empty($block->config) && !empty($block->config->categories)) {
-            // Categories in block config may be stored as an array or as a
-            // comma-separated string. Normalise to an int array so that the
-            // authors dropdown is populated consistently.
-            if (is_array($block->config->categories)) {
-                $categoriesids = array_map('intval', $block->config->categories);
-            } else {
-                $categoriesids = array_filter(array_map('intval', explode(',', (string)$block->config->categories)));
-            }
-        }
-
-        // If the block instance has no explicit categories, fall back to the
-        // global block configuration so that new instances can still resolve
-        // the Database activity used to derive authors.
-        if (empty($categoriesids)) {
-            $globalcats = get_config('block_vitrinadb', 'categories');
-            if (!empty($globalcats)) {
-                $tmp = [];
-                foreach (explode(',', (string)$globalcats) as $catid) {
-                    if (is_numeric($catid)) {
-                        $tmp[] = (int)trim($catid);
-                    }
-                }
-                $categoriesids = $tmp;
-            }
-        }
-
-        $categoriesids = array_filter($categoriesids);
-
-        if (empty($categoriesids)) {
-            return $options;
-        }
-
-        // Locate the "data" module id.
-        $datamoduleid = $DB->get_field('modules', 'id', ['name' => 'data']);
-        if (!$datamoduleid) {
-            return $options;
-        }
-
-        [$catinsql, $catparams] = $DB->get_in_or_equal($categoriesids, SQL_PARAMS_NAMED, 'cat');
-
-        $paramsdb = $catparams;
-        $paramsdb['siteid'] = SITEID;
-        $paramsdb['now'] = time();
-        $paramsdb['datamoduleid'] = $datamoduleid;
-
-        $sql = "SELECT cm.id, cm.course, cm.instance
-                  FROM {course_modules} cm
-                  JOIN {course} c ON c.id = cm.course
-                 WHERE c.category $catinsql
-                   AND c.visible = 1
-                   AND c.id <> :siteid
-                   AND (c.enddate > :now OR c.enddate = 0)
-                   AND cm.module = :datamoduleid
-                   AND cm.deletioninprogress = 0
-              ORDER BY cm.id ASC";
-
-        // Use the same Database activity that the catalog listing uses
-        // (first match across the configured categories).
-        $firstcm = $DB->get_record_sql($sql, $paramsdb, IGNORE_MULTIPLE);
-        if (!$firstcm) {
-            return $options;
-        }
-
-        $data = $DB->get_record('data', ['id' => $firstcm->instance]);
-        if (!$data) {
+        // Use the same resolution logic as the catalog listing so that
+        // sourcecourse (preferred) and categories (fallback) are both
+        // respected consistently.
+        $dataid = self::resolve_data_id_for_instance($instanceid);
+        if ($dataid <= 0) {
             return $options;
         }
 
@@ -2518,7 +2454,7 @@ class controller {
                FROM {data_records} r
                JOIN {user} u ON u.id = r.userid
               WHERE r.dataid = :dataid",
-            ['dataid' => $data->id]
+            ['dataid' => $dataid]
         );
 
         if (empty($authors)) {
