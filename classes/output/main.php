@@ -55,18 +55,25 @@ class main implements renderable, templatable {
     private $tabs;
 
     /**
+     * @var string Optional channel name for split-by-channel mode.
+     */
+    private $channel = '';
+
+    /**
      * Constructor.
      *
      * @param string $uniqueid The uniqueid of the block instance.
      * @param string $view The view type.
      * @param int $instanceid The block instance id.
      * @param array $tabs The tabs configuration.
+     * @param string $channel Optional channel name (used in split-by-channel mode).
      */
-    public function __construct($uniqueid, $view = 'default', int $instanceid = 0, array $tabs = []) {
+    public function __construct($uniqueid, $view = 'default', int $instanceid = 0, array $tabs = [], string $channel = '') {
         $this->uniqueid = $uniqueid;
         $this->view = $view;
         $this->instanceid = $instanceid;
         $this->tabs = $tabs;
+        $this->channel = $channel;
     }
 
     /**
@@ -98,6 +105,7 @@ class main implements renderable, templatable {
             'showicon' => \block_vitrinadb\local\controller::show_tabicon(),
             'showtext' => \block_vitrinadb\local\controller::show_tabtext(),
             'instanceid' => $this->instanceid,
+            'channel' => $this->channel,
             // 'opendetailstarget' => get_config('block_vitrinadb', 'opendetailstarget'),
             'opendetailstarget' => main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'opendetailstarget'),
         ];

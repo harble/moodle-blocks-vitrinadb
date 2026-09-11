@@ -244,7 +244,8 @@ class block_vitrinadb extends block_base {
                     $channeluniqueid,
                     $tabs[0],
                     $this->instance->id,
-                    $tabs
+                    $tabs,
+                    $channel
                 );
                 $splithtml .= $renderer->render($channelrenderable);
 
