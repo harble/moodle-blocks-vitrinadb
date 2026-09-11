@@ -182,7 +182,106 @@ class block_vitrinadb extends block_base {
         $this->content->text = $html;
 
         \block_vitrinadb\local\controller::include_templatecss($this->instance->id);
-        $this->page->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $tabs[0], $this->instance->id, $amount]);
+
+        // When the block instance is configured to split by channels and
+        // more than one channel has been selected, render one independent
+        // sub-block per channel. Each sub-block behaves like its own
+        // block_vitrinadb instance: it has its own tabs, paging state and
+        // load more button, and it is stacked vertically in the block
+        // content area. The catalog page continues to use the unified
+        // (non-split) behaviour.
+        $splitbychannels = !empty($this->config->splitbychannels);
+        $configuredchannels = [];
+
+        if (!empty($this->config->channels)) {
+            if (is_array($this->config->channels)) {
+                $configuredchannels = $this->config->channels;
+            } else {
+                $configuredchannels = \block_vitrinadb\local\controller::normalize_channels_list(
+                    (string)$this->config->channels
+                );
+            }
+
+            $configuredchannels = array_values(
+                array_filter(array_map('trim', $configuredchannels), function($value) {
+                    return $value !== '';
+                })
+            );
+            $configuredchannels = array_unique($configuredchannels);
+        }
+
+        if ($splitbychannels && count($configuredchannels) > 1) {
+            // Split mode: render one section per channel.
+            $splithtml = '';
+
+            foreach ($configuredchannels as $channel) {
+                $channeluniqueid = \block_vitrinadb\local\controller::get_uniqueid();
+
+                // Wrapper so the JS can hide the whole section when empty.
+                $splithtml .= \html_writer::start_div('block_vitrinadb-channelsection', [
+                    'data-vitrinadb-uniqueid' => $channeluniqueid,
+                ]);
+
+                // Channel title heading with link to the catalog page.
+                // Pass the channel name as a URL parameter so the catalog
+                // page opens with only this channel's items pre-selected,
+                // matching the behaviour of block_vitrina's category link.
+                $channelurl = new \moodle_url('/blocks/vitrinadb/index.php', [
+                    'id' => $this->instance->id,
+                    'channel' => $channel,
+                ]);
+
+                $channellink = \html_writer::link($channelurl, s($channel), [
+                    'class' => 'block_vitrinadb-channellink',
+                ]);
+
+                $splithtml .= \html_writer::tag('h4', $channellink, [
+                    'class' => 'block_vitrinadb-channeltitle',
+                    'style' => 'margin-top:18px;margin-bottom:2px;font-size:large;',
+                ]);
+
+                $channelrenderable = new \block_vitrinadb\output\main(
+                    $channeluniqueid,
+                    $tabs[0],
+                    $this->instance->id,
+                    $tabs
+                );
+                $splithtml .= $renderer->render($channelrenderable);
+
+                // Fixed filter so this sub-block only shows records for this channel.
+                $fixedfilters = [
+                    [
+                        'type' => 'channels',
+                        'values' => [$channel],
+                    ],
+                ];
+
+                $this->page->requires->js_call_amd(
+                    'block_vitrinadb/main',
+                    'catalog',
+                    [$channeluniqueid, $tabs[0], $this->instance->id, $amount, $fixedfilters]
+                );
+
+                $splithtml .= \html_writer::end_div();
+            }
+
+            // Prepend the split-by-channel sections before the original
+            // "view all" block. The original block always uses all channels.
+            $this->content->text = str_replace(
+                'id="' . $uniqueid . '"',
+                'id="' . $uniqueid . '" style="display:none;"',
+                $this->content->text
+            );
+            $this->content->text = $splithtml . $this->content->text;
+        } else {
+            // Default behaviour: single unified block using all configured
+            // channels for this instance.
+            $this->page->requires->js_call_amd(
+                'block_vitrinadb/main',
+                'catalog',
+                [$uniqueid, $tabs[0], $this->instance->id, $amount]
+            );
+        }
         $this->page->requires->js_call_amd('block_vitrinadb/edit_form', 'init', [
             get_string('loading', 'moodle'),
             get_string('selectchannels', 'block_vitrinadb'),

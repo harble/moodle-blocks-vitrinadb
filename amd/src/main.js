@@ -46,6 +46,9 @@ var $filtersbox = null;
 // Loading courses.
 var loading = false;
 
+// Fixed filters per block instance.
+var fixedfilters = [];
+
 // Load strings.
 var strings = [
     {key: 'courselinkcopiedtoclipboard', component: 'block_vitrinadb'},
@@ -242,6 +245,20 @@ function loadCourses(uniqueid, $tabcontent) {
     }
     // End of check active filters.
 
+    // Apply any fixed filters configured for this block instance
+    // (for example, a fixed channels filter when the block is
+    // configured to split by channel into multiple sections).
+    if (fixedfilters[uniqueid]) {
+        fixedfilters[uniqueid].forEach(function(fixed) {
+            // Remove existing filters of the same type so the
+            // fixed filter takes precedence.
+            filters = filters.filter(function(current) {
+                return current.type !== fixed.type;
+            });
+            filters.push(fixed);
+        });
+    }
+
     var sort = '';
     var sortdirection = '';
 
@@ -286,6 +303,30 @@ function loadCourses(uniqueid, $tabcontent) {
             updateLoadMoreButtonLabel(uniqueid, $tabcontent);
 
             if (paging[uniqueid][view].ended) {
+                // If this sub-block (split-by-channel section) has no
+                // records at all across all its tabs, hide the entire
+                // section wrapper instead of showing an empty "no
+                // courses" message.
+                if (paging[uniqueid][view].loaded === 0) {
+                    var totalloaded = 0;
+
+                    if (paging[uniqueid] !== undefined) {
+                        Object.keys(paging[uniqueid]).forEach(function(viewkey) {
+                            if (paging[uniqueid][viewkey] !== undefined) {
+                                totalloaded += paging[uniqueid][viewkey].loaded;
+                            }
+                        });
+                    }
+
+                    if (totalloaded === 0) {
+                        var $section = $('[data-vitrinadb-uniqueid="' + uniqueid + '"]');
+                        if ($section.length) {
+                            $section.remove();
+                            return;
+                        }
+                    }
+                }
+
                 $tabcontent.addClass('ended');
                 $tabcontent.find('.loadmore').hide();
 
@@ -447,7 +488,7 @@ export const detail = () => {
  * @param {integer} currentinstanceid
  * @param {integer} currentbypage
  */
-export const catalog = (uniqueid, view, currentinstanceid = 0, currentbypage = 20) => {
+export const catalog = (uniqueid, view, currentinstanceid = 0, currentbypage = 20, fixedfiltersArg = null) => {
 
     var meta = $('.vitrinadb-catalog-meta').first();
     var title = $('#page-header h1').first();
@@ -457,6 +498,11 @@ export const catalog = (uniqueid, view, currentinstanceid = 0, currentbypage = 2
 
     instanceid[uniqueid] = currentinstanceid;
     bypage[uniqueid] = parseInt(currentbypage);
+
+    if (fixedfiltersArg) {
+        fixedfilters[uniqueid] = fixedfiltersArg;
+    }
+
     var $tabcontent = $('#' + uniqueid + ' .tabs-content .tab-' + view);
 
     loadCourses(uniqueid, $tabcontent);

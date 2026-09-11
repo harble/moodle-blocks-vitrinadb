@@ -32,13 +32,21 @@ $q = optional_param('q', '', PARAM_TEXT);
 $authorid = optional_param('author', 0, PARAM_INT);
 $pendingflag = optional_param('pending', 0, PARAM_INT);
 $embed = optional_param('embed', 0, PARAM_INT);
+// Optional channel name passed explicitly from a split-by-channel block
+// section link. When present, it takes precedence over instance
+// configuration for the initial channel selection.
+$channelparam = optional_param('channel', '', PARAM_TEXT);
 
 require_login(null, true);
 
 $syscontext = context_system::instance();
 
 $PAGE->set_context($syscontext);
-$PAGE->set_url('/blocks/vitrinadb/index.php');
+$PAGE->set_url('/blocks/vitrinadb/index.php', [
+    'id' => $instanceid,
+    'view' => $view,
+    'channel' => $channelparam,
+]);
 $embed = (int)$embed;
 if ($embed === 1) {
     // Embedded/minimal view: hide global navigation and footer where possible.
@@ -152,10 +160,13 @@ if (!empty($categoriesids)) {
     $filtersselected[] = (object) ['key' => 'categories', 'values' => $categoriesids];
 }
 
-// Preselect channels filter from block configuration (Channels filter
-// setting) when opening the catalog via "view all", so that the checkbox
-// list on the left matches the resources already being filtered by channels.
-if (!empty($instanceid)) {
+// If a channel has been passed explicitly in the URL (e.g. from a
+// split-by-channel block section link), use it as the initial channels
+// filter and ignore the block instance configuration for this purpose.
+// Otherwise, fall back to the block instance channels configuration.
+if (!empty($channelparam)) {
+    $filtersselected[] = (object) ['key' => 'channels', 'values' => [$channelparam]];
+} else if (!empty($instanceid)) {
     if (!isset($block)) {
         $block = block_instance_by_id($instanceid);
     }

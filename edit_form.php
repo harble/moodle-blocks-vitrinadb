@@ -131,6 +131,16 @@ class block_vitrinadb_edit_form extends block_edit_form {
         $mform->addElement('autocomplete', 'config_channels', get_string('channels', 'block_vitrinadb'), $initialchannelsoptions, $channelsselectoptions);
         $mform->addHelpButton('config_channels', 'channels', 'block_vitrinadb');
 
+        // Split block content by selected channels in the block view,
+        // rendering one independent section per channel. The catalog
+        // page remains as a single unified list.
+        $splitoptions = [
+            '0' => get_string('no'),
+            '1' => get_string('yes'),
+        ];
+        $mform->addElement('select', 'config_splitbychannels', get_string('splitbychannels', 'block_vitrinadb'), $splitoptions);
+        $mform->addHelpButton('config_splitbychannels', 'splitbychannels', 'block_vitrinadb');
+
         // Tags filter configuration: choose which item tags are available
         // in the catalog filter. Options include standard tags and tags
         // already used on Database (mod_data) records.

@@ -238,4 +238,8 @@ $string['author_all'] = 'No limit';
 
 // Pending approval filter.
 $string['pendingfilter'] = 'Only records pending my approval';
+
+// Split by channels.
+$string['splitbychannels'] = 'Split by channel';
+$string['splitbychannels_help'] = 'When multiple channels are configured, display one independent section per channel in the block view. Each section has its own tabs and load more button. The catalog page remains as a single unified list.';
 $string['pendingpermissionnotset'] = 'Your account has not been assigned approval category permissions yet. Please contact an administrator to enable this.';

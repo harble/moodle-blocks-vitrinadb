@@ -238,3 +238,7 @@ $string['author_all'] = '不限';
 // Pending approval filter.
 $string['pendingfilter'] = '仅显示待我审批的记录';
 $string['pendingpermissionnotset'] = '尚未为您的账户设置审批指定类别的权限，如需开通请联系管理人员';
+
+// Split by channels.
+$string['splitbychannels'] = '按频道分栏';
+$string['splitbychannels_help'] = '当选择了多个频道类别后，在区块视图中按每个频道类别分成独立栏目。每栏都有自己的标签页和「加载更多」按钮。目录页仍保持为一个合并后的条目列表。';
