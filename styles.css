@@ -1083,12 +1083,8 @@
     margin-bottom: 24px;
 }
 
-.block_vitrinadb-channeltitle {
-    color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
-}
-
 .block_vitrinadb-channeltitle a.block_vitrinadb-channellink {
-    color: var(--block-vitrinadb-primary-color, #074454);
+    color: rgba(var(--bs-link-color-rgb), var(--bs-link-opacity, 1));
     text-decoration: none;
 }
 
