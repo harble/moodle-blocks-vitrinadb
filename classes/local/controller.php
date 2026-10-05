@@ -545,6 +545,72 @@ class controller {
     }
 
     /**
+     * Resolve the CDN original URL for a stored file, when the file was
+     * uploaded through central storage and carries the CDN source metadata.
+     *
+     * Returns an empty string when the file is not CDN-backed, the metadata is
+     * missing, or the resolver plugin is unavailable. Callers fall back to the
+     * local Moodle file in that case.
+     *
+     * @param \stored_file $file The stored file.
+     * @return string CDN public URL or empty string if not resolvable.
+     */
+    public static function get_cdn_image_url(\stored_file $file): string {
+        global $CFG;
+
+        // Load the central storage URL resolver when the plugin is available.
+        $centralstoragelib = $CFG->dirroot . '/repository/centralstorage/locallib.php';
+        if (is_readable($centralstoragelib)) {
+            require_once($centralstoragelib);
+        }
+
+        if (!function_exists('repository_centralstorage_public_url')) {
+            return '';
+        }
+
+        // CDN-backed files store the original source in metadata. Only treat
+        // files that are images (by stored mimetype or metadata contenttype).
+        $sourcemetadata = json_decode((string)$file->get_source(), true);
+        if (!is_array($sourcemetadata)) {
+            return '';
+        }
+
+        if (($sourcemetadata['storage'] ?? '') !== 'centralstorage_cdn') {
+            return '';
+        }
+
+        if (empty($sourcemetadata['source'])) {
+            return '';
+        }
+
+        $isimage = $file->is_valid_image();
+        $mimetype = (string)$file->get_mimetype();
+        $contenttype = (string)($sourcemetadata['contenttype'] ?? $mimetype);
+
+        $isimagefile = $isimage
+            || strpos($mimetype, 'image/') === 0
+            || strpos($contenttype, 'image/') === 0;
+
+        if (!$isimagefile) {
+            return '';
+        }
+
+        // Supports both absolute CDN URLs and relative R2 object paths.
+        $cdnurl = \repository_centralstorage_public_url(
+            (string)$sourcemetadata['source'],
+            'cloudflare',
+            'image'
+        );
+
+        $scheme = strtolower((string)parse_url($cdnurl, PHP_URL_SCHEME));
+        if (in_array($scheme, ['http', 'https'], true)) {
+            return $cdnurl;
+        }
+
+        return '';
+    }
+
+    /**
      * Get the course preview image.
      *
      * @param \stdClass $course Course object.
@@ -552,12 +618,6 @@ class controller {
      */
     public static function get_courseimage($course): string {
         global $CFG, $OUTPUT;
-
-        // Load the central storage URL resolver when the plugin is available.
-        $centralstoragelib = $CFG->dirroot . '/repository/centralstorage/locallib.php';
-        if (is_readable($centralstoragelib)) {
-            require_once($centralstoragelib);
-        }
 
         $coursefull = new \core_course_list_element($course);
 
@@ -569,33 +629,9 @@ class controller {
             $mimetype = (string)$file->get_mimetype();
 
             // CDN-backed course covers store the original URL in source metadata.
-            $sourcemetadata = json_decode((string)$file->get_source(), true);
-
-            if (
-                is_array($sourcemetadata)
-                && ($sourcemetadata['storage'] ?? '') === 'centralstorage_cdn'
-                && !empty($sourcemetadata['source'])
-                && function_exists('repository_centralstorage_public_url')
-            ) {
-                $contenttype = (string)($sourcemetadata['contenttype'] ?? $mimetype);
-
-                if (
-                    $isimage
-                    || strpos($mimetype, 'image/') === 0
-                    || strpos($contenttype, 'image/') === 0
-                ) {
-                    // Supports both absolute CDN URLs and relative R2 object paths.
-                    $cdnurl = \repository_centralstorage_public_url(
-                        (string)$sourcemetadata['source'],
-                        'cloudflare',
-                        'image'
-                    );
-
-                    $scheme = strtolower((string)parse_url($cdnurl, PHP_URL_SCHEME));
-                    if (in_array($scheme, ['http', 'https'], true)) {
-                        return $cdnurl;
-                    }
-                }
+            $cdnurl = self::get_cdn_image_url($file);
+            if ($cdnurl !== '') {
+                return $cdnurl;
             }
 
             // Remember the first valid Moodle image as a fallback.
@@ -1363,7 +1399,15 @@ class controller {
                     );
 
                     if ($file) {
-                        $imagepath = self::stored_file_to_cached_url($file, 800);
+                        // Prefer the CDN-backed original (if this cover was
+                        // uploaded through central storage with CDN metadata);
+                        // otherwise fall back to the local cached/resized image.
+                        $cdnurl = self::get_cdn_image_url($file);
+                        if ($cdnurl !== '') {
+                            $imagepath = $cdnurl;
+                        } else {
+                            $imagepath = self::stored_file_to_cached_url($file, 800);
+                        }
                     } else {
                         // Fallback to the standard URL if file record is not found.
                         $imgurl = \moodle_url::make_pluginfile_url(
