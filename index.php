@@ -125,8 +125,13 @@ if (!empty($authorid)) {
 // Preselect pending approval filter from URL parameter when provided for
 // site administrators and course creators. This allows links like .../index.php?pending=1 to
 // open the catalog already restricted to only pending approval records.
-// When DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS is true, allow all users.
-if (!empty($pendingflag) && (int)$pendingflag === 1 && (\block_vitrinadb\local\controller::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS || is_siteadmin() || has_capability('moodle/course:create', \context_system::instance()))) {
+// A user may use the filter only when they have a non-empty
+// "[database name]审批" profile field.
+$pendingdataid = 0;
+if (!empty($instanceid)) {
+    $pendingdataid = \block_vitrinadb\local\controller::resolve_data_id_for_instance((int)$instanceid);
+}
+if (!empty($pendingflag) && (int)$pendingflag === 1 && \block_vitrinadb\local\controller::can_use_pending_filter($pendingdataid)) {
     $haspendingfilter = false;
     foreach ($filtersselected as $selected) {
         if ($selected->key === 'pending') {

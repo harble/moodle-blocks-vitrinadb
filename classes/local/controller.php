@@ -1052,12 +1052,11 @@ class controller {
         // Normalise any "only pending" filter (checkbox) for approval status.
         $onlypending = false;
 
-        $isadmin = \is_siteadmin();
-        $iscoursecreator = has_capability('moodle/course:create', \context_system::instance());
-        // When DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS is true, allow all users to use pending filter.
-        $canusependingfilter = self::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS
-            ? true
-            : ($isadmin || $iscoursecreator);
+        // A user may use the pending-approval filter only when they have a
+        // non-empty "[database name]审批" profile field, mirroring the catalog
+        // UI visibility. Fall back to the original admin/creator rule when no
+        // specific database instance is selected.
+        $canusependingfilter = self::can_use_pending_filter($dataid);
         foreach ($filters as $filter) {
             if (!empty($filter['type']) && $filter['type'] === 'channels' && !empty($filter['values'])) {
                 foreach ($filter['values'] as $value) {
@@ -2739,6 +2738,30 @@ class controller {
         $cache[$cachekey] = $value !== false ? (string)$value : null;
 
         return $cache[$cachekey];
+    }
+
+    /**
+     * Whether the current user may use the "only pending approval" filter.
+     *
+     * The user is allowed when they have a non-empty additional profile field
+     * named "[database name]审批". When no specific database instance is given,
+     * falls back to the original admin/course-creator rule.
+     *
+     * @param int|null $dataid Optional Database (mod_data) instance id.
+     * @return bool
+     */
+    public static function can_use_pending_filter(?int $dataid = null): bool {
+        global $DB;
+
+        if ($dataid !== null && $dataid > 0) {
+            $dataname = (string)$DB->get_field('data', 'name', ['id' => $dataid]);
+            return $dataname !== '' && self::get_pendingfilter_title($dataname) !== '';
+        }
+
+        // No specific database instance: keep the original behaviour.
+        return self::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS
+            || is_siteadmin()
+            || has_capability('moodle/course:create', \context_system::instance());
     }
 
     /**

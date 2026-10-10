@@ -79,14 +79,6 @@ class catalog implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         global $CFG, $DB;
 
-        $isadmin = \is_siteadmin();
-        
-        // Check if user is course creator (has moodle/course:create capability)
-        // When DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS is true, show checkbox for all users.
-        $iscoursecreator = \block_vitrinadb\local\controller::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS
-            ? true
-            : has_capability('moodle/course:create', \context_system::instance());
-
         $availableviews = \block_vitrinadb\local\controller::get_courses_views();
 
         $icons = \block_vitrinadb\local\controller::get_views_icons();
@@ -249,12 +241,14 @@ class catalog implements renderable, templatable {
             $filterproperties->fulltext = true;
         }
 
-        // Only administrators and course creators can see and use the "Only pending approval
-        // records" checkbox. When DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS is true, show for all.
-        $pendingfilter = \block_vitrinadb\local\controller::DEBUG_FORCE_PENDING_FILTER_FOR_ALL_USERS
-            ? true
-            : ($isadmin || $iscoursecreator);
+        // Show the "Only pending approval records" checkbox only when the current
+        // user has a non-empty additional profile field named "[database name]审批".
         $pendingfiltertitle = \block_vitrinadb\local\controller::get_pendingfilter_title($this->databasename);
+        $pendingdataid = 0;
+        if (!empty($this->instanceid)) {
+            $pendingdataid = \block_vitrinadb\local\controller::resolve_data_id_for_instance((int)$this->instanceid);
+        }
+        $pendingfilter = \block_vitrinadb\local\controller::can_use_pending_filter($pendingdataid ?: null);
         // End of filter controls.
 
         $sortvalue = main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'sortbydefault');
