@@ -108,6 +108,8 @@ class main implements renderable, templatable {
             'channel' => $this->channel,
             // 'opendetailstarget' => get_config('block_vitrinadb', 'opendetailstarget'),
             'opendetailstarget' => main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'opendetailstarget'),
+            'layoutmode' => main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'layoutmode') ?: 'tile',
+            'inline' => main::get_config_ex($this->instanceid ?: 0, 'block_vitrinadb', 'layoutmode') === 'line',
         ];
 
         return $defaultvariables;
