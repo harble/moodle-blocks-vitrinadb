@@ -124,6 +124,14 @@ class renderer extends plugin_renderer_base {
         // Prepare a plain-text summary for safe use in attributes like title.
         if (!empty($course->summary)) {
             $summarytext = trim(strip_tags($course->summary));
+
+            // Some embed/player plugins leave a branding line like "Bunny Stream"
+            // in the plain-text summary after video conversion. Remove those lines and
+            // collapse repeated whitespace before using it in the title attribute.
+            $summarytext = preg_replace('/(?im)(?:^|\R)\s*(?:Bunny\s+Stream|BunnyStream|Video\s+Player)\s*(?:\R|$)/', "\n", $summarytext);
+            $summarytext = preg_replace('/\s{2,}/', ' ', $summarytext);
+            $summarytext = trim($summarytext);
+
             if ($summarytext !== '') {
                 $course->summarytitle = \core_text::substr($summarytext, 0, 200);
             }
