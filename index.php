@@ -335,20 +335,65 @@ if ($embed !== 1 && !empty($instanceid)) {
             if ($course) {
                 global $CFG;
 
-                $coursefull = new \core_course_list_element($course);
-                foreach ($coursefull->get_course_overviewfiles() as $file) {
-                    if ($file->is_valid_image()) {
-                        $urlpath = '/' . $file->get_contextid() . '/' . $file->get_component() . '/';
-                        $urlpath .= $file->get_filearea() . $file->get_filepath() . $file->get_filename();
+                $coursecontext = \context_course::instance($course->id);
+                $fs = get_file_storage();
 
-                        $url = \moodle_url::make_file_url(
-                            "$CFG->wwwroot/pluginfile.php",
-                            $urlpath,
-                            false
+                // Priority 1: dedicated course header image (theme_boost_union /
+                // courseheaderimage). Resolve its CDN original first, then fall
+                // back to the local pluginfile URL.
+                $files = $fs->get_area_files(
+                    $coursecontext->id,
+                    'theme_boost_union',
+                    'courseheaderimage',
+                    0,
+                    'itemid',
+                    false
+                );
+                $headerfile = reset($files);
+
+                if ($headerfile) {
+                    $cdnurl = \block_vitrinadb\local\controller::get_cdn_image_url($headerfile);
+                    if ($cdnurl !== '') {
+                        $catalogcourseimage = $cdnurl;
+                    } else {
+                        $headerurl = \moodle_url::make_pluginfile_url(
+                            $headerfile->get_contextid(),
+                            $headerfile->get_component(),
+                            $headerfile->get_filearea(),
+                            $headerfile->get_itemid(),
+                            $headerfile->get_filepath(),
+                            $headerfile->get_filename()
                         );
+                        $catalogcourseimage = (string)$headerurl;
+                    }
+                }
 
-                        $catalogcourseimage = (string)$url;
-                        break;
+                // Priority 2: fall back to the course overview (cover) image when
+                // no dedicated course header image is configured.
+                if ($catalogcourseimage === '') {
+                    $coursefull = new \core_course_list_element($course);
+                    foreach ($coursefull->get_course_overviewfiles() as $file) {
+                        // CDN original image first.
+                        $cdnurl = \block_vitrinadb\local\controller::get_cdn_image_url($file);
+                        if ($cdnurl !== '') {
+                            $catalogcourseimage = $cdnurl;
+                            break;
+                        }
+
+                        // Local pluginfile URL.
+                        if ($file->is_valid_image()) {
+                            $urlpath = '/' . $file->get_contextid() . '/' . $file->get_component() . '/';
+                            $urlpath .= $file->get_filearea() . $file->get_filepath() . $file->get_filename();
+
+                            $url = \moodle_url::make_file_url(
+                                "$CFG->wwwroot/pluginfile.php",
+                                $urlpath,
+                                false
+                            );
+
+                            $catalogcourseimage = (string)$url;
+                            break;
+                        }
                     }
                 }
             }
