@@ -421,7 +421,7 @@ function refreshLineMode(uniqueid, $tabcontent) {
         totalPages = 1;
     } else {
         // Meaningful overflow: at least a second page.
-        totalPages = Math.max(2, Math.floor(maxScroll / pageView) + 1);
+        totalPages = Math.max(2, Math.ceil(maxScroll / pageView) + 1);
     }
 
     // Show the controls whenever the content spans more than one page OR there
@@ -447,8 +447,8 @@ function refreshLineMode(uniqueid, $tabcontent) {
     // than a full screen but already counts as a second page) should report
     // the last page instead of a stale floor() value.
     var currentPage;
-    if (totalPages <= 1 || atEnd) {
-        currentPage = atEnd ? totalPages : 1;
+    if (atEnd) {
+        currentPage = totalPages;
     } else {
         currentPage = Math.floor(el.scrollLeft / pageView) + 1;
         if (currentPage < 1) {
@@ -531,7 +531,10 @@ function setupLineControls(uniqueid, $blockcontent) {
         return {tabcontent: $tabcontent, list: $list};
     }
 
-    // Prev: scroll the active tab's list one page (one viewport width) to the left.
+    // Prev: snap back to the nearest page boundary (one viewport width) to the
+    // left. Using the previous page factor directly, from the trailing partial
+    // page we return to the previous full page instead of leaping all the way
+    // back to the first page.
     $prev.on('click', function() {
         if ($(this).hasClass('vitrina-line-disabled')) {
             return;
@@ -543,7 +546,9 @@ function setupLineControls(uniqueid, $blockcontent) {
             return;
         }
         var pageView = Math.max(1, el.clientWidth);
-        var target = Math.max(0, Math.floor(el.scrollLeft / pageView) * pageView - pageView);
+        var maxScroll = el.scrollWidth - el.clientWidth;
+        var target = Math.ceil((el.scrollLeft - pageView) / pageView) * pageView;
+        target = Math.max(0, Math.min(maxScroll, target));
         el.scrollLeft = target;
         window.setTimeout(function() {
             refreshLineMode(uniqueid, $tabcontent);
