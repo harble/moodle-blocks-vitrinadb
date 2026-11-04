@@ -44,6 +44,14 @@ var paging = [];
 // Filters box.
 var $filtersbox = null;
 
+// Global channels "select all" tri-state shared between filters() and
+// loadCourses(): 'all' | 'none' | 'single'.
+var gChannelsSelectAllState = 'all';
+// When in 'single' mode and a node was clicked, the list of channel values
+// (target subtree). Empty means "run against ALL channels" (node-external
+// trigger).
+var gSingleNodeValues = [];
+
 // Loading courses.
 var loading = false;
 
@@ -217,20 +225,51 @@ function loadCourses(uniqueid, $tabcontent) {
                 values.push($option.val());
             });
 
+            if (key === 'channels' && gChannelsSelectAllState === 'single') {
+                values = [];
+            }
+
             if (values.length > 0) {
                 filters.push({
                     'values': values,
                     'type': key
                 });
             } else if (key === 'channels') {
-                // User has explicitly unselected all categories (channels).
-                // Send an explicit empty channels filter so the backend can
-                // distinguish this case from "no channels filter" and
-                // return no resources instead of falling back to defaults.
-                filters.push({
-                    'values': [],
-                    'type': key
-                });
+                // In "single-node" mode the individual channel checkboxes are
+                // hidden, so the loop above collects nothing. Decide here what
+                // to send:
+                //  - if triggered by clicking a node, filter by that exact
+                //    single node only (gSingleNodeValues);
+                //  - if triggered from outside the tree (fulltext/sort/...),
+                //    that trigger clears the node scope and queries across ALL
+                //    channels, so fall back to sending every channel value.
+                if (gChannelsSelectAllState === 'single') {
+                    if (gSingleNodeValues.length > 0) {
+                        filters.push({
+                            'values': gSingleNodeValues,
+                            'type': key
+                        });
+                    } else {
+                        // Node-external trigger: query across all channel nodes.
+                        var allValues = [];
+                        $control.find('input.filteroption').each(function() {
+                            allValues.push($(this).val());
+                        });
+                        filters.push({
+                            'values': allValues,
+                            'type': key
+                        });
+                    }
+                } else {
+                    // User has explicitly unselected all categories (channels).
+                    // Send an explicit empty channels filter so the backend can
+                    // distinguish this case from "no channels filter" and
+                    // return no resources instead of falling back to defaults.
+                    filters.push({
+                        'values': [],
+                        'type': key
+                    });
+                }
             } else if (key === 'tags') {
                 // When the block has configured item tags, they are shown
                 // as a checkbox list (key = "tags"). If the user
@@ -818,9 +857,51 @@ export const filters = (uniqueid, selectedfilters = []) => {
     var arrPrechecked = [];
     var hasArrPrechecked = false;
 
-    var syncSelectAllChannels = function() {
-        return;
+    // Tri-state selector for the channels "select all" checkbox.
+    // 'all'    -> every channel selected;
+    // 'none'   -> no channel selected (backend returns no resources);
+    // 'single' -> "single-node" mode: channel checkboxes are hidden and
+    //             clicking any node selects only that node (whole subtree);
+    //             queries triggered outside the tree (fulltext/sort/...)
+    //             run against ALL channels.
+    var selectAllState = 'all';
+    // Current selected node (full path value) when in 'single' mode.
+    var singleNodeValue = null;
+    // Whether the last filter change was triggered by clicking a tree node.
+    var lastNodeTrigger = false;
+
+    // Sync the "select all" checkbox visual state according to the current
+    // tri-state mode. Pure UI: it never triggers searches nor restores the
+    // pending permissions (that is done by applyPendingChannelPermissions).
+    var refreshSelectAllUI = function() {
+        if (!$selectAllChannels.length) {
+            return;
+        }
+
+        // Drive the visual state through a dedicated data-state attribute so we
+        // never rely on the native :checked / :indeterminate pseudo-classes
+        // (which Boost Union and some browsers render unreliably).
+        if (selectAllState === 'single') {
+            $channelsControl.addClass('vitrina-single-mode');
+            $selectAllChannels.attr('data-state', 'single');
+            $selectAllChannels.prop('indeterminate', false);
+            $selectAllChannels.prop('checked', false);
+        } else {
+            $channelsControl.removeClass('vitrina-single-mode');
+            $selectAllChannels.prop('indeterminate', false);
+            if (selectAllState === 'all') {
+                $selectAllChannels.prop('checked', true);
+                $selectAllChannels.attr('data-state', 'all');
+            } else {
+                $selectAllChannels.prop('checked', false);
+                $selectAllChannels.attr('data-state', 'none');
+            }
+        }
     };
+
+    // Whether the pending-approval permission currently disables channel
+    // selection.
+    var applyPendingDisabled = false;
 
     var updateTreeExpansion = function() {
         return;
@@ -877,8 +958,9 @@ export const filters = (uniqueid, selectedfilters = []) => {
 
             $allChannelCheckboxes.prop('disabled', false);
             setSelectAllDisabled(false);
+            applyPendingDisabled = false;
             updateTreeExpansion();
-            syncSelectAllChannels();
+            refreshSelectAllUI();
             return true;
         }
 
@@ -900,9 +982,10 @@ export const filters = (uniqueid, selectedfilters = []) => {
         if (permissionTitle === '*') {
             $allChannelCheckboxes.prop('disabled', false);
             setSelectAllDisabled(false);
+            applyPendingDisabled = false;
             $allChannelCheckboxes.prop('checked', true);
             updateTreeExpansion();
-            syncSelectAllChannels();
+            refreshSelectAllUI();
             return true;
         }
 
@@ -930,12 +1013,33 @@ export const filters = (uniqueid, selectedfilters = []) => {
         });
 
         setSelectAllDisabled(true);
+        applyPendingDisabled = true;
+        if (selectAllState === 'single') {
+            // In single-node mode, keep only the allowed nodes clickable.
+            $allChannelCheckboxes.off('click.vitrinasingle');
+            $allChannelCheckboxes.each(function() {
+                var $checkbox = $(this);
+                var channelpath = getChannelPathValue($checkbox);
+                var isallowed = !!allowedPaths[channelpath];
+                $checkbox.prop('disabled', !isallowed);
+            });
+        }
         updateTreeExpansion();
-        syncSelectAllChannels();
+        refreshSelectAllUI();
         return true;
     };
 
-    var applyFilters = function() {
+    var applyFilters = function(fromNode) {
+
+        // A node-external trigger while in single-node mode: drop the active
+        // single-node scope and search across ALL channels (as if every
+        // category were selected), and clear the node highlight.
+        if (gChannelsSelectAllState === 'single' && !fromNode) {
+            gSingleNodeValues = [];
+            if ($channelsControl.length) {
+                $channelsControl.find('.filter-option').removeClass('vitrina-node-selected vitrina-node-ancestor');
+            }
+        }
 
         if (!loading) {
             restartSearch(uniqueid);
@@ -984,13 +1088,13 @@ export const filters = (uniqueid, selectedfilters = []) => {
         });
     });
 
-    $filtersbox.find('.filtercontrol .filteroptions input').on('change', applyFilters);
-    $filtersbox.find('.filtersort select[name="sort"]').on('change', applyFilters);
-    $filtersbox.find('.filtersortdirection select[name="sortdirection"]').on('change', applyFilters);
-    $filtersbox.find('.filterauthor select[name="author"]').on('change', applyFilters);
-    $filtersbox.find('.filtertags select[name="tagsfilter"]').on('change', applyFilters);
+    $filtersbox.find('.filtercontrol .filteroptions input').on('change', function() { applyFilters(); });
+    $filtersbox.find('.filtersort select[name="sort"]').on('change', function() { applyFilters(); });
+    $filtersbox.find('.filtersortdirection select[name="sortdirection"]').on('change', function() { applyFilters(); });
+    $filtersbox.find('.filterauthor select[name="author"]').on('change', function() { applyFilters(); });
+    $filtersbox.find('.filtertags select[name="tagsfilter"]').on('change', function() { applyFilters(); });
 
-    $filtersbox.find('.filterfulltext button').on('click', applyFilters);
+    $filtersbox.find('.filterfulltext button').on('click', function() { applyFilters(); });
     $filtersbox.find('.filterfulltext input').on('keypress', function(e) {
         if (e.which == 13) {
             applyFilters();
@@ -1011,23 +1115,6 @@ export const filters = (uniqueid, selectedfilters = []) => {
     // channel in the list (built server-side).
     if ($channelsControl.length) {
 
-        // Keep the state of the optional "select all" checkbox in sync
-        // with the individual channel checkboxes.
-        syncSelectAllChannels = function() {
-            if (!$selectAllChannels.length) {
-                return;
-            }
-
-            var $allChannelCheckboxes = $channelsControl.find('input.filteroption');
-            if ($allChannelCheckboxes.length === 0) {
-                $selectAllChannels.prop('checked', false);
-                return;
-            }
-
-            var allChecked = $allChannelCheckboxes.filter(':checked').length === $allChannelCheckboxes.length;
-            $selectAllChannels.prop('checked', allChecked);
-        };
-
         updateTreeExpansion = function() {
             $channelsControl.find('.filter-optiongroup.haschilds').each(function() {
                 var $group = $(this);
@@ -1046,23 +1133,112 @@ export const filters = (uniqueid, selectedfilters = []) => {
         // Initial expansion based on any preselected channels.
         updateTreeExpansion();
 
-        // Initial sync for the select-all checkbox.
-        syncSelectAllChannels();
+        // Initial sync for the select-all checkbox. The URL parameter
+        // "single=1" makes the catalog page boot directly into single-node
+        // mode (checkbox shows the dash, node checkboxes hidden).
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('single') === '1') {
+            selectAllState = 'single';
+            gChannelsSelectAllState = 'single';
+            gSingleNodeValues = [];
+            $channelsControl.find('input.filteroption').prop('checked', false);
+        } else {
+            selectAllState = 'all';
+            gChannelsSelectAllState = 'all';
+        }
+        refreshSelectAllUI();
 
-        // Toggle all channels when the "select all" checkbox changes.
+        // In "single-node" mode a node is treated as an exact single node: only the
+        // clicked node's own channel value is used (the backend matches it
+        // within the "##value##" separators, so child nodes are not included).
+        var collectSubtreeValues = function(target) {
+            var normalized = normalizeChannelPath(target);
+            if (normalized === '') {
+                return [];
+            }
+            return [target];
+        };
+
+        // When a node is clicked in "single-node" mode, select that exact single
+        // node, highlight it and its ancestors, and trigger a node-scoped
+        // search.
         if ($selectAllChannels.length) {
-            $selectAllChannels.on('change', function() {
-                var checked = $(this).is(':checked');
+            $channelsControl.on('click', '.filter-option label', function(e) {
+                if (selectAllState !== 'single') {
+                    return;
+                }
+                // Prevent the native label->checkbox toggling: in single-node
+                // mode we drive the selection entirely from here.
+                e.preventDefault();
+                e.stopPropagation();
 
-                // Select/unselect all channel checkboxes (including children).
-                $channelsControl.find('input.filteroption').prop('checked', checked);
+                var $label = $(this);
+                var $option = $label.closest('.filter-option');
+                var $checkbox = $option.find('.filteroption').first();
+                if (!$checkbox.length || $checkbox.prop('disabled')) {
+                    return;
+                }
 
-                // Update tree UI and re-sync the select-all state.
-                updateTreeExpansion();
-                syncSelectAllChannels();
+                var channelpath = getChannelPathValue($checkbox);
+                if (channelpath === '') {
+                    return;
+                }
 
-                // Apply filters so the catalog reloads according to the
-                // new channels selection.
+                // Highlight the selected node and all its ancestors.
+                $channelsControl.find('.filter-option').removeClass('vitrina-node-selected');
+                $option.addClass('vitrina-node-selected');
+                $option.parents('.filter-optiongroup').addClass('vitrina-node-ancestor');
+
+                // Store the exact single node as the active scope (no child nodes).
+                gSingleNodeValues = collectSubtreeValues(channelpath);
+                gChannelsSelectAllState = 'single';
+
+                // Expand the tree towards the selected node if collapsed.
+                $option.parents('.filter-optiongroup.haschilds').addClass('expanded');
+                var $icon = $option.parents('.filter-optiongroup.haschilds').find('> .filter-option .tree-toggle');
+                $icon.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+
+                applyFilters(true);
+            });
+        }
+
+        // Toggle all channels. Because the "select all" checkbox supports a
+        // third (indeterminate) state, we drive the cycle with click events:
+        // 'all' -> 'none' -> 'single' -> 'all'.
+        if ($selectAllChannels.length) {
+            $selectAllChannels.on('click', function(e) {
+                e.preventDefault();
+
+                var next;
+                if (selectAllState === 'all') {
+                    next = 'none';
+                } else if (selectAllState === 'none') {
+                    next = 'single';
+                } else {
+                    next = 'all';
+                }
+
+                selectAllState = next;
+                gChannelsSelectAllState = next;
+
+                if (next === 'single') {
+                    // Enter single-node mode: clear any previous node scope.
+                    gSingleNodeValues = [];
+                } else {
+                    gSingleNodeValues = [];
+
+                    // In 'all' and 'none' the select-all checkbox also drives
+                    // the underlying node checkboxes (historical behaviour).
+                    var $allChannelCheckboxes = $channelsControl.find('input.filteroption');
+                    $allChannelCheckboxes.prop('checked', (next === 'all'));
+                }
+
+                // Remove node highlighting when leaving single-node mode.
+                if (next !== 'single') {
+                    $channelsControl.find('.filter-option').removeClass('vitrina-node-selected vitrina-node-ancestor');
+                }
+
+                refreshSelectAllUI();
                 applyFilters();
             });
         }
@@ -1083,10 +1259,22 @@ export const filters = (uniqueid, selectedfilters = []) => {
             }
         });
 
-        // Keep expansion state in sync with checkbox changes.
+        // Keep expansion state in sync with checkbox changes. In single-node mode
+        // the generic change handler is not used (nodes are handled by the
+        // label click binding), but we still refresh the select-all UI.
         $channelsControl.on('change', 'input.filteroption', function() {
             updateTreeExpansion();
-            syncSelectAllChannels();
+            if (selectAllState === 'single') {
+                return;
+            }
+            var $allChannelCheckboxes = $channelsControl.find('input.filteroption');
+            if ($allChannelCheckboxes.length === 0) {
+                selectAllState = 'none';
+            } else {
+                selectAllState = ($allChannelCheckboxes.filter(':checked').length === $allChannelCheckboxes.length)
+                    ? 'all' : 'none';
+            }
+            refreshSelectAllUI();
         });
     }
 

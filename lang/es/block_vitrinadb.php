@@ -71,6 +71,8 @@ $string['filtercustomfields'] = 'Filtrar por campos personalizados';
 $string['filtercustomfields_help'] = 'Seleccione los campos personalizados que desea usar para filtrar los cursos.
 Sólo se aceptan campos de lista desplegable y casillas de verificación.';
 $string['resourcetagsfilter'] = 'Etiquetas de elementos';
+$string['selectall'] = 'Seleccionar todo';
+$string['selectalltitle'] = 'Clic para alternar: Seleccionar todo → No seleccionar → Modo nodo único → Seleccionar todo…';
 $string['resourcetagsfilter_help'] = 'Seleccione una o más etiquetas para que estén disponibles como filtros en el catálogo. Al seleccionar una etiqueta en el catálogo, solo se mostrarán los recursos que tengan al menos esa etiqueta.';
 $string['selecttags'] = 'Sin límite';
 $string['fulltextsearch'] = 'Búsqueda de texto';

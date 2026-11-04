@@ -80,6 +80,8 @@ $string['filtercustomfields'] = 'Custom fields to filter';
 $string['filtercustomfields_help'] = 'Select the custom fields to filter the courses in the catalog.
 Only select and check fields are available to filter.';
 $string['resourcetagsfilter'] = 'Item tags';
+$string['selectall'] = 'Select all';
+$string['selectalltitle'] = 'Click to cycle: Select all → Select none → Single-node mode → Select all…';
 $string['resourcetagsfilter_help'] = 'Select one or more tags to make them available as filters in the catalog. Only resources having at least one of these tags will be displayed when that tag is selected.';
 $string['selecttags'] = 'No limit';
 $string['fulltextsearch'] = 'Full text search';
