@@ -432,6 +432,15 @@ $PAGE->requires->js_init_code("require(['jquery'], function($) {
     });
 });");
 
+// In inner-title mode the whole page title bar is removed: the main
+// heading is not rendered and the course name is the only title (overlaid
+// on the banner). Read the global setting here, before the header renders.
+$titlestyleglobal = get_config('block_vitrinadb', 'titlestyle');
+if ($embed !== 1 && $titlestyleglobal === 'inner') {
+    $PAGE->set_heading('');
+    $PAGE->add_body_class('vitrinadb-inner-title');
+}
+
 echo $OUTPUT->header();
 
 $summary = get_config('block_vitrinadb', 'summary');
@@ -446,12 +455,30 @@ if (!empty($instanceid) && $databasecmid > 0) {
     }
 }
 
+// Catalog title display style: dual (default, big header + meta subtitle)
+// or inner (a single heading overlaid on the banner image, near the left
+// edge, white text with a dark shadow).
+$titlestyle = 'dual';
+$titlestyleglobal = get_config('block_vitrinadb', 'titlestyle');
+if (!empty($titlestyleglobal)) {
+    $titlestyle = (string)$titlestyleglobal;
+}
+
+
 // In embedded mode, keep the page as clean as possible: skip catalog
 // header meta, cover image and summary so only the core course list
 // area is shown.
 if ($embed !== 1) {
-    if ($catalogmeta !== '') {
-        echo html_writer::tag('div', s($catalogmeta), ['class' => 'vitrinadb-catalog-meta']);
+    // In inner title mode the long [category] / [course] / [database]
+    // subtitle line is hidden; the course name is instead overlaid on the
+    // banner image (see below), falling back to a styled meta line when no
+    // banner image is available.
+    $innertitle = '';
+    if ($titlestyle === 'inner' && $catalogmeta !== '') {
+        $innertitle = $coursename;
+    }
+    if ($catalogmeta !== '' && ($titlestyle !== 'inner' || empty($catalogcourseimage))) {
+        echo html_writer::tag('div', s($catalogmeta), ['class' => 'vitrinadb-catalog-meta' . ($titlestyle === 'inner' ? ' vitrinadb-catalog-meta-inner' : '')]);
     }
 
     // Show the course cover image (if any) for the course that owns the
@@ -463,7 +490,14 @@ if ($embed !== 1) {
             'alt' => '',
             'class' => 'vitrinadb-catalog-courseimage-img',
         ]);
-        $coverimgdiv = html_writer::div($img, 'vitrinadb-catalog-courseimage');
+        // Inner title mode: overlay the course name on the banner image,
+        // near the left edge (white text with a dark shadow via CSS).
+        $innertitlehtml = '';
+        if ($innertitle !== '') {
+            $innertitlehtml = html_writer::tag('div', s($innertitle), ['class' => 'vitrinadb-catalog-inner-title']);
+        }
+        $coverimginner = $innertitlehtml . $img;
+        $coverimgdiv = html_writer::div($coverimginner, 'vitrinadb-catalog-courseimage' . ($innertitle !== '' ? ' vitrinadb-catalog-courseimage-hasinner' : ''));
         
         // Add new entry button (positioned absolutely over the cover image)
         if (!empty($newentrytext) && $databasecmid > 0) {
@@ -475,8 +509,8 @@ if ($embed !== 1) {
                 'title' => s($newentrytext),
             ]);
             $coverimgdiv = html_writer::div(
-                $img . html_writer::div($buttonhtml, 'vitrinadb-newentry-button-container'),
-                'vitrinadb-catalog-courseimage'
+                $innertitlehtml . $img . html_writer::div($buttonhtml, 'vitrinadb-newentry-button-container'),
+                'vitrinadb-catalog-courseimage' . ($innertitle !== '' ? ' vitrinadb-catalog-courseimage-hasinner' : '')
             );
         }
         

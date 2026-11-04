@@ -351,6 +351,29 @@
 }
 
 /* Course detail */
+/* Inner-title mode: course name overlaid on the catalog banner, near the
+ * left edge, white text with a dark shadow. */
+.vitrinadb-catalog-courseimage-hasinner .vitrinadb-catalog-inner-title {
+    position: absolute;
+    left: 24px;
+    top: 24px;
+    z-index: 2;
+    max-width: 70%;
+    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.75), 0 1px 2px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+}
+
+/* Inner-title mode fallback: when no banner image is available the course
+ * name is shown as a prominent meta line under the page header. */
+.vitrinadb-catalog-meta-inner {
+    color: #212529;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
 #page-blocks-vitrinadb-detail .content-layout {
     max-width: 940px;
     margin: auto;
@@ -384,6 +407,14 @@
 }
 .path-blocks-vitrinadb #page-header h1 {
     display: inline-block;
+}
+
+/* Inner-title mode: the whole page title bar is removed; the course
+ * name overlaid on the banner is the only title. Hide the page heading.
+ */
+.path-blocks-vitrinadb.vitrinadb-inner-title #page-header h1,
+.path-blocks-vitrinadb.vitrinadb-inner-title #page-header .page-header-headings {
+    display: none;
 }
 
 /* Extra spacing between Display status, Author and Pending filters

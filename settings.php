@@ -361,6 +361,17 @@ if ($ADMIN->fulltree) {
     $setting = new admin_setting_configselect($name, $title, $help, 'default', $options);
     $settings->add($setting);
 
+    // Catalog title display style.
+    $options = [
+        'dual' => get_string('titlestyle_dual', 'block_vitrinadb'),
+        'inner' => get_string('titlestyle_inner', 'block_vitrinadb'),
+    ];
+    $name = 'block_vitrinadb/titlestyle';
+    $title = get_string('titlestyle', 'block_vitrinadb');
+    $help = get_string('titlestyle_help', 'block_vitrinadb');
+    $setting = new admin_setting_configselect($name, $title, $help, 'dual', $options);
+    $settings->add($setting);
+
     // Rating components.
     $options = [];
 
