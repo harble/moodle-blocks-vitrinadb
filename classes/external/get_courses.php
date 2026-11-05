@@ -448,50 +448,29 @@ class get_courses extends external_api {
      * @return string
      */
     private static function sanitize_summary(string $summary): string {
-        global $CFG;
-
         if ($summary === '') {
             return $summary;
         }
 
-        $pluginfilebase = preg_quote($CFG->wwwroot . '/pluginfile.php', '/');
+        // The list cards show only an image plus text. Convert the summary to
+        // plain text so that any embedded media (video/audio/iframe/embed/
+        // object/source/img) and all other tags are stripped before reaching
+        // the browser. This prevents a page with many cards from silently
+        // loading every card's media assets.
+        // Drop script/style blocks first: strip_tags() removes their tags but
+        // would keep their inner text, which we do not want.
+        $summary = preg_replace('~<script\b[^>]*>.*?</script>~is', ' ', $summary);
+        $summary = preg_replace('~<style\b[^>]*>.*?</style>~is', ' ', $summary);
 
-        // Remove tags whose media-related attributes point directly to pluginfile.php.
-        // Tags: img, video, audio, iframe, embed, object, source.
-        // Attributes: src, srcset, data, poster.
-        $summary = preg_replace(
-            '/<(img|video|audio|iframe|embed|object|source)[^>]+'
-            . '(src|srcset|data|poster)\s*=\s*"' . $pluginfilebase . '[^" ]*"[^>]*>/i',
-            '',
-            $summary
-        );
-        $summary = preg_replace(
-            "/<(img|video|audio|iframe|embed|object|source)[^>]+"
-            . "(src|srcset|data|poster)\s*=\s*'" . $pluginfilebase . "[^' ]*'[^>]*>/i",
-            '',
-            $summary
-        );
+        // Remove every remaining HTML tag; entities are left intact so the
+        // resulting plain text stays safe when output unescaped by the card
+        // templates (the browser renders the entities as normal characters).
+        $summary = strip_tags($summary);
 
-        // Remove entire <audio>...</audio> or <video>...</video> blocks which contain
-        // any pluginfile.php URL inside their content (as in the provided audio example
-        // where the URL appears as inner text rather than an attribute).
-        $summary = preg_replace(
-            '/<audio\b[^>]*>.*?' . $pluginfilebase . '.*?<\/audio>/is',
-            '',
-            $summary
-        );
-        $summary = preg_replace(
-            '/<video\b[^>]*>.*?' . $pluginfilebase . '.*?<\/video>/is',
-            '',
-            $summary
-        );
-
-        // Finally, remove any bare pluginfile.php URLs that might remain in text nodes.
-        $summary = preg_replace(
-            '/' . $pluginfilebase . '[^\s"<\']*/i',
-            '',
-            $summary
-        );
+        // Fold whitespace into single spaces and trim.
+        $summary = preg_replace('/[ \t]+/u', ' ', $summary);
+        $summary = preg_replace('/\s{2,}/u', ' ', $summary);
+        $summary = trim($summary);
 
         return $summary;
     }
