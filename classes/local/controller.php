@@ -1177,7 +1177,11 @@ class controller {
                 $where[] = 'COALESCE(tt.isdraft, 0) = 0';
                 $where[] = '(r.userid = :currentuserid OR r.approved = :approved)';
             } else {
-                $where[] = '(r.userid = :currentuserid OR r.approved = 1 OR (r.approved = :approved AND COALESCE(tt.isdraft, 0) = 0))';
+                // In the normal view everyone may see approved, non-draft records,
+                // plus their own records. A record tagged as draft is visible only
+                // to its owner, even when it has already been approved (so a draft
+                // re-tagged after approval does not leak to other users).
+                $where[] = '(r.userid = :currentuserid OR (r.approved = 1 AND COALESCE(tt.isdraft, 0) = 0))';
             }
 
             // Author filter at SQL level when available.
@@ -1848,7 +1852,12 @@ class controller {
 
                 // Pending-approval state flags with nuanced handling.
                 $resource->isresourceowner = ($record->userid == $USER->id);
-                $resource->isdraft = !empty($record->isdraft) && empty($record->approved);
+                // A record is a draft when it carries the "draft" tag and is either
+                // not yet approved, or the Database allows editing of approved
+                // entries (manageapproved), in which case an already-approved
+                // record re-tagged as draft will still show its draft status.
+                $resource->isdraft = !empty($record->isdraft) &&
+                    (empty($record->approved) || !empty($data->manageapproved));
                 // Red "等待审批" badge: others' records pending my approval (only in pending filter).
                 $resource->ispending = $onlypending && !$resource->isresourceowner;
                 // Orange "等待审批" badge: own records pending approval,
