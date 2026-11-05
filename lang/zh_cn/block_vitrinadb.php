@@ -200,6 +200,7 @@ $string['layoutmode_counttitle'] = '当前页/总页数';
 $string['layoutmode_countsep'] = ' / ';
 $string['layoutmode_prev'] = '向左滑动';
 $string['layoutmode_next'] = '向右滑动';
+$string['layoutmode_more'] = '更多...';
 $string['titlestyle'] = '标题显示方式';
 $string['titlestyle_help'] = '选择目录页标题的显示方式。双标题：页面顶部显示大标题 "条目搜索"，副标题按类别/课程/数据库名生成。内标题：只将课程名称以白色文字加深色阴影显示在banner图左侧，更聚焦课程主体。';
 $string['titlestyle_dual'] = '双标题';
