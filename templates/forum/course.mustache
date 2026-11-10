@@ -72,24 +72,26 @@
                 {{/hasrating}}
             </div>
 
-            {{#pinned}}
-            <div class="vitrinadb-badge" title="{{#str}}pinnedlabel, block_vitrinadb{{/str}}" aria-label="{{#str}}pinnedlabel, block_vitrinadb{{/str}}">
-                <span class="vitrinadb-badge-label">{{#str}}pinnedlabel, block_vitrinadb{{/str}}</span>
-                <i class="icon fa fa-thumbtack fa-fw" aria-hidden="true"></i>
+            <div class="vitrinadb-forum-badges">
+                {{#pinned}}
+                <div class="vitrinadb-badge" title="{{#str}}pinnedlabel, block_vitrinadb{{/str}}" aria-label="{{#str}}pinnedlabel, block_vitrinadb{{/str}}">
+                    <span class="vitrinadb-badge-label">{{#str}}pinnedlabel, block_vitrinadb{{/str}}</span>
+                    <i class="icon fa fa-thumbtack fa-fw" aria-hidden="true"></i>
+                </div>
+                {{/pinned}}
+                {{#isprime}}
+                <div class="vitrinadb-badge" title="{{#str}}primelabel, block_vitrinadb{{/str}}" aria-label="{{#str}}primelabel, block_vitrinadb{{/str}}">
+                    <span class="vitrinadb-badge-label">{{#str}}primelabel, block_vitrinadb{{/str}}</span>
+                    <i class="icon fa fa-certificate fa-fw" aria-hidden="true"></i>
+                </div>
+                {{/isprime}}
+                {{#ishidden}}
+                <div class="vitrinadb-badge" title="{{#str}}hidelabel, block_vitrinadb{{/str}}" aria-label="{{#str}}hidelabel, block_vitrinadb{{/str}}">
+                    <span class="vitrinadb-badge-label">{{#str}}hidelabel, block_vitrinadb{{/str}}</span>
+                    <i class="icon fa fa-eye-slash fa-fw" aria-hidden="true"></i>
+                </div>
+                {{/ishidden}}
             </div>
-            {{/pinned}}
-            {{#isprime}}
-            <div class="vitrinadb-badge" title="{{#str}}primelabel, block_vitrinadb{{/str}}" aria-label="{{#str}}primelabel, block_vitrinadb{{/str}}">
-                <span class="vitrinadb-badge-label">{{#str}}primelabel, block_vitrinadb{{/str}}</span>
-                <i class="icon fa fa-certificate fa-fw" aria-hidden="true"></i>
-            </div>
-            {{/isprime}}
-            {{#ishidden}}
-            <div class="vitrinadb-badge" title="{{#str}}hidelabel, block_vitrinadb{{/str}}" aria-label="{{#str}}hidelabel, block_vitrinadb{{/str}}">
-                <span class="vitrinadb-badge-label">{{#str}}hidelabel, block_vitrinadb{{/str}}</span>
-                <i class="icon fa fa-eye-slash fa-fw" aria-hidden="true"></i>
-            </div>
-            {{/ishidden}}
             {{#ispending}}
                 <div class="forum-status forum-status-pending">
                     {{#str}}pendinglabel, block_vitrinadb{{/str}}

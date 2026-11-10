@@ -108,6 +108,20 @@
     gap: 4px;
 }
 
+.block_vitrina-courseslist .coursebox.forum-coursebox .vitrinadb-forum-badges {
+    margin-left: auto;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 6px;
+    z-index: 3;
+}
+
+.block_vitrina-courseslist .coursebox.forum-coursebox .vitrinadb-forum-badges .vitrinadb-badge {
+    position: static;
+    white-space: nowrap;
+}
+
 .block_vitrina-courseslist .coursebox .vitrinadb-badge .vitrinadb-badge-label {
     font-size: 0.85rem;
     text-shadow: 0 0 BLACK;
