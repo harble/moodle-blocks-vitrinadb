@@ -108,16 +108,40 @@ class catalog implements renderable, templatable {
         // on Database records).
         $tagscontrol = null;
 
-        $tagrecords = $DB->get_records_sql(
-            "SELECT t.id, t.name
-               FROM {tag} t
-          LEFT JOIN {tag_instance} ti ON ti.tagid = t.id
-                 AND ti.component = 'mod_data'
-                 AND ti.itemtype = 'data_records'
-           GROUP BY t.id, t.name, t.isstandard
-             HAVING t.isstandard = 1 OR COUNT(ti.id) > 2
-           ORDER BY t.isstandard DESC, t.name ASC"
-        );
+        // Restrict the tag list to tags relevant to the current Database
+        // activity (the one bound to this block instance): only tags actually
+        // used more than twice on records of that Database are listed. Tags
+        // used on other Database activities do not leak into the dropdown.
+        $dataid = \block_vitrinadb\local\controller::resolve_data_id_for_instance((int)$this->instanceid);
+
+        if ($dataid > 0) {
+            $tagrecords = $DB->get_records_sql(
+                "SELECT t.id, t.name
+                   FROM {tag} t
+              LEFT JOIN {tag_instance} ti ON ti.tagid = t.id
+                        AND ti.component = 'mod_data'
+                        AND ti.itemtype = 'data_records'
+              LEFT JOIN {data_records} dr ON dr.id = ti.itemid AND dr.dataid = :dataid
+                 GROUP BY t.id, t.name
+                   HAVING COUNT(dr.id) > 2
+                 ORDER BY t.name ASC",
+                ['dataid' => $dataid]
+            );
+        } else {
+            // Fallback: if the Database activity cannot be resolved, still only
+            // show tags that are actually used (no standard tags), so the list
+            // stays relevant and the dropdown is never empty.
+            $tagrecords = $DB->get_records_sql(
+                "SELECT t.id, t.name
+                   FROM {tag} t
+              LEFT JOIN {tag_instance} ti ON ti.tagid = t.id
+                        AND ti.component = 'mod_data'
+                        AND ti.itemtype = 'data_records'
+                 GROUP BY t.id, t.name
+                   HAVING COUNT(ti.id) > 2
+                 ORDER BY t.name ASC"
+            );
+        }
 
         $allowedtagids = [];
         if ($this->instanceid) {
