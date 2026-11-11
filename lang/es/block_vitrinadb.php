@@ -231,6 +231,12 @@ $string['showstatus_all'] = 'Sin límite';
 $string['authorfilter'] = 'Autor';
 $string['author_all'] = 'Sin límite';
 
+// Sin datos para el autor seleccionado (URL author=...). La antigua alerta() se
+// sustituye por una ventana modal centrada.
+$string['authorempty'] = 'Aún no ha publicado ningún contenido. Puede publicar contenido desde la página principal.';
+$string['authorempty_note'] = 'Haga clic en "Aceptar" para seguir viendo las publicaciones de otros.';
+$string['authorempty_title'] = 'Aviso';
+
 // Filtro de registros pendientes de aprobación.
 $string['pendingfilter'] = 'Solo registros pendientes de mi aprobación';
 $string['pendingpermissionnotset'] = 'Aún no se han configurado permisos de categorías de aprobación para su cuenta. Si necesita habilitarlos, contacte al administrador.';

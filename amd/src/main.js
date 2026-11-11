@@ -24,6 +24,8 @@
 import $ from 'jquery';
 import {get_strings as getStrings} from 'core/str';
 import Notification from 'core/notification';
+import ModalFactory from 'core/modal_factory';
+import ModalEvents from 'core/modal_events';
 import Log from 'core/log';
 import Ajax from 'core/ajax';
 
@@ -73,6 +75,61 @@ var strings = [
     {key: 'layoutmode_more', component: 'block_vitrinadb'},
 ];
 var s = [];
+
+// Whether the "the selected author has no published content" notice has already
+// been shown (only warned once per page load, to avoid repeats on paging).
+var gAuthorEmptyNoticeShown = false;
+
+/**
+ * Show a centered modal telling the visitor that the selected author (from the
+ * URL author=... parameter) has no published content. Replaces the historical
+ * window.alert(). All texts come from the block_vitrinadb language pack.
+ */
+function showAuthorEmptyNotice() {
+
+    if (gAuthorEmptyNoticeShown) {
+        return;
+    }
+    gAuthorEmptyNoticeShown = true;
+
+    getStrings([
+        {key: 'authorempty', component: 'block_vitrinadb'},
+        {key: 'authorempty_note', component: 'block_vitrinadb'},
+        {key: 'authorempty_title', component: 'block_vitrinadb'},
+    ]).then(function(strings) {
+        var msgbody = strings[0] + '<br/>' + strings[1];
+
+        ModalFactory.create({
+            type: ModalFactory.types.ALERT,
+            title: strings[2],
+            body: '',
+        }).then(function(modal) {
+            var root = modal.getRoot();
+            // Vertically center the dialog (Bootstrap native class).
+            root.find('.modal-dialog').addClass('modal-dialog-centered');
+
+            // Restore the historical behaviour: after dismissing the old alert
+            // the author filter was dropped and all ("No limit") results were
+            // shown again. Do the same when the modal closes.
+            root.on(ModalEvents.hidden, function() {
+                if ($filtersbox) {
+                    var $authorSelect = $filtersbox.find('.filterauthor select[name="author"]');
+                    if ($authorSelect.length) {
+                        $authorSelect.val('');
+                        $authorSelect.trigger('change');
+                    }
+                }
+            });
+            modal.getBody().html(msgbody);
+            modal.show();
+            return modal;
+        }).catch(function() {
+            window.alert(msgbody.replace(/<br\/?>/g, '\n'));
+        });
+    }).catch(function() {
+        window.alert('Unable to load the author notice.');
+    });
+}
 
 /**
  * Load strings from server.
@@ -311,6 +368,26 @@ function loadCourses(uniqueid, $tabcontent, scrollToTop) {
             'amount': bypage[uniqueid], 'initial': paging[uniqueid][view].loaded,
             'sort': sort, 'sortdirection': sortdirection},
         done: function(data) {
+
+            // An author profile link (URL author=...) that returns no visible
+            // records: show the author-specific notice. The author is read from
+            // the dropdown, which filters() pre-selected from the URL before
+            // this asynchronous response arrives. The dropdown itself is not
+            // reliable as a trigger (it lists every author in the raw records,
+            // including ones hidden/unapproved), so we react to the actual
+            // empty query result instead.
+            var activeAuthor = '';
+            if ($filtersbox) {
+                var $authorselectNow = $filtersbox.find('.filterauthor select[name="author"]');
+                if ($authorselectNow.length > 0) {
+                    activeAuthor = $authorselectNow.val() || '';
+                }
+            }
+            var emptyResult = !(data && data.length > 0);
+            var firstLoad = (paging[uniqueid][view].loaded === 0);
+            if (firstLoad && emptyResult && activeAuthor !== '') {
+                showAuthorEmptyNotice();
+            }
 
             if (data && data.length > 0) {
                 paging[uniqueid][view].loaded += data.length;
@@ -1111,9 +1188,9 @@ export const filters = (uniqueid, selectedfilters = []) => {
                 var authorValue = String(filter.values[0]);
                 var $authorselect = $filtersbox.find('.filterauthor select[name="author"]');
                 if ($authorselect.length > 0) {
-                    if ($authorselect.find('option[value="' + authorValue + '"]').length === 0) {
-                        window.alert('没有查到指定作者的记录！本次查询将尝试不限作者查询。');
-                    }
+                    // Just pre-select the value from the URL. The author has no
+                    // records fallback is handled where the query result is
+                    // actually known to be empty (see loadCourses done).
                     $authorselect.val(authorValue);
                 }
             }

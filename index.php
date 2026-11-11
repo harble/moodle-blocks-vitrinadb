@@ -414,17 +414,17 @@ $PAGE->requires->js_init_code("require(['jquery'], function($) {
 
     $(document).on('mousedown.vitrinadbkeeptree', selector, function() {
         $(this).parents('.filter-optiongroup.haschilds').each(function() {
-            var $group = $(this);
-            $group.data('vitrinadb-expanded-before', $group.hasClass('expanded') ? 1 : 0);
+            var \$group = $(this);
+            \$group.data('vitrinadb-expanded-before', \$group.hasClass('expanded') ? 1 : 0);
         });
     });
 
     $(document).on('change.vitrinadbkeeptree', selector, function() {
         $(this).parents('.filter-optiongroup.haschilds').each(function() {
-            var $group = $(this);
-            if ($group.data('vitrinadb-expanded-before')) {
-                $group.addClass('expanded');
-                $group.find('> .filter-option .tree-toggle')
+            var \$group = $(this);
+            if (\$group.data('vitrinadb-expanded-before')) {
+                \$group.addClass('expanded');
+                \$group.find('> .filter-option .tree-toggle')
                     .removeClass('fa-plus-circle')
                     .addClass('fa-minus-circle');
             }

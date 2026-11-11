@@ -251,6 +251,12 @@ $string['showstatus_all'] = '不限';
 $string['authorfilter'] = '作者';
 $string['author_all'] = '不限';
 
+// No data for the selected author (URL author=...). The old alert() was
+// replaced by a centered modal.
+$string['authorempty'] = '您尚未发布内容，您可以在主页发布内容';
+$string['authorempty_note'] = '点击"确定"继续查看其他人的分享';
+$string['authorempty_title'] = '提示';
+
 // Pending approval filter.
 $string['pendingfilter'] = '仅显示待我审批的记录';
 $string['pendingpermissionnotset'] = '尚未为您的账户设置审批指定类别的权限，如需开通请联系管理人员';

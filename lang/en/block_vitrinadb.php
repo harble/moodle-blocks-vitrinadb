@@ -251,6 +251,12 @@ $string['showstatus_all'] = 'No limit';
 $string['authorfilter'] = 'Author';
 $string['author_all'] = 'No limit';
 
+// No data for the selected author (URL author=...). The old alert() was
+// replaced by a centered modal.
+$string['authorempty'] = 'You have not published any content yet. You can publish content on the homepage.';
+$string['authorempty_note'] = 'Click "OK" to keep browsing other people\'s shares.';
+$string['authorempty_title'] = 'Notice';
+
 // Pending approval filter.
 $string['pendingfilter'] = 'Only records pending my approval';
 
