@@ -80,6 +80,11 @@ var s = [];
 // been shown (only warned once per page load, to avoid repeats on paging).
 var gAuthorEmptyNoticeShown = false;
 
+// The author filter carried by the URL (?author=...). It drives the empty-notice
+// and is used as a fallback when the dropdown has no matching option (e.g. the
+// visitor never published, so the author is absent from the author list).
+var gUrlAuthorFilter = '';
+
 /**
  * Show a centered modal telling the visitor that the selected author (from the
  * URL author=... parameter) has no published content. Replaces the historical
@@ -137,6 +142,9 @@ function showAuthorEmptyNotice() {
             // the author filter was dropped and all ("No limit") results were
             // shown again. Do the same when the modal closes.
             root.on(ModalEvents.hidden, function() {
+                // Drop the URL author so the following no-limit reload no longer
+                // filters by it.
+                gUrlAuthorFilter = '';
                 if ($filtersbox) {
                     var $authorSelect = $filtersbox.find('.filterauthor select[name="author"]');
                     if ($authorSelect.length) {
@@ -272,6 +280,9 @@ function loadCourses(uniqueid, $tabcontent, scrollToTop) {
         var $authorcontrol = $filtersbox.find('.filterauthor select[name="author"]');
         if ($authorcontrol.length > 0) {
             var author = $authorcontrol.val();
+            if (!author) {
+                author = gUrlAuthorFilter || '';
+            }
             if (author) {
                 filters.push({
                     'values': [author],
@@ -401,13 +412,7 @@ function loadCourses(uniqueid, $tabcontent, scrollToTop) {
             // reliable as a trigger (it lists every author in the raw records,
             // including ones hidden/unapproved), so we react to the actual
             // empty query result instead.
-            var activeAuthor = '';
-            if ($filtersbox) {
-                var $authorselectNow = $filtersbox.find('.filterauthor select[name="author"]');
-                if ($authorselectNow.length > 0) {
-                    activeAuthor = $authorselectNow.val() || '';
-                }
-            }
+            var activeAuthor = gUrlAuthorFilter || '';
             var emptyResult = !(data && data.length > 0);
             var firstLoad = (paging[uniqueid][view].loaded === 0);
             if (firstLoad && emptyResult && activeAuthor !== '') {
@@ -1211,6 +1216,7 @@ export const filters = (uniqueid, selectedfilters = [], pendingdenied = false) =
         if (filter.key === 'author') {
             if (filter.values && filter.values.length > 0) {
                 var authorValue = String(filter.values[0]);
+                gUrlAuthorFilter = authorValue;
                 var $authorselect = $filtersbox.find('.filterauthor select[name="author"]');
                 if ($authorselect.length > 0) {
                     // Just pre-select the value from the URL. The author has no
