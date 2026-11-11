@@ -225,51 +225,35 @@ function loadCourses(uniqueid, $tabcontent, scrollToTop) {
                 values.push($option.val());
             });
 
-            if (key === 'channels' && gChannelsSelectAllState === 'single') {
-                values = [];
-            }
+            if (key === 'channels') {
+                // 判定本次查询的置顶作用域：
+                //   - 全局查询（不发送 channels filter，后端仅应用全局置顶
+                //     [pin]）：single 模式下由外部触发（无活动节点），或
+                //     非 single 模式下已全选全部频道节点。
+                //   - 频道查询（发送具体 channels filter，后端同时应用全局
+                //     置顶 [pin] 与频道置顶 (pin)）：其余情况（single 模式下
+                //     选中的节点，或勾选了部分频道）。
+                //   - 全不选（发送空 channels filter）：后端返回空结果。
+                var isGlobalChannelQuery = false;
+                if (gChannelsSelectAllState === 'single') {
+                    isGlobalChannelQuery = gSingleNodeValues.length === 0;
+                } else {
+                    var allChannelCount = $control.find('input.filteroption').length;
+                    isGlobalChannelQuery = allChannelCount > 0 && values.length === allChannelCount;
+                }
 
-            if (values.length > 0) {
+                if (!isGlobalChannelQuery) {
+                    var channelValues = (gChannelsSelectAllState === 'single') ? gSingleNodeValues : values;
+                    filters.push({
+                        'values': channelValues,
+                        'type': key
+                    });
+                }
+            } else if (values.length > 0) {
                 filters.push({
                     'values': values,
                     'type': key
                 });
-            } else if (key === 'channels') {
-                // In "single-node" mode the individual channel checkboxes are
-                // hidden, so the loop above collects nothing. Decide here what
-                // to send:
-                //  - if triggered by clicking a node, filter by that exact
-                //    single node only (gSingleNodeValues);
-                //  - if triggered from outside the tree (fulltext/sort/...),
-                //    that trigger clears the node scope and queries across ALL
-                //    channels, so fall back to sending every channel value.
-                if (gChannelsSelectAllState === 'single') {
-                    if (gSingleNodeValues.length > 0) {
-                        filters.push({
-                            'values': gSingleNodeValues,
-                            'type': key
-                        });
-                    } else {
-                        // Node-external trigger: query across all channel nodes.
-                        var allValues = [];
-                        $control.find('input.filteroption').each(function() {
-                            allValues.push($(this).val());
-                        });
-                        filters.push({
-                            'values': allValues,
-                            'type': key
-                        });
-                    }
-                } else {
-                    // User has explicitly unselected all categories (channels).
-                    // Send an explicit empty channels filter so the backend can
-                    // distinguish this case from "no channels filter" and
-                    // return no resources instead of falling back to defaults.
-                    filters.push({
-                        'values': [],
-                        'type': key
-                    });
-                }
             } else if (key === 'tags') {
                 // When the block has configured item tags, they are shown
                 // as a checkbox list (key = "tags"). If the user

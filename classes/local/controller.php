@@ -1044,6 +1044,9 @@ class controller {
 
         // Normalise any channels filter provided (from block instance config or API caller).
         $channelsfilter = [];
+        // Whether the caller sent an explicit but empty channels filter,
+        // meaning the user deliberately unselected every channel.
+        $channelsfilterexplicitempty = false;
         // Normalise any tags filter provided (single-select) using
         // Database (mod_data) record tags.
         $tagsfilter = [];
@@ -1058,12 +1061,18 @@ class controller {
         // specific database instance is selected.
         $canusependingfilter = self::can_use_pending_filter($dataid);
         foreach ($filters as $filter) {
-            if (!empty($filter['type']) && $filter['type'] === 'channels' && !empty($filter['values'])) {
-                foreach ($filter['values'] as $value) {
-                    $parts = self::normalize_channels_list((string)$value);
-                    foreach ($parts as $part) {
-                        $channelsfilter[] = mb_strtolower($part);
+            if (!empty($filter['type']) && $filter['type'] === 'channels') {
+                if (!empty($filter['values'])) {
+                    foreach ($filter['values'] as $value) {
+                        $parts = self::normalize_channels_list((string)$value);
+                        foreach ($parts as $part) {
+                            $channelsfilter[] = mb_strtolower($part);
+                        }
                     }
+                } else {
+                    // Explicit empty channels filter: the user deliberately
+                    // unselected every channel, so there are no results.
+                    $channelsfilterexplicitempty = true;
                 }
             } else if (!empty($filter['type']) && $filter['type'] === 'tags' && !empty($filter['values'])) {
                 foreach ($filter['values'] as $value) {
@@ -1096,6 +1105,12 @@ class controller {
         }
         if (!empty($channelsfilter)) {
             $channelsfilter = array_values(array_unique($channelsfilter));
+        }
+        // If the user explicitly cleared the whole channels filter, return no
+        // results instead of ignoring the filter and falling back to a global
+        // query (which would return everything again).
+        if (!empty($channelsfilterexplicitempty)) {
+            return [];
         }
         if (!empty($tagsfilter)) {
             $tagsfilter = array_values(array_unique($tagsfilter));
