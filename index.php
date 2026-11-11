@@ -401,7 +401,8 @@ if ($embed !== 1 && !empty($instanceid)) {
     }
 }
 
-$PAGE->requires->js_call_amd('block_vitrinadb/main', 'filters', [$uniqueid, $filtersselected]);
+$pendingdenied = !empty($pendingflag) && (int)$pendingflag === 1 && !\block_vitrinadb\local\controller::can_use_pending_filter($pendingdataid);
+$PAGE->requires->js_call_amd('block_vitrinadb/main', 'filters', [$uniqueid, $filtersselected, (int)$pendingdenied]);
 $PAGE->requires->js_call_amd('block_vitrinadb/main', 'catalog', [$uniqueid, $view, $instanceid, $bypage]);
 
 $PAGE->requires->js_init_code("require(['jquery'], function($) {

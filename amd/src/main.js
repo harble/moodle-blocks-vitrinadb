@@ -85,6 +85,31 @@ var gAuthorEmptyNoticeShown = false;
  * URL author=... parameter) has no published content. Replaces the historical
  * window.alert(). All texts come from the block_vitrinadb language pack.
  */
+function showPendingPermissionNotice() {
+
+    getStrings([
+        {key: 'pendingpermissionnotset', component: 'block_vitrinadb'},
+        {key: 'authorempty_title', component: 'block_vitrinadb'},
+    ]).then(function(strings) {
+        var msgbody = strings[0];
+
+        ModalFactory.create({
+            type: ModalFactory.types.ALERT,
+            title: strings[1],
+            body: '',
+        }).then(function(modal) {
+            var root = modal.getRoot();
+            root.find('.modal-dialog').addClass('modal-dialog-centered');
+            modal.getBody().html(msgbody);
+            modal.show();
+            return modal;
+        }).catch(function() {
+            window.alert(msgbody);
+        });
+    }).catch(function() {
+        window.alert('Unable to load the pending permission notice.');
+    });
+}
 function showAuthorEmptyNotice() {
 
     if (gAuthorEmptyNoticeShown) {
@@ -932,7 +957,7 @@ export const catalog = (uniqueid, view, currentinstanceid = 0, currentbypage = 2
  * @param {integer} uniqueid
  * @param {array} selectedfilters
  */
-export const filters = (uniqueid, selectedfilters = []) => {
+export const filters = (uniqueid, selectedfilters = [], pendingdenied = false) => {
 
     // Ensure localised strings are initialised before any preselected
     // pending filter permission checks run (e.g. URL pending=1).
@@ -1063,7 +1088,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
 
         var permissionTitle = normalizeChannelPath($pendingcontrol.attr('title'));
         if (permissionTitle === '') {
-            window.alert(getPendingPermissionMessage());
+            showPendingPermissionNotice();
             $pendingcontrol.prop('checked', false);
             return false;
         }
@@ -1102,7 +1127,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
         });
 
         if (Object.keys(allowedPaths).length === 0) {
-            window.alert(getPendingPermissionMessage());
+            showPendingPermissionNotice();
             $pendingcontrol.prop('checked', false);
             return false;
         }
@@ -1418,6 +1443,12 @@ export const filters = (uniqueid, selectedfilters = []) => {
         if ($pendingcontrol.is(':checked')) {
             applyPendingChannelPermissions();
         }
+    }
+
+    // The visitor opened the catalog with pending=1 but has no pending-approval
+    // permission (checkbox is hidden): tell them with a centred modal.
+    if (pendingdenied) {
+        showPendingPermissionNotice();
     }
 
 };
