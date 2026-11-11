@@ -1246,8 +1246,10 @@ class controller {
                           CONCAT('|', GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR '|'), '|') AS fc_tags,
                           MAX(CASE WHEN LOWER(t.name) LIKE '%[pin]%'  THEN 1 ELSE 0 END)        AS isglobalpin,
                           MAX(CASE WHEN LOWER(t.name) LIKE '%(pin)%'  THEN 1 ELSE 0 END)        AS ischannelpin,
-                          MAX(CASE WHEN LOWER(t.name) LIKE '%prime%' THEN 1 ELSE 0 END)        AS isprime,
-                          MAX(CASE WHEN LOWER(t.name) LIKE '%draft%' THEN 1 ELSE 0 END)       AS isdraft
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%[prime]%'  THEN 1 ELSE 0 END)     AS isglobalprime,
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%(prime)%'  THEN 1 ELSE 0 END)     AS ischannelprime,
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%prime%'    THEN 1 ELSE 0 END)     AS isprime,
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%draft%'    THEN 1 ELSE 0 END)     AS isdraft
                       FROM {tag_instance} ti
                       JOIN {tag} t ON t.id = ti.tagid
                       JOIN {data_records} r ON r.id = ti.itemid
@@ -1316,6 +1318,9 @@ class controller {
             $ispinnedexpr = $haschannelfilter
                 ? '(tt.isglobalpin = 1 OR tt.ischannelpin = 1)'
                 : 'tt.isglobalpin = 1';
+            $isprimeexpr = $haschannelfilter
+                ? '(tt.isglobalprime = 1 OR tt.ischannelprime = 1)'
+                : 'tt.isglobalprime = 1';
 
             if ($view === 'greats') {
                 // Only resources that have a rating higher than 3.
@@ -1326,9 +1331,10 @@ class controller {
                 // ignoring PIN order.
                 $orderby = 'COALESCE(r.timemodified, r.timecreated) DESC';
             } else if ($view === 'premium') {
-                // Only resources explicitly marked as prime, ordered by last
-                // modification date (newest first), ignoring PIN order.
-                $where[] = 'tt.isprime = 1';
+                // Only resources that are prime within the current scope:
+                // global prime everywhere, channel prime only when viewed
+                // within that channel query.
+                $where[] = $isprimeexpr;
                 $orderby = 'COALESCE(r.timemodified, r.timecreated) DESC';
             } else {
                 // Default view: keep PIN order and user-selected sort.
@@ -1366,6 +1372,7 @@ class controller {
                         tt.fc_tags,
                         $ispinnedexpr AS ispinned,
                         tt.isprime,
+                        $isprimeexpr AS isprime_effective,
                         tt.isdraft,
                         rt.ratingtotal,
                         rt.ratingcount
@@ -1713,7 +1720,7 @@ class controller {
 
                 // Determine pin/prime state based on aggregated flags.
                 $ispinned = !empty($record->ispinned);
-                $isprime = !empty($record->isprime);
+                $isprime = !empty($record->isprime_effective);
 
                 // Map share file type to label and icon class for templates.
                 $sharefiletypelabel = '';
