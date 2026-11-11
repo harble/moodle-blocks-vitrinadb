@@ -51,6 +51,11 @@ var gChannelsSelectAllState = 'all';
 // (target subtree). Empty means "run against ALL channels" (node-external
 // trigger).
 var gSingleNodeValues = [];
+// Channels the current user is allowed to approve, set when the
+// pending-approval permission is restricted to specific categories (the
+// "[database]审批" profile field holds concrete channel paths, not "*").
+// Empty when permission covers ALL channels (then the query stays global).
+var gPendingAllowedChannels = [];
 
 // Loading courses.
 var loading = false;
@@ -965,6 +970,15 @@ export const filters = (uniqueid, selectedfilters = []) => {
             $allChannelCheckboxes.prop('disabled', false);
             setSelectAllDisabled(false);
             applyPendingDisabled = false;
+            // Leaving the pending-approval filter: drop the restricted scope
+            // and the node highlighting that were injected while checked.
+            if (gPendingAllowedChannels.length > 0 || gSingleNodeValues.length > 0) {
+                gPendingAllowedChannels = [];
+                gSingleNodeValues = [];
+            }
+            if ($channelsControl.length) {
+                $channelsControl.find('.filter-option').removeClass('vitrina-node-selected vitrina-node-ancestor vitrina-node-permitted');
+            }
             updateTreeExpansion();
             refreshSelectAllUI();
             return true;
@@ -990,6 +1004,13 @@ export const filters = (uniqueid, selectedfilters = []) => {
             setSelectAllDisabled(false);
             applyPendingDisabled = false;
             $allChannelCheckboxes.prop('checked', true);
+            // Permission covers all channels: keep the query global (no
+            // concrete channels filter) and clear any node highlight.
+            gPendingAllowedChannels = [];
+            gSingleNodeValues = [];
+            if ($channelsControl.length) {
+                $channelsControl.find('.filter-option').removeClass('vitrina-node-selected vitrina-node-ancestor vitrina-node-permitted');
+            }
             updateTreeExpansion();
             refreshSelectAllUI();
             return true;
@@ -1029,6 +1050,23 @@ export const filters = (uniqueid, selectedfilters = []) => {
                 var isallowed = !!allowedPaths[channelpath];
                 $checkbox.prop('disabled', !isallowed);
             });
+
+            // Restricted pending-approval permission: override the active scope
+            // with the permitted channels so the query stays channel-scoped and
+            // cannot broaden to unapproved categories (fixes over-permission).
+            // Keep a permanent subtle highlight on every permitted node so the
+            // user can always see them; a manually clicked node additionally
+            // carries .vitrina-node-selected.
+            gPendingAllowedChannels = Object.keys(allowedPaths);
+            gSingleNodeValues = gPendingAllowedChannels.slice();
+            $channelsControl.find('.filter-option').removeClass('vitrina-node-permitted');
+            $allChannelCheckboxes.each(function() {
+                var $checkbox = $(this);
+                var channelpath = getChannelPathValue($checkbox);
+                if (!!allowedPaths[channelpath]) {
+                    $checkbox.closest('.filter-option').addClass('vitrina-node-permitted');
+                }
+            });
         }
         updateTreeExpansion();
         refreshSelectAllUI();
@@ -1041,10 +1079,18 @@ export const filters = (uniqueid, selectedfilters = []) => {
         // single-node scope and search across ALL channels (as if every
         // category were selected), and clear the node highlight.
         if (gChannelsSelectAllState === 'single' && !fromNode) {
-            gSingleNodeValues = [];
-            if ($channelsControl.length) {
-                $channelsControl.find('.filter-option').removeClass('vitrina-node-selected vitrina-node-ancestor');
+            if (gPendingAllowedChannels.length === 0) {
+                // No restricted pending-approval scope: drop the active
+                // single-node scope and search across ALL channels (as if
+                // every category were selected), clearing the node highlight.
+                gSingleNodeValues = [];
+                if ($channelsControl.length) {
+                    $channelsControl.find('.filter-option').removeClass('vitrina-node-selected vitrina-node-ancestor vitrina-node-permitted');
+                }
             }
+            // Otherwise the pending-approval permission restricts the query to
+            // the permitted channels (gSingleNodeValues already holds them);
+            // keep that scope and the node highlighting intact.
         }
 
         if (!loading) {
@@ -1241,7 +1287,7 @@ export const filters = (uniqueid, selectedfilters = []) => {
 
                 // Remove node highlighting when leaving single-node mode.
                 if (next !== 'single') {
-                    $channelsControl.find('.filter-option').removeClass('vitrina-node-selected vitrina-node-ancestor');
+                    $channelsControl.find('.filter-option').removeClass('vitrina-node-selected vitrina-node-ancestor vitrina-node-permitted');
                 }
 
                 refreshSelectAllUI();
