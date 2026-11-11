@@ -1225,11 +1225,12 @@ class controller {
                             WHERE r2.dataid = :dcdataid
                   GROUP BY c.recordid";
 
-            // Tags aggregated per record (names + ispinned/isprime/isdraft flags).
+            // Tags aggregated per record (names + pin-scope flags + isprime/isdraft).
             $ttsql = "SELECT
                           r.id AS recordid,
                           CONCAT('|', GROUP_CONCAT(t.name ORDER BY t.name SEPARATOR '|'), '|') AS fc_tags,
-                          MAX(CASE WHEN LOWER(t.name) LIKE '%pin%'   THEN 1 ELSE 0 END)        AS ispinned,
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%[pin]%'  THEN 1 ELSE 0 END)        AS isglobalpin,
+                          MAX(CASE WHEN LOWER(t.name) LIKE '%(pin)%'  THEN 1 ELSE 0 END)        AS ischannelpin,
                           MAX(CASE WHEN LOWER(t.name) LIKE '%prime%' THEN 1 ELSE 0 END)        AS isprime,
                           MAX(CASE WHEN LOWER(t.name) LIKE '%draft%' THEN 1 ELSE 0 END)       AS isdraft
                       FROM {tag_instance} ti
@@ -1289,6 +1290,18 @@ class controller {
             // View-specific filters and ordering.
             $orderby = '';
 
+            // Determine whether this is a scoped (channel) query or a global
+            // one, based on whether a channels filter is present. This drives
+            // how the "pinned" flag is composed:
+            //   - global pin tag "置顶[PIN]" (lower "[pin]") is honoured everywhere;
+            //   - channel pin tag "置顶(pin)" (lower "(pin)") is only honoured in a
+            //     channel-scoped query, since the channels filter already restricts
+            //     the record set to that channel.
+            $haschannelfilter = !empty($channelsfilter);
+            $ispinnedexpr = $haschannelfilter
+                ? '(tt.isglobalpin = 1 OR tt.ischannelpin = 1)'
+                : 'tt.isglobalpin = 1';
+
             if ($view === 'greats') {
                 // Only resources that have a rating higher than 3.
                 $where[] = 'rt.ratingtotal > 3';
@@ -1304,7 +1317,7 @@ class controller {
                 $orderby = 'COALESCE(r.timemodified, r.timecreated) DESC';
             } else {
                 // Default view: keep PIN order and user-selected sort.
-                $pinexpr = 'CASE WHEN tt.ispinned = 1 THEN 0 ELSE 1 END';
+                $pinexpr = 'CASE WHEN ' . $ispinnedexpr . ' THEN 0 ELSE 1 END';
 
                 switch ($sort) {
                     case 'alphabetically':
@@ -1336,7 +1349,7 @@ class controller {
                         dc.fc_share_file,
                         dc.fc_share_file_itemid,
                         tt.fc_tags,
-                        tt.ispinned,
+                        $ispinnedexpr AS ispinned,
                         tt.isprime,
                         tt.isdraft,
                         rt.ratingtotal,
