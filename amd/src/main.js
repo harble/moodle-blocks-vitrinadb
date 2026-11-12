@@ -1403,6 +1403,35 @@ export const filters = (uniqueid, selectedfilters = [], pendingdenied = false) =
             });
         }
 
+        // Expand/collapse the whole tree when clicking the icon next to the
+        // "channels" title.
+        $channelsControl.on('click', '.tree-toggle-all', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // If at least one parent node is still collapsed, expand all;
+            // otherwise collapse everything.
+            var expandAll = $channelsControl.find('.filter-optiongroup.haschilds:not(.expanded)').length > 0;
+
+            $channelsControl.find('.filter-optiongroup.haschilds').each(function() {
+                var $group = $(this);
+                $group.toggleClass('expanded', expandAll);
+                var $icon = $group.find('> .filter-option .tree-toggle');
+                if (expandAll) {
+                    $icon.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+                } else {
+                    $icon.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+                }
+            });
+
+            var $selfIcon = $(this);
+            if (expandAll) {
+                $selfIcon.removeClass('fa-plus-circle').addClass('fa-minus-circle');
+            } else {
+                $selfIcon.removeClass('fa-minus-circle').addClass('fa-plus-circle');
+            }
+        });
+
         // Toggle expand/collapse when clicking on the parent icon.
         $channelsControl.on('click', '.tree-toggle', function(e) {
             e.preventDefault();

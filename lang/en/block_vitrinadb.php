@@ -83,6 +83,7 @@ Only select and check fields are available to filter.';
 $string['resourcetagsfilter'] = 'Item tags';
 $string['selectall'] = 'Select all';
 $string['selectalltitle'] = 'Click to cycle: Select all → Select none → Single-node mode → Select all…';
+$string['toggletreeall'] = 'Expand or collapse the whole tree';
 $string['resourcetagsfilter_help'] = 'Select one or more tags to make them available as filters in the catalog. Only resources having at least one of these tags will be displayed when that tag is selected.';
 $string['selecttags'] = 'No limit';
 $string['fulltextsearch'] = 'Full text search';

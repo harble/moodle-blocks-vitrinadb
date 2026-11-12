@@ -82,6 +82,7 @@ $string['filtercustomfields_help'] = '选择用于在目录中筛选课程的自
 $string['resourcetagsfilter'] = '内容标签';
 $string['selectall'] = '全选';
 $string['selectalltitle'] = '点击依次切换：全选→全不选→单选模式→全选…';
+$string['toggletreeall'] = '展开或折叠全部树形节点';
 $string['resourcetagsfilter_help'] = '选择一个或多个标签，使其可以在目录中作为筛选条件使用。在目录中选择某个标签时，只会显示拥有该标签的资源条目。';
 $string['selecttags'] = '不限';
 $string['fulltextsearch'] = '全文搜索';

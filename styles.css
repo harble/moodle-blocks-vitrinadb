@@ -1085,6 +1085,20 @@
     color: #6c757d;
 }
 
+.path-blocks-vitrinadb .filtercontrol h5 .filter-selectall {
+    flex: 0 0 auto;
+    margin-left: -5px;
+}
+
+.path-blocks-vitrinadb .filtercontrol h5 .tree-toggle-all {
+    flex: 0 0 auto;
+    margin-left: 6px;
+    margin-right: 3px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
 .path-blocks-vitrinadb .filtercontrol .filteroptions .filter-optiongroup.haschilds > ul.filteroptions {
     display: none;
     margin-left: 18px;
