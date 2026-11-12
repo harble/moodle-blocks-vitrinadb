@@ -32,8 +32,9 @@ $string['catfilterview_default'] = 'By default';
 $string['catfilterview_help'] = 'Choose the view to display the categories filter.';
 $string['catfilterview_tree'] = 'Tree';
 $string['channels'] = 'Category filter';
+$string['channelsfilter'] = 'Channels';
 $string['channels_help'] = 'Select one or more categories from the list dynamically loaded from the selected source course Database activity.';
-$string['selectchannels'] = 'Select categories';
+$string['selectchannels'] = 'Select channels';
 $string['newentrytext'] = 'New Entry Button Text';
 $string['newentrytext_help'] = 'The text displayed on a floating button in the right side of the catalog page banner. Example: "I want to share", "I want to post", etc. Clicking the button will open a new record form for the database activity.';
 $string['comment_by'] = 'By {$a}';
@@ -228,7 +229,7 @@ $string['filetype_other'] = 'File';
 $string['filetype_html'] = 'HTML';
 
 // Resource channels and tags title for hover on filetype icon.
-$string['resource_channels_title'] = 'Categories: {$a}';
+$string['resource_channels_title'] = 'Channels: {$a}';
 $string['resource_tags_title'] = 'Tags: {$a}';
 $string['resource_code_title'] = 'Code: {$a}';
 
@@ -263,4 +264,4 @@ $string['pendingfilter'] = 'Only records pending my approval';
 // Split by channels.
 $string['splitbychannels'] = 'Split by channel';
 $string['splitbychannels_help'] = 'When multiple channels are configured, display one independent section per channel in the block view. Each section has its own tabs and load more button. The catalog page remains as a single unified list.';
-$string['pendingpermissionnotset'] = 'Your account has not been assigned approval category permissions yet. Please contact an administrator to enable this.';
+$string['pendingpermissionnotset'] = 'Your account has not been assigned approval channel permissions yet. Please contact an administrator to enable this.';

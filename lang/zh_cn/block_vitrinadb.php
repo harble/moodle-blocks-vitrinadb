@@ -31,8 +31,9 @@ $string['catfilterview_default'] = '默认';
 $string['catfilterview_help'] = '选择用于显示课程类别筛选器的视图样式。';
 $string['catfilterview_tree'] = '树形';
 $string['channels'] = '频道类别';
+$string['channelsfilter'] = '频道';
 $string['channels_help'] = '从来源课程的数据库活动中动态加载可选频道，支持多选。';
-$string['selectchannels'] = '选择类别';
+$string['selectchannels'] = '选择频道';
 $string['newentrytext'] = '新增条目按钮';
 $string['newentrytext_help'] = '在目录页面的banner右侧显示的浮层按钮文本。例如：我要分享、我要发帖等。点击按钮将打开数据库活动的新增记录表单。';
 $string['comment_by'] = '作者：{$a}';
@@ -228,7 +229,7 @@ $string['filetype_other'] = '文件';
 $string['filetype_html'] = 'HTML';
 
 // Resource channels and tags title for hover on filetype icon.
-$string['resource_channels_title'] = '类别：{$a}';
+$string['resource_channels_title'] = '频道：{$a}';
 $string['resource_tags_title'] = '标签：{$a}';
 $string['resource_code_title'] = '代码：{$a}';
 
@@ -259,7 +260,7 @@ $string['authorempty_title'] = '提示';
 
 // Pending approval filter.
 $string['pendingfilter'] = '仅显示待我审批的记录';
-$string['pendingpermissionnotset'] = '尚未为您的账户设置审批指定类别的权限，如需开通请联系管理人员';
+$string['pendingpermissionnotset'] = '尚未为您的账户设置审批指定频道的权限，如需开通请联系管理人员';
 
 // Split by channels.
 $string['splitbychannels'] = '按频道分栏';

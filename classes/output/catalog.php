@@ -220,8 +220,8 @@ class catalog implements renderable, templatable {
             if (count($channelsoptions) > 0) {
                 $control = new \stdClass();
                 // Reuse the generic "category" label so the UI still
-                // shows a categories-like list with checkboxes.
-                $control->title = get_string('category');
+                // shows a channels-like list with checkboxes.
+                $control->title = get_string('channelsfilter', 'block_vitrinadb');
                 $control->key = 'channels';
                 $control->options = $channelsoptions;
                 // Flag used in the Mustache template to render a

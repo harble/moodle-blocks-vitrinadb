@@ -26,6 +26,7 @@ $string['amountcourses'] = 'Cantidad de cursos';
 $string['amountcourses_help'] = 'Cantidad de cursos a mostrar en la vista general.';
 $string['catalog'] = 'Búsqueda de elementos';
 $string['categories'] = 'Categorias';
+$string['channelsfilter'] = 'Canales';
 $string['categories_help'] = 'Elija las categorías con los cursos que desea mostrar.';
 $string['catfilterview'] = 'Vista de filtro de categorías';
 $string['catfilterview_default'] = 'Por defecto';
@@ -132,6 +133,7 @@ $string['relatedlimit_help'] = 'Número de cursos relacionados a mostrar en la v
 $string['requireauth'] = 'Debe <a href="{$a}">acceder</a> primero para poder matricular este curso';
 $string['returntocatalog'] = 'Ir al catálogo de cursos';
 $string['selectcategories'] = 'Elija una categoría de curso';
+$string['selectchannels'] = 'Seleccionar canales';
 $string['settingsheaderappearance'] = 'Apariencia';
 $string['settingsheaderfields'] = 'Campos del curso';
 $string['settingsheaderfiltering'] = 'Filtros';
@@ -219,7 +221,7 @@ $string['pendinglabel'] = 'Pendiente de aprobación';
 $string['draftlabel'] = 'Borrador';
 
 // Título de canales y etiquetas en el icono de tipo de archivo.
-$string['resource_channels_title'] = 'Categorías: {$a}';
+$string['resource_channels_title'] = 'Canales: {$a}';
 $string['resource_tags_title'] = 'Etiquetas: {$a}';
 $string['resource_code_title'] = 'Código: {$a}';
 
@@ -239,4 +241,4 @@ $string['authorempty_title'] = 'Aviso';
 
 // Filtro de registros pendientes de aprobación.
 $string['pendingfilter'] = 'Solo registros pendientes de mi aprobación';
-$string['pendingpermissionnotset'] = 'Aún no se han configurado permisos de categorías de aprobación para su cuenta. Si necesita habilitarlos, contacte al administrador.';
+$string['pendingpermissionnotset'] = 'Aún no se han configurado permisos de canales de aprobación para su cuenta. Si necesita habilitarlos, contacte al administrador.';
